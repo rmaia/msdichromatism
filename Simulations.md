@@ -25,34 +25,6 @@ require(ggplot2)
 
     ## Loading required package: ggplot2
 
-``` r
-sessionInfo()
-```
-
-    ## R version 3.3.0 (2016-05-03)
-    ## Platform: x86_64-apple-darwin13.4.0 (64-bit)
-    ## Running under: OS X 10.11.4 (El Capitan)
-    ## 
-    ## locale:
-    ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
-    ## 
-    ## attached base packages:
-    ## [1] stats     graphics  grDevices utils     datasets  methods   base     
-    ## 
-    ## other attached packages:
-    ## [1] ggplot2_2.1.0        scatterplot3d_0.3-37 pavo_0.5-5          
-    ## [4] rgl_0.95.1441       
-    ## 
-    ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.5        knitr_1.13         magrittr_1.5      
-    ##  [4] maps_3.1.0         magic_1.5-6        munsell_0.4.3     
-    ##  [7] colorspace_1.2-6   geometry_0.3-6     plyr_1.8.3        
-    ## [10] stringr_1.0.0      tools_3.3.0        grid_3.3.0        
-    ## [13] gtable_0.2.0       htmltools_0.3.5    yaml_2.1.13       
-    ## [16] digest_0.6.9       mapproj_1.2-4      rcdd_1.1-10       
-    ## [19] evaluate_0.9       rmarkdown_0.9.6.10 stringi_1.0-1     
-    ## [22] scales_0.4.0
-
 ### Example 1: low intra-group variability, low inter-group distance
 
 ``` r
@@ -119,14 +91,12 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 ### Example 2: High intra-group variability, low inter-group distance
 
 ``` r
-# step 1: generate data
-
 set.seed(1982)
 
 # we'll just consider usml are uncorrelated for this example
 
 # we'll generate data from a lognormal distribution to avoid negative values
-# and a variance (on the log scale) of 0.002
+# now with a variance (on the log scale) of 0.02
 
 groupA <- data.frame(
   u = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.02)),
@@ -154,7 +124,7 @@ sp3d$points3d(suppressWarnings(tcs(groupB)[, c('x','y','z')]), col='red',pch=19)
 
 ![](Simulations_files/figure-markdown_github/unnamed-chunk-4-1.png)
 
-Note that although USML were simulated uncorrelated, XYZ are correlated.
+Again, although USML were simulated uncorrelated, XYZ are correlated.
 
 Calculate deltaS
 
@@ -179,7 +149,7 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 
 ![](Simulations_files/figure-markdown_github/unnamed-chunk-5-1.png)
 
-#### Note that in both cases there is no dichromatism, but regular analyses would consider the second case dichromatic.
+#### Note that in both cases there is no dichromatism, but regular analyses would consider the second case dichromatic - because mean deltaS between males and females is over the threshold of 1 JND.
 
 How to test this?
 -----------------
@@ -246,3 +216,149 @@ summary(lmer(dS~comparison-1+(1|patch1)+(1|patch2), data=deltaS))
     ##             cmprsn cmpr.A
     ## cmprsnntr.A 0.519        
     ## cmprsnntr.B 0.390  0.000
+
+According to Eaton 2005:
+
+> Because average reflectance curves were used in the color discrimination model, between-sex differences identified by the model might not be biologically functional if variance in coloration within sexes is so broad as not to be a reliable visual indicator of sex. Hence, I assessed intraspecific variation in coloration between sexes using logistic regression (PROC GENMOD, SAS V.8.0, SAS Institute, Cary, NC), with sex (1 = male, 0 = female) as the response variable and Qi (i.e., receptor quantum catches, Eq. 1 ) as predictor variables. I modeled the probability of an individual being male given a value for Qi , for each of the four receptor quantum catches for each feather patch within each species. If the model regression coefficient estimate was zero, then that quantum catch had no effect on sex (i.e., it cannot predict sex). A positive regression coefficient indicated an increased probability of an individual being male with larger values of Qi , whereas a negative regression coefficient indicated a higher probability of being female with larger values of Qi . I used likelihood ratio confidence intervals for estimating whether strong correlations existed between the response variable (sex) and the predictor variables (Q1–Q4) for each feather patch. Given the small sample sizes for each feather patch comparison (n = 10), I report 85% upper and lower confidence intervals around the regression coefficient estimates (29) (see Table 1).
+
+``` r
+alldat$group <- gsub('[0-9]', '',rownames(alldat))
+
+summary(glm(as.numeric(as.factor(group))~u, data=alldat))
+```
+
+    ## 
+    ## Call:
+    ## glm(formula = as.numeric(as.factor(group)) ~ u, data = alldat)
+    ## 
+    ## Deviance Residuals: 
+    ##      Min        1Q    Median        3Q       Max  
+    ## -0.77670  -0.46423  -0.04167   0.43751   0.71222  
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)  
+    ## (Intercept)   0.5317     0.5234   1.016   0.3140  
+    ## u             9.5493     5.1236   1.864   0.0674 .
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## (Dispersion parameter for gaussian family taken to be 0.244007)
+    ## 
+    ##     Null deviance: 15.000  on 59  degrees of freedom
+    ## Residual deviance: 14.152  on 58  degrees of freedom
+    ## AIC: 89.605
+    ## 
+    ## Number of Fisher Scoring iterations: 2
+
+``` r
+summary(glm(as.numeric(as.factor(group))~s, data=alldat))
+```
+
+    ## 
+    ## Call:
+    ## glm(formula = as.numeric(as.factor(group)) ~ s, data = alldat)
+    ## 
+    ## Deviance Residuals: 
+    ##      Min        1Q    Median        3Q       Max  
+    ## -0.51060  -0.50101  -0.00176   0.50098   0.50819  
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)   
+    ## (Intercept)   1.4703     0.4682   3.141  0.00265 **
+    ## s             0.2862     4.4628   0.064  0.94909   
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## (Dispersion parameter for gaussian family taken to be 0.2586024)
+    ## 
+    ##     Null deviance: 15.000  on 59  degrees of freedom
+    ## Residual deviance: 14.999  on 58  degrees of freedom
+    ## AIC: 93.091
+    ## 
+    ## Number of Fisher Scoring iterations: 2
+
+``` r
+summary(glm(as.numeric(as.factor(group))~m, data=alldat))
+```
+
+    ## 
+    ## Call:
+    ## glm(formula = as.numeric(as.factor(group)) ~ m, data = alldat)
+    ## 
+    ## Deviance Residuals: 
+    ##      Min        1Q    Median        3Q       Max  
+    ## -0.59657  -0.49701   0.01609   0.49458   0.54262  
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)   1.7835     0.4827   3.695 0.000489 ***
+    ## m            -0.9396     1.5848  -0.593 0.555562    
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## (Dispersion parameter for gaussian family taken to be 0.2570627)
+    ## 
+    ##     Null deviance: 15.00  on 59  degrees of freedom
+    ## Residual deviance: 14.91  on 58  degrees of freedom
+    ## AIC: 92.732
+    ## 
+    ## Number of Fisher Scoring iterations: 2
+
+``` r
+summary(glm(as.numeric(as.factor(group))~l, data=alldat))
+```
+
+    ## 
+    ## Call:
+    ## glm(formula = as.numeric(as.factor(group)) ~ l, data = alldat)
+    ## 
+    ## Deviance Residuals: 
+    ##      Min        1Q    Median        3Q       Max  
+    ## -0.62230  -0.47897  -0.02255   0.50572   0.63300  
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)  
+    ## (Intercept)   1.0188     0.4859   2.097   0.0404 *
+    ## l             0.6649     0.6654   0.999   0.3218  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## (Dispersion parameter for gaussian family taken to be 0.2542437)
+    ## 
+    ##     Null deviance: 15.000  on 59  degrees of freedom
+    ## Residual deviance: 14.746  on 58  degrees of freedom
+    ## AIC: 92.071
+    ## 
+    ## Number of Fisher Scoring iterations: 2
+
+Seems like this would work but does not consider USML will be correlated (which they always will) and probably subject to type I error overinflation.
+
+``` r
+sessionInfo()
+```
+
+    ## R version 3.3.0 (2016-05-03)
+    ## Platform: x86_64-apple-darwin13.4.0 (64-bit)
+    ## Running under: OS X 10.11.4 (El Capitan)
+    ## 
+    ## locale:
+    ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+    ## 
+    ## attached base packages:
+    ## [1] stats     graphics  grDevices utils     datasets  methods   base     
+    ## 
+    ## other attached packages:
+    ## [1] lme4_1.1-12          Matrix_1.2-6         ggplot2_2.1.0       
+    ## [4] scatterplot3d_0.3-37 pavo_0.5-5           rgl_0.95.1441       
+    ## 
+    ## loaded via a namespace (and not attached):
+    ##  [1] Rcpp_0.12.5        knitr_1.13         magrittr_1.5      
+    ##  [4] MASS_7.3-45        splines_3.3.0      maps_3.1.0        
+    ##  [7] magic_1.5-6        munsell_0.4.3      lattice_0.20-33   
+    ## [10] colorspace_1.2-6   minqa_1.2.4        geometry_0.3-6    
+    ## [13] plyr_1.8.3         stringr_1.0.0      tools_3.3.0       
+    ## [16] grid_3.3.0         nlme_3.1-127       gtable_0.2.0      
+    ## [19] htmltools_0.3.5    yaml_2.1.13        digest_0.6.9      
+    ## [22] nloptr_1.0.4       reshape2_1.4.1     mapproj_1.2-4     
+    ## [25] rcdd_1.1-10        evaluate_0.9       rmarkdown_0.9.6.10
+    ## [28] labeling_0.3       stringi_1.0-1      scales_0.4.0
