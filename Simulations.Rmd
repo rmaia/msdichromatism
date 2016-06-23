@@ -139,6 +139,9 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
   facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
   theme(legend.position="none")
 
+deltaS.nodiff <- deltaS
+alldat.nodiff <- alldat
+
 ```
 
 
@@ -204,6 +207,9 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
   facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
   theme(legend.position="none")
 
+
+deltaS.diff <- deltaS
+alldat.diff <- alldat
 ```
 
 
@@ -213,17 +219,19 @@ I think something from the likes of the adonis function in vegan, but I don't kn
 
 Really rough possibility using mixed models and crossed random effects:
 
+#### when there's no difference
+
 ```{r}
 require(lme4)
 
 # no gain in explanatory power
 anova(
-  lmer(dS~(1|patch1)+(1|patch2), data=deltaS),
-  lmer(dS~comparison+(1|patch1)+(1|patch2), data=deltaS),
+  lmer(dS~(1|patch1)+(1|patch2), data=deltaS.nodiff),
+  lmer(dS~comparison+(1|patch1)+(1|patch2), data=deltaS.nodiff),
   model.names = c('null','alternative')
 )
 
-summary(lmer(dS~comparison-1+(1|patch1)+(1|patch2), data=deltaS))
+summary(lmer(dS~comparison-1+(1|patch1)+(1|patch2), data=deltaS.nodiff))
 
 ```
 
@@ -234,25 +242,71 @@ According to Eaton 2005:
 
 ```{r}
 
-alldat$group <- gsub('[0-9]', '',rownames(alldat))
+alldat.nodiff$group <- gsub('[0-9]', '',rownames(alldat.nodiff))
 
-summary(glm(as.numeric(as.factor(group))~u, data=alldat))
-summary(glm(as.numeric(as.factor(group))~s, data=alldat))
-summary(glm(as.numeric(as.factor(group))~m, data=alldat))
-summary(glm(as.numeric(as.factor(group))~l, data=alldat))
+summary(glm(as.numeric(as.factor(group))~u, data=alldat.nodiff))
+summary(glm(as.numeric(as.factor(group))~s, data=alldat.nodiff))
+summary(glm(as.numeric(as.factor(group))~m, data=alldat.nodiff))
+summary(glm(as.numeric(as.factor(group))~l, data=alldat.nodiff))
 
 ```
 
 Seems like this would work but does not consider USML will be correlated (which they always will) and probably subject to type I error overinflation.
 
 ```{r}
-dmat <- matrix(0, nrow=length(unique(deltaS$patch1)), ncol=length(unique(deltaS$patch1)))
-rownames(dmat) <- colnames(dmat) <- as.character(unique(deltaS$patch1))
+dmat <- matrix(0, nrow=length(unique(deltaS.nodiff$patch1)), ncol=length(unique(deltaS.nodiff$patch1)))
+rownames(dmat) <- colnames(dmat) <- as.character(unique(deltaS.nodiff$patch1))
 
 for(i in rownames(dmat))
   for(j in colnames(dmat))
-    if(length(deltaS$dS[deltaS$patch1 == i & deltaS$patch2 == j]) != 0)
-      dmat[i,j] <- dmat[j,i] <- deltaS$dS[deltaS$patch1 == i & deltaS$patch2 == j]
+    if(length(deltaS.nodiff$dS[deltaS.nodiff$patch1 == i & deltaS.nodiff$patch2 == j]) != 0)
+      dmat[i,j] <- dmat[j,i] <- deltaS.nodiff$dS[deltaS.nodiff$patch1 == i & deltaS.nodiff$patch2 == j]
+
+grouping <- gsub('[0-9]','', rownames(dmat))
+
+anosim(dmat, grouping)
+```
+
+#### when there is a difference
+
+```{r}
+# gain in explanatory power
+anova(
+  lmer(dS~(1|patch1)+(1|patch2), data=deltaS.diff),
+  lmer(dS~comparison+(1|patch1)+(1|patch2), data=deltaS.diff),
+  model.names = c('null','alternative')
+)
+
+summary(lmer(dS~comparison-1+(1|patch1)+(1|patch2), data=deltaS.diff))
+
+```
+
+
+According to Eaton 2005:
+
+> Because average reflectance curves were used in the color discrimination model, between-sex differences identified by the model might not be biologically functional if variance in coloration within sexes is so broad as not to be a reliable visual indicator of sex. Hence, I assessed intraspecific variation in coloration between sexes using logistic regression (PROC GENMOD, SAS V.8.0, SAS Institute, Cary, NC), with sex (1 = male, 0 = female) as the response variable and Qi (i.e., receptor quantum catches, Eq. 1 ) as predictor variables. I modeled the probability of an individual being male given a value for Qi , for each of the four receptor quantum catches for each feather patch within each species. If the model regression coefficient estimate was zero, then that quantum catch had no effect on sex (i.e., it cannot predict sex). A positive regression coefficient indicated an increased probability of an individual being male with larger values of Qi , whereas a negative regression coefficient indicated a higher probability of being female with larger values of Qi . I used likelihood ratio confidence intervals for estimating whether strong correlations existed between the response variable (sex) and the predictor variables (Q1–Q4) for each feather patch. Given the small sample sizes for each feather patch comparison (n = 10), I report 85% upper and lower confidence intervals around the regression coefficient estimates (29) (see Table 1).
+
+```{r}
+
+alldat.diff$group <- gsub('[0-9]', '',rownames(alldat.diff))
+
+summary(glm(as.numeric(as.factor(group))~u, data=alldat.diff))
+summary(glm(as.numeric(as.factor(group))~s, data=alldat.diff))
+summary(glm(as.numeric(as.factor(group))~m, data=alldat.diff))
+summary(glm(as.numeric(as.factor(group))~l, data=alldat.diff))
+
+```
+
+Seems like this would work but does not consider USML will be correlated (which they always will) and probably subject to type I error overinflation.
+
+```{r}
+dmat <- matrix(0, nrow=length(unique(deltaS.diff$patch1)), ncol=length(unique(deltaS.diff$patch1)))
+rownames(dmat) <- colnames(dmat) <- as.character(unique(deltaS.diff$patch1))
+
+for(i in rownames(dmat))
+  for(j in colnames(dmat))
+    if(length(deltaS.diff$dS[deltaS.diff$patch1 == i & deltaS.diff$patch2 == j]) != 0)
+      dmat[i,j] <- dmat[j,i] <- deltaS.diff$dS[deltaS.diff$patch1 == i & deltaS.diff$patch2 == j]
 
 grouping <- gsub('[0-9]','', rownames(dmat))
 
