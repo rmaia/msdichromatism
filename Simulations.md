@@ -37,6 +37,14 @@ require(vegan)
 
     ## This is vegan 2.4-0
 
+``` r
+require(lme4)
+```
+
+    ## Loading required package: lme4
+
+    ## Loading required package: Matrix
+
 ### Example 1: low intra-group variability, low inter-group distance
 
 ``` r
@@ -244,14 +252,6 @@ I think something from the likes of the adonis function in vegan, but I don't kn
 Really rough possibility using mixed models and crossed random effects:
 
 #### when there's no difference
-
-``` r
-require(lme4)
-```
-
-    ## Loading required package: lme4
-
-    ## Loading required package: Matrix
 
 ``` r
 # no gain in explanatory power
@@ -503,9 +503,9 @@ summary(lmer(dS~comparison-1+(1|patch1)+(1|patch2), data=deltaS.diff))
     ## cmprsnntr.A 0.568        
     ## cmprsnntr.B 0.385  0.000
 
-According to Eaton 2005:
+**Tricky! What if the magnitudes of intra- and inter- are similar, but they are in completely different parts of colorspace?? SIMULATE.**
 
-> Because average reflectance curves were used in the color discrimination model, between-sex differences identified by the model might not be biologically functional if variance in coloration within sexes is so broad as not to be a reliable visual indicator of sex. Hence, I assessed intraspecific variation in coloration between sexes using logistic regression (PROC GENMOD, SAS V.8.0, SAS Institute, Cary, NC), with sex (1 = male, 0 = female) as the response variable and Qi (i.e., receptor quantum catches, Eq. 1 ) as predictor variables. I modeled the probability of an individual being male given a value for Qi , for each of the four receptor quantum catches for each feather patch within each species. If the model regression coefficient estimate was zero, then that quantum catch had no effect on sex (i.e., it cannot predict sex). A positive regression coefficient indicated an increased probability of an individual being male with larger values of Qi , whereas a negative regression coefficient indicated a higher probability of being female with larger values of Qi . I used likelihood ratio confidence intervals for estimating whether strong correlations existed between the response variable (sex) and the predictor variables (Q1–Q4) for each feather patch. Given the small sample sizes for each feather patch comparison (n = 10), I report 85% upper and lower confidence intervals around the regression coefficient estimates (29) (see Table 1).
+According to Eaton 2005:
 
 ``` r
 alldat.diff$group <- gsub('[0-9]', '',rownames(alldat.diff))
