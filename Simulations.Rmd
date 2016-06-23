@@ -1,0 +1,145 @@
+---
+title: "Simulation example"
+output:
+  html_document: default
+---
+
+# Simulation
+
+Here we'll attempt to show, using simulations, that using mean deltaS to estimate the difference between two groups might not be appropriate.
+
+```{r}
+require(pavo)
+require(scatterplot3d)
+require(ggplot2)
+
+sessionInfo()
+```
+
+
+### Example 1: low intra-group variability, low inter-group distance
+
+```{r}
+# step 1: generate data
+
+set.seed(1982)
+
+# we'll just consider usml are uncorrelated for this example
+
+# we'll generate data from a lognormal distribution to avoid negative values
+# and a variance (on the log scale) of 0.002
+
+groupA <- data.frame(
+  u = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.002)),
+  s = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.002)),
+  m = rlnorm(30, meanlog=log(0.3), sdlog=sqrt(0.002)),
+  l = rlnorm(30, meanlog=log(0.7), sdlog=sqrt(0.002))
+)
+
+groupB <- data.frame(
+  u = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.002)),
+  s = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.002)),
+  m = rlnorm(30, meanlog=log(0.3), sdlog=sqrt(0.002)),
+  l = rlnorm(30, meanlog=log(0.7), sdlog=sqrt(0.002))
+)
+
+
+colnames(groupA) <- colnames(groupB) <- c('u','s','m', 'l')
+attr(groupA, 'relative') <- attr(groupB, 'relative') <- FALSE
+
+par(pty="s")
+sp3d <- scatterplot3d(suppressWarnings(tcs(groupA)[, c('x','y','z')]), pch=19,
+                      xlim=c(0.26,0.38), ylim=c(-0.17,0.024), zlim=c(-0.2,-0.14), box=F)
+sp3d$points3d(suppressWarnings(tcs(groupB)[, c('x','y','z')]), col='red',pch=19)
+
+```
+
+Note that although USML were simulated uncorrelated, XYZ are correlated. 
+
+Calculate deltaS
+
+```{r}
+rownames(groupA) <- paste('gA',1:30,sep='')
+rownames(groupB) <- paste('gB',1:30,sep='')
+
+alldat <- rbind(groupA, groupB)
+
+deltaS <- coldist(alldat, achro=FALSE)
+
+deltaS$comparison <- NA
+
+deltaS$comparison[grepl('A', deltaS$patch1) & grepl('A', deltaS$patch2)] <- 'intra.A'
+deltaS$comparison[grepl('B', deltaS$patch1) & grepl('B', deltaS$patch2)] <- 'intra.B'
+deltaS$comparison[grepl('A', deltaS$patch1) & grepl('B', deltaS$patch2)] <- 'inter'
+
+ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
+  facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
+  theme(legend.position="none")
+
+```
+
+
+
+### Example 2: High intra-group variability, low inter-group distance
+
+```{r}
+# step 1: generate data
+
+set.seed(1982)
+
+# we'll just consider usml are uncorrelated for this example
+
+# we'll generate data from a lognormal distribution to avoid negative values
+# and a variance (on the log scale) of 0.002
+
+groupA <- data.frame(
+  u = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.02)),
+  s = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.02)),
+  m = rlnorm(30, meanlog=log(0.3), sdlog=sqrt(0.02)),
+  l = rlnorm(30, meanlog=log(0.7), sdlog=sqrt(0.02))
+)
+
+groupB <- data.frame(
+  u = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.02)),
+  s = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.02)),
+  m = rlnorm(30, meanlog=log(0.3), sdlog=sqrt(0.02)),
+  l = rlnorm(30, meanlog=log(0.7), sdlog=sqrt(0.02))
+)
+
+
+colnames(groupA) <- colnames(groupB) <- c('u','s','m', 'l')
+attr(groupA, 'relative') <- attr(groupB, 'relative') <- FALSE
+
+par(pty="s")
+sp3d <- scatterplot3d(suppressWarnings(tcs(groupA)[, c('x','y','z')]), pch=19,
+                      xlim=c(0.26,0.38), ylim=c(-0.17,0.024), zlim=c(-0.2,-0.14), box=F)
+sp3d$points3d(suppressWarnings(tcs(groupB)[, c('x','y','z')]), col='red',pch=19)
+
+```
+
+Note that although USML were simulated uncorrelated, XYZ are correlated. 
+
+Calculate deltaS
+
+```{r}
+rownames(groupA) <- paste('gA',1:30,sep='')
+rownames(groupB) <- paste('gB',1:30,sep='')
+
+alldat <- rbind(groupA, groupB)
+
+deltaS <- coldist(alldat, achro=FALSE)
+
+deltaS$comparison <- NA
+
+deltaS$comparison[grepl('A', deltaS$patch1) & grepl('A', deltaS$patch2)] <- 'intra.A'
+deltaS$comparison[grepl('B', deltaS$patch1) & grepl('B', deltaS$patch2)] <- 'intra.B'
+deltaS$comparison[grepl('A', deltaS$patch1) & grepl('B', deltaS$patch2)] <- 'inter'
+
+ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
+  facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
+  theme(legend.position="none")
+
+```
+
+
+#### Note that in both cases there is no dichromatism, but regular analyses would consider the second case dichromatic.
