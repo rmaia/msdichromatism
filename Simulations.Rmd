@@ -3,7 +3,6 @@ title: "Simulation example"
 output:
   md_document:
     variant: markdown_github
-  html_document: default
 ---
 
 (can someone tell me how the hell to choose the folder to put the files resulting from building this markdown? UGH)
@@ -16,6 +15,7 @@ Here we'll attempt to show, using simulations, that using mean deltaS to estimat
 require(pavo)
 require(scatterplot3d)
 require(ggplot2)
+require(vegan)
 ```
 
 
@@ -144,6 +144,70 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 
 #### Note that in both cases there is no dichromatism, but regular analyses would consider the second case dichromatic - because mean deltaS between males and females is over the threshold of 1 JND.
 
+
+### Example 3: low intra-group variability, high inter-group distance
+
+```{r}
+# step 1: generate data
+
+set.seed(1982)
+
+# we'll just consider usml are uncorrelated for this example
+
+# we'll generate data from a lognormal distribution to avoid negative values
+# and a variance (on the log scale) of 0.002
+
+groupA <- data.frame(
+  u = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.002)),
+  s = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.002)),
+  m = rlnorm(30, meanlog=log(0.3), sdlog=sqrt(0.002)),
+  l = rlnorm(30, meanlog=log(0.7), sdlog=sqrt(0.002))
+)
+
+groupB <- data.frame(
+  u = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.002)),
+  s = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.002)),
+  m = rlnorm(30, meanlog=log(0.7), sdlog=sqrt(0.002)),
+  l = rlnorm(30, meanlog=log(0.3), sdlog=sqrt(0.002))
+)
+
+
+colnames(groupA) <- colnames(groupB) <- c('u','s','m', 'l')
+attr(groupA, 'relative') <- attr(groupB, 'relative') <- FALSE
+
+par(pty="s")
+sp3d <- scatterplot3d(suppressWarnings(tcs(groupA)[, c('x','y','z')]), pch=19,
+                      xlim=c(0.1,0.38), ylim=c(-0.1,0.32), zlim=c(-0.2,-0.16), box=F)
+sp3d$points3d(suppressWarnings(tcs(groupB)[, c('x','y','z')]), col='red',pch=19)
+
+```
+
+Note that although USML were simulated uncorrelated, XYZ are correlated. 
+
+Calculate deltaS
+
+```{r}
+rownames(groupA) <- paste('gA',1:30,sep='')
+rownames(groupB) <- paste('gB',1:30,sep='')
+
+alldat <- rbind(groupA, groupB)
+
+deltaS <- coldist(alldat, achro=FALSE)
+
+deltaS$comparison <- NA
+
+deltaS$comparison[grepl('A', deltaS$patch1) & grepl('A', deltaS$patch2)] <- 'intra.A'
+deltaS$comparison[grepl('B', deltaS$patch1) & grepl('B', deltaS$patch2)] <- 'intra.B'
+deltaS$comparison[grepl('A', deltaS$patch1) & grepl('B', deltaS$patch2)] <- 'inter'
+
+ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
+  facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
+  theme(legend.position="none")
+
+```
+
+
+
 ## How to test this?
 I think something from the likes of the adonis function in vegan, but I don't know how to use a custom distance matrix with it yet.
 
@@ -180,6 +244,21 @@ summary(glm(as.numeric(as.factor(group))~l, data=alldat))
 ```
 
 Seems like this would work but does not consider USML will be correlated (which they always will) and probably subject to type I error overinflation.
+
+```{r}
+dmat <- matrix(0, nrow=length(unique(deltaS$patch1)), ncol=length(unique(deltaS$patch1)))
+rownames(dmat) <- colnames(dmat) <- as.character(unique(deltaS$patch1))
+
+for(i in rownames(dmat))
+  for(j in colnames(dmat))
+    if(length(deltaS$dS[deltaS$patch1 == i & deltaS$patch2 == j]) != 0)
+      dmat[i,j] <- dmat[j,i] <- deltaS$dS[deltaS$patch1 == i & deltaS$patch2 == j]
+
+grouping <- gsub('[0-9]','', rownames(dmat))
+
+anosim(dmat, grouping)
+```
+
 
 ```{r}
 sessionInfo()
