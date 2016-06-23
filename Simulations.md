@@ -244,6 +244,88 @@ deltaS.diff <- deltaS
 alldat.diff <- alldat
 ```
 
+### Example 4: Comparable intra-group variability and inter-group distance
+
+``` r
+# step 1: generate data
+
+set.seed(1982)
+
+# we'll just consider usml are uncorrelated for this example
+
+# we'll generate data from a lognormal distribution to avoid negative values
+# and a variance (on the log scale) of 0.002
+
+groupA <- data.frame(
+  u = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.02)),
+  s = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.02)),
+  m = rlnorm(30, meanlog=log(0.3), sdlog=sqrt(0.02)),
+  l = rlnorm(30, meanlog=log(0.7), sdlog=sqrt(0.02))
+)
+
+groupB <- data.frame(
+  u = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.02)),
+  s = rlnorm(30, meanlog=log(0.1), sdlog=sqrt(0.02)),
+  m = rlnorm(30, meanlog=log(0.35), sdlog=sqrt(0.02)),
+  l = rlnorm(30, meanlog=log(0.65), sdlog=sqrt(0.02))
+)
+
+
+colnames(groupA) <- colnames(groupB) <- c('u','s','m', 'l')
+attr(groupA, 'relative') <- attr(groupB, 'relative') <- FALSE
+
+par(pty="s")
+sp3d <- scatterplot3d(suppressWarnings(tcs(groupA)[, c('x','y','z')]), pch=19,
+                      xlim=c(0.19,0.38), ylim=c(-0.1,0.06), zlim=c(-0.2,-0.13), box=F)
+sp3d$points3d(suppressWarnings(tcs(groupB)[, c('x','y','z')]), col='red',pch=19)
+```
+
+![](Simulations_files/figure-markdown_github/unnamed-chunk-8-1.png)
+
+``` r
+apply(rbind(tcs(groupA)[, c('x','y','z')],tcs(groupB)[, c('x','y','z')]),2, quantile,c(0,1))
+```
+
+    ## Warning in tcs(groupA): Quantum catch are not relative, and have been
+    ## transformed
+
+    ## Warning in tcs(groupB): Quantum catch are not relative, and have been
+    ## transformed
+
+    ##              x           y          z
+    ## 0%   0.2349414 -0.16525311 -0.1895890
+    ## 100% 0.3670893  0.03612811 -0.1399968
+
+Note that although USML were simulated uncorrelated, XYZ are correlated.
+
+Calculate deltaS
+
+``` r
+rownames(groupA) <- paste('gA',1:30,sep='')
+rownames(groupB) <- paste('gB',1:30,sep='')
+
+alldat <- rbind(groupA, groupB)
+
+deltaS <- coldist(alldat, achro=FALSE)
+
+deltaS$comparison <- NA
+
+deltaS$comparison[grepl('A', deltaS$patch1) & grepl('A', deltaS$patch2)] <- 'intra.A'
+deltaS$comparison[grepl('B', deltaS$patch1) & grepl('B', deltaS$patch2)] <- 'intra.B'
+deltaS$comparison[grepl('A', deltaS$patch1) & grepl('B', deltaS$patch2)] <- 'inter'
+
+ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
+  facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
+  theme(legend.position="none")
+```
+
+![](Simulations_files/figure-markdown_github/unnamed-chunk-9-1.png)
+
+``` r
+deltaS.diff <- deltaS
+alldat.diff <- alldat
+```
+
 How to test this?
 -----------------
 
@@ -462,12 +544,9 @@ anova(
     ## Models:
     ## null: dS ~ (1 | patch1) + (1 | patch2)
     ## alternative: dS ~ comparison + (1 | patch1) + (1 | patch2)
-    ##             Df     AIC     BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
-    ## null         4 1175.59 1197.50 -583.79  1167.59                         
-    ## alternative  6  500.66  533.53 -244.33   488.66 678.93      2  < 2.2e-16
-    ##                
-    ## null           
-    ## alternative ***
+    ##             Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)  
+    ## null         4 4108.4 4130.3 -2050.2   4100.4                           
+    ## alternative  6 4104.3 4137.2 -2046.1   4092.3 8.1081      2    0.01735 *
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -479,29 +558,29 @@ summary(lmer(dS~comparison-1+(1|patch1)+(1|patch2), data=deltaS.diff))
     ## Formula: dS ~ comparison - 1 + (1 | patch1) + (1 | patch2)
     ##    Data: deltaS.diff
     ## 
-    ## REML criterion at convergence: 499.9
+    ## REML criterion at convergence: 4099
     ## 
     ## Scaled residuals: 
     ##     Min      1Q  Median      3Q     Max 
-    ## -4.3848 -0.5138  0.0016  0.4987  4.6611 
+    ## -4.1202 -0.5714  0.0562  0.6421  3.0124 
     ## 
     ## Random effects:
     ##  Groups   Name        Variance Std.Dev.
-    ##  patch1   (Intercept) 0.07800  0.2793  
-    ##  patch2   (Intercept) 0.05311  0.2305  
-    ##  Residual             0.06246  0.2499  
+    ##  patch1   (Intercept) 0.3596   0.5996  
+    ##  patch2   (Intercept) 0.2110   0.4593  
+    ##  Residual             0.4967   0.7048  
     ## Number of obs: 1770, groups:  patch1, 59; patch2, 59
     ## 
     ## Fixed effects:
     ##                   Estimate Std. Error t value
-    ## comparisoninter    9.92017    0.06663  148.88
-    ## comparisonintra.A  0.66347    0.06865    9.66
-    ## comparisonintra.B  0.54482    0.06894    7.90
+    ## comparisoninter     2.3533     0.1399   16.82
+    ## comparisonintra.A   2.2344     0.1459   15.31
+    ## comparisonintra.B   1.9010     0.1470   12.93
     ## 
     ## Correlation of Fixed Effects:
     ##             cmprsn cmpr.A
-    ## cmprsnntr.A 0.568        
-    ## cmprsnntr.B 0.385  0.000
+    ## cmprsnntr.A 0.587        
+    ## cmprsnntr.B 0.342  0.000
 
 **Tricky! What if the magnitudes of intra- and inter- are similar, but they are in completely different parts of colorspace?? SIMULATE.**
 
@@ -519,20 +598,20 @@ summary(glm(as.numeric(as.factor(group))~u, data=alldat.diff))
     ## 
     ## Deviance Residuals: 
     ##      Min        1Q    Median        3Q       Max  
-    ## -0.75406  -0.46923  -0.02235   0.43497   0.72179  
+    ## -0.77670  -0.46423  -0.04167   0.43751   0.71222  
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)  
-    ## (Intercept)   -1.507      1.650  -0.914   0.3647  
-    ## u             29.989     16.440   1.824   0.0733 .
+    ## (Intercept)   0.5317     0.5234   1.016   0.3140  
+    ## u             9.5493     5.1236   1.864   0.0674 .
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## (Dispersion parameter for gaussian family taken to be 0.2445883)
+    ## (Dispersion parameter for gaussian family taken to be 0.244007)
     ## 
     ##     Null deviance: 15.000  on 59  degrees of freedom
-    ## Residual deviance: 14.186  on 58  degrees of freedom
-    ## AIC: 89.748
+    ## Residual deviance: 14.152  on 58  degrees of freedom
+    ## AIC: 89.605
     ## 
     ## Number of Fisher Scoring iterations: 2
 
@@ -545,15 +624,17 @@ summary(glm(as.numeric(as.factor(group))~s, data=alldat.diff))
     ## glm(formula = as.numeric(as.factor(group)) ~ s, data = alldat.diff)
     ## 
     ## Deviance Residuals: 
-    ##     Min       1Q   Median       3Q      Max  
-    ## -0.5089  -0.5011  -0.0011   0.5007   0.5081  
+    ##      Min        1Q    Median        3Q       Max  
+    ## -0.51060  -0.50101  -0.00176   0.50098   0.50819  
     ## 
     ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)
-    ## (Intercept)   1.4145     1.4684   0.963    0.339
-    ## s             0.8465    14.5257   0.058    0.954
+    ##             Estimate Std. Error t value Pr(>|t|)   
+    ## (Intercept)   1.4703     0.4682   3.141  0.00265 **
+    ## s             0.2862     4.4628   0.064  0.94909   
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## (Dispersion parameter for gaussian family taken to be 0.2586055)
+    ## (Dispersion parameter for gaussian family taken to be 0.2586024)
     ## 
     ##     Null deviance: 15.000  on 59  degrees of freedom
     ## Residual deviance: 14.999  on 58  degrees of freedom
@@ -570,21 +651,21 @@ summary(glm(as.numeric(as.factor(group))~m, data=alldat.diff))
     ## glm(formula = as.numeric(as.factor(group)) ~ m, data = alldat.diff)
     ## 
     ## Deviance Residuals: 
-    ##       Min         1Q     Median         3Q        Max  
-    ## -0.082289  -0.041081  -0.000665   0.033397   0.122495  
+    ##     Min       1Q   Median       3Q      Max  
+    ## -0.8396  -0.3916   0.1151   0.4047   0.7267  
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  0.25523    0.01698   15.03   <2e-16 ***
-    ## m            2.49240    0.03156   78.97   <2e-16 ***
+    ## (Intercept) -0.02444    0.40178  -0.061 0.951695    
+    ## m            4.66702    1.21685   3.835 0.000312 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## (Dispersion parameter for gaussian family taken to be 0.002383398)
+    ## (Dispersion parameter for gaussian family taken to be 0.2062999)
     ## 
-    ##     Null deviance: 15.00000  on 59  degrees of freedom
-    ## Residual deviance:  0.13824  on 58  degrees of freedom
-    ## AIC: -188.12
+    ##     Null deviance: 15.000  on 59  degrees of freedom
+    ## Residual deviance: 11.965  on 58  degrees of freedom
+    ## AIC: 79.533
     ## 
     ## Number of Fisher Scoring iterations: 2
 
@@ -597,21 +678,21 @@ summary(glm(as.numeric(as.factor(group))~l, data=alldat.diff))
     ## glm(formula = as.numeric(as.factor(group)) ~ l, data = alldat.diff)
     ## 
     ## Deviance Residuals: 
-    ##       Min         1Q     Median         3Q        Max  
-    ## -0.137118  -0.033269  -0.001287   0.032821   0.137298  
+    ##      Min        1Q    Median        3Q       Max  
+    ## -0.61205  -0.50163  -0.00034   0.47397   0.65189  
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  2.74956    0.01888  145.65   <2e-16 ***
-    ## l           -2.48297    0.03485  -71.24   <2e-16 ***
+    ## (Intercept)   2.0380     0.4874   4.182  9.9e-05 ***
+    ## l            -0.7715     0.6926  -1.114     0.27    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## (Dispersion parameter for gaussian family taken to be 0.002922144)
+    ## (Dispersion parameter for gaussian family taken to be 0.2532039)
     ## 
-    ##     Null deviance: 15.00000  on 59  degrees of freedom
-    ## Residual deviance:  0.16948  on 58  degrees of freedom
-    ## AIC: -175.89
+    ##     Null deviance: 15.000  on 59  degrees of freedom
+    ## Residual deviance: 14.686  on 58  degrees of freedom
+    ## AIC: 91.825
     ## 
     ## Number of Fisher Scoring iterations: 2
 
@@ -636,8 +717,8 @@ anosim(dmat, grouping)
     ## anosim(dat = dmat, grouping = grouping) 
     ## Dissimilarity: user supplied square matrix 
     ## 
-    ## ANOSIM statistic R:     1 
-    ##       Significance: 0.001 
+    ## ANOSIM statistic R: 0.08756 
+    ##       Significance: 0.007 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
