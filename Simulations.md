@@ -185,3 +185,64 @@ How to test this?
 -----------------
 
 I think something from the likes of the adonis function in vegan, but I don't know how to use a custom distance matrix with it yet.
+
+Really rough possibility using mixed models and crossed random effects:
+
+``` r
+require(lme4)
+```
+
+    ## Loading required package: lme4
+
+    ## Loading required package: Matrix
+
+``` r
+# no gain in explanatory power
+anova(
+  lmer(dS~(1|patch1)+(1|patch2), data=deltaS),
+  lmer(dS~comparison+(1|patch1)+(1|patch2), data=deltaS),
+  model.names = c('null','alternative')
+)
+```
+
+    ## refitting model(s) with ML (instead of REML)
+
+    ## Data: deltaS
+    ## Models:
+    ## null: dS ~ (1 | patch1) + (1 | patch2)
+    ## alternative: dS ~ comparison + (1 | patch1) + (1 | patch2)
+    ##             Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
+    ## null         4 4182.4 4204.3 -2087.2   4174.4                         
+    ## alternative  6 4183.2 4216.1 -2085.6   4171.2 3.1536      2     0.2066
+
+``` r
+summary(lmer(dS~comparison-1+(1|patch1)+(1|patch2), data=deltaS))
+```
+
+    ## Linear mixed model fit by REML ['lmerMod']
+    ## Formula: dS ~ comparison - 1 + (1 | patch1) + (1 | patch2)
+    ##    Data: deltaS
+    ## 
+    ## REML criterion at convergence: 4178.7
+    ## 
+    ## Scaled residuals: 
+    ##     Min      1Q  Median      3Q     Max 
+    ## -3.4491 -0.5360  0.0786  0.7126  2.3055 
+    ## 
+    ## Random effects:
+    ##  Groups   Name        Variance Std.Dev.
+    ##  patch1   (Intercept) 0.2484   0.4984  
+    ##  patch2   (Intercept) 0.1875   0.4330  
+    ##  Residual             0.5289   0.7272  
+    ## Number of obs: 1770, groups:  patch1, 59; patch2, 59
+    ## 
+    ## Fixed effects:
+    ##                   Estimate Std. Error t value
+    ## comparisoninter     2.1695     0.1229   17.65
+    ## comparisonintra.A   2.3254     0.1298   17.91
+    ## comparisonintra.B   2.0016     0.1304   15.35
+    ## 
+    ## Correlation of Fixed Effects:
+    ##             cmprsn cmpr.A
+    ## cmprsnntr.A 0.519        
+    ## cmprsnntr.B 0.390  0.000

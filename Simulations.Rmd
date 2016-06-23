@@ -149,3 +149,20 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 
 ## How to test this?
 I think something from the likes of the adonis function in vegan, but I don't know how to use a custom distance matrix with it yet.
+
+Really rough possibility using mixed models and crossed random effects:
+
+```{r}
+require(lme4)
+
+# no gain in explanatory power
+anova(
+  lmer(dS~(1|patch1)+(1|patch2), data=deltaS),
+  lmer(dS~comparison+(1|patch1)+(1|patch2), data=deltaS),
+  model.names = c('null','alternative')
+)
+
+summary(lmer(dS~comparison-1+(1|patch1)+(1|patch2), data=deltaS))
+
+```
+
