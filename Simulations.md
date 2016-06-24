@@ -309,9 +309,11 @@ How to test this?
 
 I think something from the likes of the adonis function in vegan, but I don't know how to use a custom distance matrix with it yet.
 
+We will compare cases of **example 2** and **example 4** as they have very similar distributions of within- and between-group distances, but ultimately reflect completely different scenarios.
+
 Really rough possibility using mixed models and crossed random effects:
 
-#### when there's no difference
+#### when there's no difference (example 2)
 
 ``` r
 # no gain in explanatory power
@@ -508,7 +510,7 @@ vegan::adonis(dmat~grouping)
     ## Residuals 57   162.039  2.8428         0.99044       
     ## Total     58   163.602                 1.00000
 
-#### when there is a difference
+#### when there is a difference (example 4)
 
 ``` r
 # gain in explanatory power
