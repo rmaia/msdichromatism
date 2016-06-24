@@ -392,10 +392,9 @@ grep('A', deltaS.inter$patch2)
 summary(lmer(dS~1+(1|patch1)+(1|patch2), data=deltaS.inter))
 ```
 
-Based on that, the 95% confidence interval would be `r  coef(summary(lmer(dS~1+(1|patch1)+(1|patch2), data=deltaS.inter)),2)[1,1] +
-  c(-1.96,1.96)*coef(summary(lmer(dS~1+(1|patch1)+(1|patch2), data=deltaS.inter)),2)[1,2] ` 
+Based on that, the 95% confidence interval would be **`r  round(coef(summary(lmer(dS~1+(1|patch1)+(1|patch2), data=deltaS.inter)),2)[1,1] +
+  c(-1.96,1.96)*coef(summary(lmer(dS~1+(1|patch1)+(1|patch2), data=deltaS.inter)),2)[1,2],2) `**
 
-```
 
 ```{r}
 sessionInfo()

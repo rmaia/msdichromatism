@@ -765,9 +765,7 @@ summary(lmer(dS~1+(1|patch1)+(1|patch2), data=deltaS.inter))
     ##             Estimate Std. Error t value
     ## (Intercept)    2.353      0.154   15.28
 
-Based on that, the 95% confidence interval would be 2.0513968, 2.6551817
-
-\`\`\`
+Based on that, the 95% confidence interval would be **2.05, 2.66**
 
 ``` r
 sessionInfo()
