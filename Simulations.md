@@ -687,7 +687,7 @@ summary(glm(as.numeric(as.factor(group))~l, data=alldat.diff))
     ## 
     ## Number of Fisher Scoring iterations: 2
 
-Seems like this would work but does not consider USML will be correlated (which they always will) and probably subject to type I error overinflation.
+**L is not coming out as different, despite being simulated as different.**
 
 ``` r
 dmat <- matrix(0, nrow=length(unique(deltaS.diff$patch1)), ncol=length(unique(deltaS.diff$patch1)))
