@@ -309,14 +309,14 @@ How to test this?
 
 I think something from the likes of the adonis function in vegan. Examples below.
 
-We will compare cases of **example 2** and **example 4** as they have very similar distributions of within- and between-group distances, but ultimately reflect completely different scenarios. (triangles represent centroids).
+We will compare cases of **example 2** and **example 4** as they have very similar distributions of within- and between-group distances, but ultimately reflect completely different scenarios. (big unfilled circles represent centroids).
 
 ``` r
 options(warn=-1)
 
 sp3d <- scatterplot3d(tcs(alldat.nodiff)[,c('x','y','z')], color=as.character(factor(gsub('[0-9]','',rownames(alldat.nodiff)), labels=c('black','red'))), pch=19, angle=70, main='example 2')
 
-sp3d$points3d(apply(tcs(alldat.nodiff)[,c('x','y','z')], 2, tapply, factor(gsub('[0-9]','',rownames(alldat.nodiff)), labels=c('black','red')), mean), pch=17, cex=3, col=c(1,2))
+sp3d$points3d(apply(tcs(alldat.nodiff)[,c('x','y','z')], 2, tapply, factor(gsub('[0-9]','',rownames(alldat.nodiff)), labels=c('black','red')), mean), pch=1, cex=3, lwd=2, col=c(1,2))
 ```
 
 ![](Simulations_files/figure-markdown_github/unnamed-chunk-10-1.png)
@@ -324,7 +324,7 @@ sp3d$points3d(apply(tcs(alldat.nodiff)[,c('x','y','z')], 2, tapply, factor(gsub(
 ``` r
 sp3d <- scatterplot3d(tcs(alldat.diff)[,c('x','y','z')], color=as.character(factor(gsub('[0-9]','',rownames(alldat.diff)), labels=c('black','red'))), pch=19, angle=70, main='example 4')
 
-sp3d$points3d(apply(tcs(alldat.diff)[,c('x','y','z')], 2, tapply, factor(gsub('[0-9]','',rownames(alldat.diff)), labels=c('black','red')), mean), pch=17, cex=3, col=c(1,2))
+sp3d$points3d(apply(tcs(alldat.diff)[,c('x','y','z')], 2, tapply, factor(gsub('[0-9]','',rownames(alldat.diff)), labels=c('black','red')), mean), pch=1, cex=3, lwd=2, col=c(1,2))
 ```
 
 ![](Simulations_files/figure-markdown_github/unnamed-chunk-10-2.png)
