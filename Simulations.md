@@ -26,18 +26,6 @@ require(ggplot2)
     ## Loading required package: ggplot2
 
 ``` r
-require(vegan)
-```
-
-    ## Loading required package: vegan
-
-    ## Loading required package: permute
-
-    ## Loading required package: lattice
-
-    ## This is vegan 2.4-0
-
-``` r
 require(lme4)
 ```
 
@@ -513,12 +501,12 @@ for(i in rownames(dmat))
 
 grouping <- gsub('[0-9]','', rownames(dmat))
 
-adonis(dmat~grouping)
+vegan::adonis(dmat~grouping)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = dmat ~ grouping) 
+    ## vegan::adonis(formula = dmat ~ grouping) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
@@ -526,7 +514,7 @@ adonis(dmat~grouping)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## grouping   1     1.564  1.5636 0.55003 0.00956  0.615
+    ## grouping   1     1.564  1.5636 0.55003 0.00956  0.609
     ## Residuals 57   162.039  2.8428         0.99044       
     ## Total     58   163.602                 1.00000
 
@@ -712,12 +700,12 @@ for(i in rownames(dmat))
 
 grouping <- gsub('[0-9]','', rownames(dmat))
 
-adonis(dmat~grouping)
+vegan::adonis(dmat~grouping)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = dmat ~ grouping) 
+    ## vegan::adonis(formula = dmat ~ grouping) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
@@ -725,11 +713,61 @@ adonis(dmat~grouping)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
-    ## grouping   1    16.953 16.9534  5.9637 0.09472  0.005 **
+    ## grouping   1    16.953 16.9534  5.9637 0.09472  0.004 **
     ## Residuals 57   162.039  2.8428         0.90528          
     ## Total     58   178.992                 1.00000          
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+### How to measure effect size?
+
+Adonis/ANOSIM don't have a measure of mean among-group difference, and we need to know if inter-sexual differences are above the 1JND threshold. To test if differences between individuals are greater than 1JND, we could use an intercept-only mixed-model where **only inter-sex comparisons are considered**, something like:
+
+``` r
+deltaS.inter <- deltaS[deltaS$comparison == 'inter', ]
+
+# Make sure that patch1 == gA & patch2 == gB
+grep('B', deltaS.inter$patch1)
+```
+
+    ## integer(0)
+
+``` r
+grep('A', deltaS.inter$patch2)
+```
+
+    ## integer(0)
+
+``` r
+# should both return zero
+
+summary(lmer(dS~1+(1|patch1)+(1|patch2), data=deltaS.inter))
+```
+
+    ## Linear mixed model fit by REML ['lmerMod']
+    ## Formula: dS ~ 1 + (1 | patch1) + (1 | patch2)
+    ##    Data: deltaS.inter
+    ## 
+    ## REML criterion at convergence: 1965.3
+    ## 
+    ## Scaled residuals: 
+    ##     Min      1Q  Median      3Q     Max 
+    ## -3.3122 -0.5268  0.0748  0.6663  2.9205 
+    ## 
+    ## Random effects:
+    ##  Groups   Name        Variance Std.Dev.
+    ##  patch1   (Intercept) 0.5322   0.7295  
+    ##  patch2   (Intercept) 0.1654   0.4067  
+    ##  Residual             0.4234   0.6507  
+    ## Number of obs: 900, groups:  patch1, 30; patch2, 30
+    ## 
+    ## Fixed effects:
+    ##             Estimate Std. Error t value
+    ## (Intercept)    2.353      0.154   15.28
+
+Based on that, the 95% confidence interval would be 2.0513968, 2.6551817
+
+\`\`\`
 
 ``` r
 sessionInfo()
@@ -746,19 +784,19 @@ sessionInfo()
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## other attached packages:
-    ## [1] lme4_1.1-12          Matrix_1.2-6         vegan_2.4-0         
-    ## [4] lattice_0.20-33      permute_0.9-0        ggplot2_2.1.0       
-    ## [7] scatterplot3d_0.3-37 pavo_0.5-5           rgl_0.95.1441       
+    ## [1] lme4_1.1-12          Matrix_1.2-6         ggplot2_2.1.0       
+    ## [4] scatterplot3d_0.3-37 pavo_0.5-5           rgl_0.95.1441       
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.5        nloptr_1.0.4       plyr_1.8.3        
-    ##  [4] tools_3.3.0        magic_1.5-6        digest_0.6.9      
-    ##  [7] evaluate_0.9       gtable_0.2.0       nlme_3.1-127      
-    ## [10] mgcv_1.8-12        mapproj_1.2-4      yaml_2.1.13       
-    ## [13] parallel_3.3.0     stringr_1.0.0      knitr_1.13        
-    ## [16] cluster_2.0.4      maps_3.1.0         rcdd_1.1-10       
-    ## [19] grid_3.3.0         rmarkdown_0.9.6.10 minqa_1.2.4       
-    ## [22] reshape2_1.4.1     magrittr_1.5       scales_0.4.0      
-    ## [25] htmltools_0.3.5    MASS_7.3-45        splines_3.3.0     
-    ## [28] colorspace_1.2-6   labeling_0.3       stringi_1.0-1     
-    ## [31] geometry_0.3-6     munsell_0.4.3
+    ##  [1] Rcpp_0.12.5        formatR_1.4        nloptr_1.0.4      
+    ##  [4] plyr_1.8.3         tools_3.3.0        magic_1.5-6       
+    ##  [7] digest_0.6.9       evaluate_0.9       gtable_0.2.0      
+    ## [10] nlme_3.1-127       lattice_0.20-33    mgcv_1.8-12       
+    ## [13] mapproj_1.2-4      yaml_2.1.13        parallel_3.3.0    
+    ## [16] cluster_2.0.4      stringr_1.0.0      knitr_1.13        
+    ## [19] maps_3.1.0         rcdd_1.1-10        grid_3.3.0        
+    ## [22] rmarkdown_0.9.6.10 minqa_1.2.4        reshape2_1.4.1    
+    ## [25] magrittr_1.5       scales_0.4.0       htmltools_0.3.5   
+    ## [28] splines_3.3.0      MASS_7.3-45        permute_0.9-0     
+    ## [31] colorspace_1.2-6   labeling_0.3       stringi_1.0-1     
+    ## [34] geometry_0.3-6     munsell_0.4.3      vegan_2.4-0

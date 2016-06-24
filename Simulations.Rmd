@@ -15,7 +15,6 @@ Here we'll attempt to show, using simulations, that using mean deltaS to estimat
 require(pavo)
 require(scatterplot3d)
 require(ggplot2)
-require(vegan)
 require(lme4)
 ```
 
@@ -327,7 +326,7 @@ for(i in rownames(dmat))
 
 grouping <- gsub('[0-9]','', rownames(dmat))
 
-adonis(dmat~grouping)
+vegan::adonis(dmat~grouping)
 ```
 
 #### when there is a difference
@@ -373,9 +372,30 @@ for(i in rownames(dmat))
 
 grouping <- gsub('[0-9]','', rownames(dmat))
 
-adonis(dmat~grouping)
+vegan::adonis(dmat~grouping)
 ```
 
+
+### How to measure effect size?
+
+Adonis/ANOSIM don't have a measure of mean among-group difference, and we need to know if inter-sexual differences are above the 1JND threshold. To test if differences between individuals are greater than 1JND, we could use an intercept-only mixed-model where **only inter-sex comparisons are considered**, something like:
+
+```{r}
+deltaS.inter <- deltaS[deltaS$comparison == 'inter', ]
+
+# Make sure that patch1 == gA & patch2 == gB
+grep('B', deltaS.inter$patch1)
+grep('A', deltaS.inter$patch2)
+
+# should both return zero
+
+summary(lmer(dS~1+(1|patch1)+(1|patch2), data=deltaS.inter))
+```
+
+Based on that, the 95% confidence interval would be `r  coef(summary(lmer(dS~1+(1|patch1)+(1|patch2), data=deltaS.inter)),2)[1,1] +
+  c(-1.96,1.96)*coef(summary(lmer(dS~1+(1|patch1)+(1|patch2), data=deltaS.inter)),2)[1,2] ` 
+
+```
 
 ```{r}
 sessionInfo()
