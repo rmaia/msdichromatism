@@ -307,7 +307,7 @@ alldat.diff <- alldat
 How to test this?
 -----------------
 
-I think something from the likes of the adonis function in vegan, but I don't know how to use a custom distance matrix with it yet.
+I think something from the likes of the adonis function in vegan. Examples below.
 
 We will compare cases of **example 2** and **example 4** as they have very similar distributions of within- and between-group distances, but ultimately reflect completely different scenarios.
 
