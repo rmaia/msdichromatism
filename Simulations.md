@@ -228,8 +228,8 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 ![](Simulations_files/figure-markdown_github/unnamed-chunk-7-1.png)
 
 ``` r
-deltaS.diff <- deltaS
-alldat.diff <- alldat
+#deltaS.diff <- deltaS
+#alldat.diff <- alldat
 ```
 
 ### Example 4: Comparable intra-group variability and inter-group distance
@@ -271,18 +271,8 @@ sp3d$points3d(suppressWarnings(tcs(groupB)[, c('x','y','z')]), col='red',pch=19)
 ![](Simulations_files/figure-markdown_github/unnamed-chunk-8-1.png)
 
 ``` r
-apply(rbind(tcs(groupA)[, c('x','y','z')],tcs(groupB)[, c('x','y','z')]),2, quantile,c(0,1))
+# apply(rbind(tcs(groupA)[, c('x','y','z')],tcs(groupB)[, c('x','y','z')]),2, quantile,c(0,1))
 ```
-
-    ## Warning in tcs(groupA): Quantum catch are not relative, and have been
-    ## transformed
-
-    ## Warning in tcs(groupB): Quantum catch are not relative, and have been
-    ## transformed
-
-    ##              x           y          z
-    ## 0%   0.2349414 -0.16525311 -0.1895890
-    ## 100% 0.3670893  0.03612811 -0.1399968
 
 Note that although USML were simulated uncorrelated, XYZ are correlated.
 
