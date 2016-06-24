@@ -513,19 +513,22 @@ for(i in rownames(dmat))
 
 grouping <- gsub('[0-9]','', rownames(dmat))
 
-anosim(dmat, grouping)
+adonis(dmat~grouping)
 ```
 
     ## 
     ## Call:
-    ## anosim(dat = dmat, grouping = grouping) 
-    ## Dissimilarity: user supplied square matrix 
-    ## 
-    ## ANOSIM statistic R: 0.001287 
-    ##       Significance: 0.394 
+    ## adonis(formula = dmat ~ grouping) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
+    ## 
+    ## Terms added sequentially (first to last)
+    ## 
+    ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+    ## grouping   1     1.564  1.5636 0.55003 0.00956  0.615
+    ## Residuals 57   162.039  2.8428         0.99044       
+    ## Total     58   163.602                 1.00000
 
 #### when there is a difference
 
@@ -709,19 +712,24 @@ for(i in rownames(dmat))
 
 grouping <- gsub('[0-9]','', rownames(dmat))
 
-anosim(dmat, grouping)
+adonis(dmat~grouping)
 ```
 
     ## 
     ## Call:
-    ## anosim(dat = dmat, grouping = grouping) 
-    ## Dissimilarity: user supplied square matrix 
-    ## 
-    ## ANOSIM statistic R: 0.08756 
-    ##       Significance: 0.007 
+    ## adonis(formula = dmat ~ grouping) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
+    ## 
+    ## Terms added sequentially (first to last)
+    ## 
+    ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
+    ## grouping   1    16.953 16.9534  5.9637 0.09472  0.005 **
+    ## Residuals 57   162.039  2.8428         0.90528          
+    ## Total     58   178.992                 1.00000          
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
 sessionInfo()
