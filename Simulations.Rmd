@@ -11,11 +11,15 @@ output:
 
 Here we'll attempt to show, using simulations, that using mean deltaS to estimate the difference between two groups might not be appropriate.
 
-```{r}
+```{r setup, include=FALSE}
 require(pavo)
 require(scatterplot3d)
 require(ggplot2)
 require(lme4)
+
+knitr::opts_chunk$set(echo = TRUE, 
+                      fig.path='output/simspt1/simspt1_fig')
+
 ```
 
 

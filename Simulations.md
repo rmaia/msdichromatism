@@ -5,34 +5,6 @@ Simulation
 
 Here we'll attempt to show, using simulations, that using mean deltaS to estimate the difference between two groups might not be appropriate.
 
-``` r
-require(pavo)
-```
-
-    ## Loading required package: pavo
-
-    ## Loading required package: rgl
-
-``` r
-require(scatterplot3d)
-```
-
-    ## Loading required package: scatterplot3d
-
-``` r
-require(ggplot2)
-```
-
-    ## Loading required package: ggplot2
-
-``` r
-require(lme4)
-```
-
-    ## Loading required package: lme4
-
-    ## Loading required package: Matrix
-
 ### Example 1: low intra-group variability, low inter-group distance
 
 ``` r
@@ -69,7 +41,7 @@ sp3d <- scatterplot3d(suppressWarnings(tcs(groupA)[, c('x','y','z')]), pch=19,
 sp3d$points3d(suppressWarnings(tcs(groupB)[, c('x','y','z')]), col='red',pch=19)
 ```
 
-![](Simulations_files/figure-markdown_github/unnamed-chunk-2-1.png)
+![](output/simspt1/simspt1_figunnamed-chunk-1-1.png)
 
 Note that although USML were simulated uncorrelated, XYZ are correlated.
 
@@ -94,7 +66,7 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
   theme(legend.position="none")
 ```
 
-![](Simulations_files/figure-markdown_github/unnamed-chunk-3-1.png)
+![](output/simspt1/simspt1_figunnamed-chunk-2-1.png)
 
 ### Example 2: High intra-group variability, low inter-group distance
 
@@ -130,7 +102,7 @@ sp3d <- scatterplot3d(suppressWarnings(tcs(groupA)[, c('x','y','z')]), pch=19,
 sp3d$points3d(suppressWarnings(tcs(groupB)[, c('x','y','z')]), col='red',pch=19)
 ```
 
-![](Simulations_files/figure-markdown_github/unnamed-chunk-4-1.png)
+![](output/simspt1/simspt1_figunnamed-chunk-3-1.png)
 
 Again, although USML were simulated uncorrelated, XYZ are correlated.
 
@@ -155,7 +127,7 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
   theme(legend.position="none")
 ```
 
-![](Simulations_files/figure-markdown_github/unnamed-chunk-5-1.png)
+![](output/simspt1/simspt1_figunnamed-chunk-4-1.png)
 
 ``` r
 deltaS.nodiff <- deltaS
@@ -200,7 +172,7 @@ sp3d <- scatterplot3d(suppressWarnings(tcs(groupA)[, c('x','y','z')]), pch=19,
 sp3d$points3d(suppressWarnings(tcs(groupB)[, c('x','y','z')]), col='red',pch=19)
 ```
 
-![](Simulations_files/figure-markdown_github/unnamed-chunk-6-1.png)
+![](output/simspt1/simspt1_figunnamed-chunk-5-1.png)
 
 Note that although USML were simulated uncorrelated, XYZ are correlated.
 
@@ -225,7 +197,7 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
   theme(legend.position="none")
 ```
 
-![](Simulations_files/figure-markdown_github/unnamed-chunk-7-1.png)
+![](output/simspt1/simspt1_figunnamed-chunk-6-1.png)
 
 ``` r
 #deltaS.diff <- deltaS
@@ -268,7 +240,7 @@ sp3d <- scatterplot3d(suppressWarnings(tcs(groupA)[, c('x','y','z')]), pch=19,
 sp3d$points3d(suppressWarnings(tcs(groupB)[, c('x','y','z')]), col='red',pch=19)
 ```
 
-![](Simulations_files/figure-markdown_github/unnamed-chunk-8-1.png)
+![](output/simspt1/simspt1_figunnamed-chunk-7-1.png)
 
 ``` r
 # apply(rbind(tcs(groupA)[, c('x','y','z')],tcs(groupB)[, c('x','y','z')]),2, quantile,c(0,1))
@@ -297,7 +269,7 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
   theme(legend.position="none")
 ```
 
-![](Simulations_files/figure-markdown_github/unnamed-chunk-9-1.png)
+![](output/simspt1/simspt1_figunnamed-chunk-8-1.png)
 
 ``` r
 deltaS.diff <- deltaS
@@ -319,7 +291,7 @@ sp3d <- scatterplot3d(tcs(alldat.nodiff)[,c('x','y','z')], color=as.character(fa
 sp3d$points3d(apply(tcs(alldat.nodiff)[,c('x','y','z')], 2, tapply, factor(gsub('[0-9]','',rownames(alldat.nodiff)), labels=c('black','red')), mean), pch=1, cex=3, lwd=2, col=c(1,2))
 ```
 
-![](Simulations_files/figure-markdown_github/unnamed-chunk-10-1.png)
+![](output/simspt1/simspt1_figunnamed-chunk-9-1.png)
 
 ``` r
 sp3d <- scatterplot3d(tcs(alldat.diff)[,c('x','y','z')], color=as.character(factor(gsub('[0-9]','',rownames(alldat.diff)), labels=c('black','red'))), pch=19, angle=70, main='example 4')
@@ -327,7 +299,7 @@ sp3d <- scatterplot3d(tcs(alldat.diff)[,c('x','y','z')], color=as.character(fact
 sp3d$points3d(apply(tcs(alldat.diff)[,c('x','y','z')], 2, tapply, factor(gsub('[0-9]','',rownames(alldat.diff)), labels=c('black','red')), mean), pch=1, cex=3, lwd=2, col=c(1,2))
 ```
 
-![](Simulations_files/figure-markdown_github/unnamed-chunk-10-2.png)
+![](output/simspt1/simspt1_figunnamed-chunk-9-2.png)
 
 ``` r
 ggplot(deltaS.nodiff, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
@@ -335,7 +307,7 @@ ggplot(deltaS.nodiff, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
   theme(legend.position="none") + labs(title='example 2')
 ```
 
-![](Simulations_files/figure-markdown_github/unnamed-chunk-10-3.png)
+![](output/simspt1/simspt1_figunnamed-chunk-9-3.png)
 
 ``` r
 ggplot(deltaS.diff, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
@@ -343,7 +315,7 @@ ggplot(deltaS.diff, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
   theme(legend.position="none") + labs(title='example 4')
 ```
 
-![](Simulations_files/figure-markdown_github/unnamed-chunk-10-4.png)
+![](output/simspt1/simspt1_figunnamed-chunk-9-4.png)
 
 ``` r
 options(warn=0)
