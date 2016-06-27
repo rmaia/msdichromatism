@@ -13,9 +13,9 @@ require(vegan)
 require(lme4)
 
 knitr::opts_chunk$set(echo = TRUE, 
-                      fig.path='output/cache/simspt2/simspt2_fig', 
+                      fig.path='output/figures/simspt2/simspt2_fig', 
                       fig.width=15, fig.height = 10,
-                      cache.path = 'output/figures/simspt2/simspt2_cache')
+                      cache.path = 'output/cache/simspt2/simspt2_cache')
 
 set.seed(6210)
 ```
@@ -85,7 +85,7 @@ simulatecoldist <- parallel::mclapply(simulatedata, function(x) {
 
 Let's see what some of these simulations look like. We can see how similar groups are. This really is a threshold situation. We can also see that simulations do a pretty good job of covering the entire colorspace, as well as a wide range of correlations and variances.
 
-```{r, fig.height=15}
+```{r, dependson='coldistcache', fig.height=15}
 source('R/dichtcp.R')
 
 par(mfrow=c(3,3))
@@ -122,7 +122,7 @@ lmesim <- parallel::mclapply(simulatecoldist, function(x) lmer(dS~comparison - 1
 
 Let's see what our results look like
 
-```{r}
+```{r, dependson=c('coldistcache', 'adoniscache', 'lmercache')}
 interdist <- unlist(lapply(lmesim, function(x) x@beta[1]))
 
 adonisP <- unlist(lapply(adonissim, function(x) x$aov.tab$'Pr(>F)'[1]))
