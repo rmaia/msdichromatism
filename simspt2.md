@@ -69,7 +69,7 @@ par(mfrow=c(3,3))
 for(i in 1:9) dichtcp(simulatedata[[i]])
 ```
 
-![](output/cache/simspt2/simspt2_figunnamed-chunk-2-1.png)
+![](output/figures/simspt2/simspt2_figunnamed-chunk-2-1.png)
 
 **Step 1:** Run permuational ANOVA (PERMANOVA) on simulated data to ask if group A is different than group B
 
@@ -115,7 +115,7 @@ boxplot(interdist~I(adonisP < 0.05),
         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 ```
 
-![](output/cache/simspt2/simspt2_figunnamed-chunk-3-1.png)
+![](output/figures/simspt2/simspt2_figunnamed-chunk-3-1.png)
 
 -   There is no association between how well groups can be told apart (PERMANOVA R-squared) and the mean between-group distances
 -   There between-group JND distance is not a good predictor of if the groups can be told apart (i.e. if the PERMANOVA is significant)
