@@ -14,7 +14,6 @@ require(lme4)
 
 knitr::opts_chunk$set(echo = TRUE, 
                       fig.path='output/figures/simspt2/simspt2_fig', 
-                      fig.width=10, fig.height = 7,
                       cache.path = 'output/cache/simspt2/simspt2_cache')
 
 set.seed(6210)
@@ -123,12 +122,14 @@ adonissim <- parallel::mclapply(simulatecoldist, adoniscoldist, mc.cores=6)
 **Step 2:** Run a linear model to get average within- and between-group distances.
 
 ```{r lmercache, cache=TRUE, dependson='coldistcache'}
-lmesim <- parallel::mclapply(simulatecoldist, function(x) lmer(dS~comparison - 1 + (1|patch1) + (1|patch2), data=x), mc.cores=6)
+lmesim <- parallel::mclapply(simulatecoldist, function(x) 
+  lmer(dS~comparison - 1 + (1|patch1) + (1|patch2), data=x), 
+  mc.cores=6)
 ```
 
 Let's see what our results look like
 
-```{r, include=FALSE, dependson=c('coldistcache', 'adoniscache', 'lmercache')}
+```{r, echo=FALSE, dependson=c('coldistcache', 'adoniscache', 'lmercache')}
 interdist <- unlist(lapply(lmesim, function(x) x@beta[1]))
 
 adonisP <- unlist(lapply(adonissim, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -212,8 +213,12 @@ adonissim.t1 <- parallel::mclapply(simulatecoldist.t1, adoniscoldist, mc.cores=6
 **Step 2:** Run a linear model to get average within- and between-group distances.
 
 ```{r lmercache.t1, cache=TRUE, dependson='coldistcache.t1'}
-lmesim.t1 <- parallel::mclapply(simulatecoldist.t1, function(x) lmer(dS~comparison - 1 + (1|patch1) + (1|patch2), data=x), mc.cores=6)
+lmesim.t1 <- parallel::mclapply(simulatecoldist.t1, function(x) 
+  lmer(dS~comparison - 1 + (1|patch1) + (1|patch2), data=x), 
+  mc.cores=6)
 ```
+
+What do the results look like in this case?
 
 ```{r, echo=FALSE, dependson=c('coldistcache.t1', 'adoniscache.t1', 'lmercache.t1')}
 interdist.t1 <- unlist(lapply(lmesim.t1, function(x) x@beta[1]))

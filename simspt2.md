@@ -94,10 +94,14 @@ adonissim <- parallel::mclapply(simulatecoldist, adoniscoldist, mc.cores=6)
 **Step 2:** Run a linear model to get average within- and between-group distances.
 
 ``` r
-lmesim <- parallel::mclapply(simulatecoldist, function(x) lmer(dS~comparison - 1 + (1|patch1) + (1|patch2), data=x), mc.cores=6)
+lmesim <- parallel::mclapply(simulatecoldist, function(x) 
+  lmer(dS~comparison - 1 + (1|patch1) + (1|patch2), data=x), 
+  mc.cores=6)
 ```
 
 Let's see what our results look like
+
+![](output/figures/simspt2/simspt2_figunnamed-chunk-3-1.png)
 
 -   There is no association between how well groups can be told apart (PERMANOVA R-squared) and the mean between-group distances
 -   There between-group JND distance is not a good predictor of if the groups can be told apart (i.e. if the PERMANOVA is significant)
@@ -148,8 +152,12 @@ adonissim.t1 <- parallel::mclapply(simulatecoldist.t1, adoniscoldist, mc.cores=6
 **Step 2:** Run a linear model to get average within- and between-group distances.
 
 ``` r
-lmesim.t1 <- parallel::mclapply(simulatecoldist.t1, function(x) lmer(dS~comparison - 1 + (1|patch1) + (1|patch2), data=x), mc.cores=6)
+lmesim.t1 <- parallel::mclapply(simulatecoldist.t1, function(x) 
+  lmer(dS~comparison - 1 + (1|patch1) + (1|patch2), data=x), 
+  mc.cores=6)
 ```
+
+What do the results look like in this case?
 
 ![](output/figures/simspt2/simspt2_figunnamed-chunk-5-1.png)
 
