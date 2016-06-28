@@ -3,7 +3,7 @@ Simulation definitions
 
 -   *u**s**m**l* ∼ 𝓁𝓃𝒩(*l**n*(*μ*),*σ*<sup>2</sup>)
 -   *μ*<sub>*u**s**m**l*</sub> ∼ 𝒰(1, 10), covariances = 0
--   *σ*<sub>*u**s**m**l*</sub><sup>2</sup> ∼ ℰ𝓍𝓅(*λ* = 10) (such that $\overline{\sigma^2} = 0.1$).
+-   *σ*<sub>*u**s**m**l*</sub><sup>2</sup> ∼ ℰ𝓍𝓅(*λ* = 10) (such that $\\overline{\\sigma^2} = 0.1$).
 -   Also, *σ*<sub>*A*<sub>*u**s**m**l*</sub></sub><sup>2</sup> = *σ*<sub>*B*<sub>*u**s**m**l*</sub></sub><sup>2</sup>
 -   difference between group A and group B: *μ*<sub>*A*<sub>*u**s**m**l*</sub></sub> = *μ*<sub>*B*<sub>*u**s**m**l*</sub></sub> \* *X*, where *X* ∼ 𝒰(0.95, 1.05) (that is, group B *usml* should be up to 5% different than group A *usml*)
 -   *N*<sub>*A*</sub> = *N*<sub>*B*</sub> = 50
@@ -67,7 +67,7 @@ adoniscoldist <- function(x){
 Simulate 500 datasets
 
 ``` r
-simulatedata <- replicate(100, 
+simulatedata <- replicate(200, 
                   simdich(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)), 
                   simplify=FALSE)
 
@@ -106,6 +106,7 @@ Let's see what our results look like
 -   There is no association between how well groups can be told apart (PERMANOVA R-squared) and the mean between-group distances
 -   There between-group JND distance is not a good predictor of if the groups can be told apart (i.e. if the PERMANOVA is significant)
 -   If anything these associations are negative - probably because of the mean-variance relationship in lognormal distributions?
+-   I actually think now that it's because in overall low JNDs, the inter-group variance dominates, but in high JNDs it's essentially just the within-group varince (so lower resolution between-groups).
 
 This is annoying, wasn't really what I was trying to simulate. But makes the point accross...
 
@@ -114,13 +115,13 @@ Let's try some other simulations.
 Test 1: increase within-group variance
 --------------------------------------
 
-Let's change *σ*<sub>*u**s**m**l*</sub><sup>2</sup> such that *σ*<sub>*u**s**m**l*</sub><sup>2</sup> ∼ ℰ𝓍𝓅(*λ* = 1) (and $\\overline{\\sigma^2} = 1$).
+Let's change *σ*<sub>*u**s**m**l*</sub><sup>2</sup> such that *σ*<sub>*u**s**m**l*</sub><sup>2</sup> ∼ ℰ𝓍𝓅(*λ* = 5) (and $\\overline{\\sigma^2} = 0.2$).
 
 Simulate 500 datasets
 
 ``` r
-simulatedata.t1 <- replicate(100, 
-                  simdich(N=50, sgsqsrate=1, multiplier=c(0.95, 1.05)), 
+simulatedata.t1 <- replicate(200, 
+                  simdich(N=50, sgsqsrate=5, multiplier=c(0.95, 1.05)), 
                   simplify=FALSE)
 
 simulatecoldist.t1 <- parallel::mclapply(simulatedata.t1, function(x) {
@@ -171,7 +172,7 @@ Now let's change the multiplier for the difference between group A and group B s
 Simulate 500 datasets
 
 ``` r
-simulatedata.t2 <- replicate(100, 
+simulatedata.t2 <- replicate(200, 
                   simdich(N=50, sgsqsrate=10, multiplier=c(0.6, 1.4)), 
                   simplify=FALSE)
 
@@ -230,17 +231,17 @@ sessionInfo()
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## other attached packages:
-    ## [1] knitr_1.13           lme4_1.1-12          Matrix_1.2-6        
-    ## [4] vegan_2.4-0          lattice_0.20-33      permute_0.9-0       
-    ## [7] scatterplot3d_0.3-37 pavo_0.5-5           rgl_0.95.1441       
+    ## [1] lme4_1.1-12          Matrix_1.2-6         vegan_2.4-0         
+    ## [4] lattice_0.20-33      permute_0.9-0        scatterplot3d_0.3-37
+    ## [7] pavo_0.5-5           rgl_0.95.1441       
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.5        cluster_2.0.4      magrittr_1.5      
-    ##  [4] splines_3.3.0      maps_3.1.0         magic_1.5-6       
-    ##  [7] MASS_7.3-45        minqa_1.2.4        geometry_0.3-6    
-    ## [10] stringr_1.0.0      tools_3.3.0        parallel_3.3.0    
-    ## [13] grid_3.3.0         nlme_3.1-127       mgcv_1.8-12       
-    ## [16] htmltools_0.3.5    yaml_2.1.13        digest_0.6.9      
-    ## [19] nloptr_1.0.4       mapproj_1.2-4      formatR_1.4       
-    ## [22] codetools_0.2-14   rcdd_1.1-10        evaluate_0.9      
+    ##  [1] Rcpp_0.12.5        cluster_2.0.4      knitr_1.13        
+    ##  [4] magrittr_1.5       splines_3.3.0      maps_3.1.0        
+    ##  [7] magic_1.5-6        MASS_7.3-45        minqa_1.2.4       
+    ## [10] geometry_0.3-6     stringr_1.0.0      tools_3.3.0       
+    ## [13] parallel_3.3.0     grid_3.3.0         nlme_3.1-127      
+    ## [16] mgcv_1.8-12        htmltools_0.3.5    yaml_2.1.13       
+    ## [19] digest_0.6.9       nloptr_1.0.4       mapproj_1.2-4     
+    ## [22] formatR_1.4        rcdd_1.1-10        evaluate_0.9      
     ## [25] rmarkdown_0.9.6.10 stringi_1.0-1

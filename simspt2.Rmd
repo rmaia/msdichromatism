@@ -90,7 +90,7 @@ adoniscoldist <- function(x){
 Simulate 500 datasets
 
 ```{r coldistcache, cache=TRUE}
-simulatedata <- replicate(100, 
+simulatedata <- replicate(200, 
                   simdich(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)), 
                   simplify=FALSE)
 
@@ -169,6 +169,7 @@ rm(adonissim, lmesim, simulatedata, simulatecoldist, interdist, intradistA, intr
 - There is no association between how well groups can be told apart (PERMANOVA R-squared) and the mean between-group distances
 - There between-group JND distance is not a good predictor of if the groups can be told apart (i.e. if the PERMANOVA is significant)
 - If anything these associations are negative - probably because of the mean-variance relationship in lognormal distributions?
+- I actually think now that it's because in overall low JNDs, the inter-group variance dominates, but in high JNDs it's essentially just the within-group varince (so lower resolution between-groups).
 
 This is annoying, wasn't really what I was trying to simulate. But makes the point accross... 
 
@@ -177,14 +178,14 @@ Let's try some other simulations.
 
 ## Test 1: increase within-group variance
 
-Let's change $\sigma^2_{usml}$ such that $\sigma^2_{usml} \sim \mathcal{Exp}(\lambda = 1)$ (and $\overline{\sigma^2} = 1$).
+Let's change $\sigma^2_{usml}$ such that $\sigma^2_{usml} \sim \mathcal{Exp}(\lambda = 5)$ (and $\overline{\sigma^2} = 0.2$).
 
 
 Simulate 500 datasets
 
 ```{r coldistcache.t1, cache=TRUE}
-simulatedata.t1 <- replicate(100, 
-                  simdich(N=50, sgsqsrate=1, multiplier=c(0.95, 1.05)), 
+simulatedata.t1 <- replicate(200, 
+                  simdich(N=50, sgsqsrate=5, multiplier=c(0.95, 1.05)), 
                   simplify=FALSE)
 
 simulatecoldist.t1 <- parallel::mclapply(simulatedata.t1, function(x) {
@@ -236,8 +237,8 @@ intradistM.t1 <- apply(cbind(intradistA.t1,intradistB.t1),1, mean)
 
 par(mfrow=c(3,2))
 
-hist(interdist.t1, xlab='mean distance (JND)', breaks=seq(0,100,by=4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t1,intradistM.t1))* c(0,1.1))
-hist(intradistM.t1, col=rgb(0,0,1,0.6), breaks=seq(0,100,by=4), add=TRUE)
+hist(interdist.t1, xlab='mean distance (JND)', breaks=seq(0,100,by=1), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t1,intradistM.t1))* c(0,1.1))
+hist(intradistM.t1, col=rgb(0,0,1,0.6), breaks=seq(0,100,by=1), add=TRUE)
 legend('topright', fill=c('red','blue'), c('intra','inter'))
 
 plot(interdist.t1~intradistM.t1, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
@@ -268,7 +269,7 @@ Now let's change the multiplier for the difference between group A and group B s
 Simulate 500 datasets
 
 ```{r coldistcache.t2, cache=TRUE}
-simulatedata.t2 <- replicate(100, 
+simulatedata.t2 <- replicate(200, 
                   simdich(N=50, sgsqsrate=10, multiplier=c(0.6, 1.4)), 
                   simplify=FALSE)
 
