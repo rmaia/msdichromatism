@@ -122,6 +122,23 @@ boxplot(interdist~I(adonisP < 0.05),
 -   If anything these associations are negative - probably because of the mean-variance relationship in lognormal distributions?
 
 ``` r
+intradistA <- unlist(lapply(lmesim, function(x) x@beta[2]))
+intradistB <- unlist(lapply(lmesim, function(x) x@beta[3]))
+
+par(mfrow=c(2,2))
+
+plot(I(adonisR2*100)~intradistA, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group A distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
+plot(I(adonisR2*100)~intradistB, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group B distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
+
+plot(interdist~intradistA, ylab='mean between-group distance (JND)', xlab='mean within-group A distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
+plot(interdist~intradistB, ylab='mean between-group distance (JND)', xlab='mean within-group B distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
+```
+
+![](output/figures/simspt2/simspt2_figunnamed-chunk-4-1.png)
+
+This is annoying, wasn't really what I was trying to simulate. But makes the point accross...
+
+``` r
 sessionInfo()
 ```
 
@@ -148,5 +165,5 @@ sessionInfo()
     ## [13] parallel_3.3.0     grid_3.3.0         nlme_3.1-127      
     ## [16] mgcv_1.8-12        htmltools_0.3.5    yaml_2.1.13       
     ## [19] digest_0.6.9       nloptr_1.0.4       mapproj_1.2-4     
-    ## [22] formatR_1.4        codetools_0.2-14   rcdd_1.1-10       
-    ## [25] evaluate_0.9       rmarkdown_0.9.6.10 stringi_1.0-1
+    ## [22] formatR_1.4        rcdd_1.1-10        evaluate_0.9      
+    ## [25] rmarkdown_0.9.6.10 stringi_1.0-1

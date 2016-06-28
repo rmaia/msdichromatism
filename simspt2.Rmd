@@ -144,6 +144,21 @@ boxplot(interdist~I(adonisP < 0.05),
 - There between-group JND distance is not a good predictor of if the groups can be told apart (i.e. if the PERMANOVA is significant)
 - If anything these associations are negative - probably because of the mean-variance relationship in lognormal distributions?
 
+```{r}
+intradistA <- unlist(lapply(lmesim, function(x) x@beta[2]))
+intradistB <- unlist(lapply(lmesim, function(x) x@beta[3]))
+
+par(mfrow=c(2,2))
+
+plot(I(adonisR2*100)~intradistA, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group A distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
+plot(I(adonisR2*100)~intradistB, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group B distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
+
+plot(interdist~intradistA, ylab='mean between-group distance (JND)', xlab='mean within-group A distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
+plot(interdist~intradistB, ylab='mean between-group distance (JND)', xlab='mean within-group B distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
+```
+
+This is annoying, wasn't really what I was trying to simulate. But makes the point accross... 
+
 
 ```{r}
 sessionInfo()
