@@ -14,6 +14,7 @@ require(lme4)
 
 knitr::opts_chunk$set(echo = TRUE, 
                       fig.path='output/figures/simspt2/simspt2_fig', 
+                      fig.height = 10,
                       cache.path = 'output/cache/simspt2/simspt2_cache')
 
 set.seed(6210)
@@ -89,7 +90,7 @@ adoniscoldist <- function(x){
 Simulate 500 datasets
 
 ```{r coldistcache, cache=TRUE}
-simulatedata <- replicate(50, 
+simulatedata <- replicate(100, 
                   simdich(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)), 
                   simplify=FALSE)
 
@@ -106,7 +107,7 @@ simulatecoldist <- parallel::mclapply(simulatedata, function(x) {
 
 Let's see what some of these simulations look like. We can see how similar groups are. This really is a threshold situation. We can also see that simulations do a pretty good job of covering the entire colorspace, as well as a wide range of correlations and variances.
 
-```{r, echo=FALSE, dependson='coldistcache', fig.height=10}
+```{r, echo=FALSE, dependson='coldistcache', fig.width=10}
 par(mfrow=c(3,3))
 
 for(i in 1:9) dichtcp(simulatedata[[i]])
@@ -143,8 +144,8 @@ intradistM <- apply(cbind(intradistA,intradistB),1, mean)
 
 par(mfrow=c(3,2))
 
-hist(interdist, xlab='mean distance (JND)', breaks=30, col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist,intradistM))* c(0,1.1))
-hist(intradistM, col=rgb(0,0,1,0.6), breaks=30, add=TRUE)
+hist(interdist, xlab='mean distance (JND)', breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist,intradistM))* c(0,1.1))
+hist(intradistM, col=rgb(0,0,1,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
 legend('topright', fill=c('red','blue'), c('intra','inter'))
 
 plot(interdist~intradistM, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
@@ -162,6 +163,7 @@ boxplot(intradistM~I(adonisP < 0.05),
         xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
+rm(adonissim, lmesim, simulatedata, simulatecoldist, interdist, intradistA, intradistB, intradistM, adonisP, adonisR2)
 ```
 
 - There is no association between how well groups can be told apart (PERMANOVA R-squared) and the mean between-group distances
@@ -181,8 +183,8 @@ Let's change $\sigma^2_{usml}$ such that $\sigma^2_{usml} \sim \mathcal{Exp}(\la
 Simulate 500 datasets
 
 ```{r coldistcache.t1, cache=TRUE}
-simulatedata.t1 <- replicate(50, 
-                  simdich(N=50, sgsqsrate=1, multiplier=c(0.7, 1.3)), 
+simulatedata.t1 <- replicate(100, 
+                  simdich(N=50, sgsqsrate=1, multiplier=c(0.95, 1.05)), 
                   simplify=FALSE)
 
 simulatecoldist.t1 <- parallel::mclapply(simulatedata.t1, function(x) {
@@ -197,7 +199,7 @@ simulatecoldist.t1 <- parallel::mclapply(simulatedata.t1, function(x) {
 
 Groups still overlap a lot but their variation increased a LOT.
 
-```{r, dependson='coldistcache.t1', fig.height=10}
+```{r, dependson='coldistcache.t1', fig.width=10}
 par(mfrow=c(3,3))
 
 for(i in 1:9) dichtcp(simulatedata.t1[[i]])
@@ -234,8 +236,8 @@ intradistM.t1 <- apply(cbind(intradistA.t1,intradistB.t1),1, mean)
 
 par(mfrow=c(3,2))
 
-hist(interdist.t1, xlab='mean distance (JND)', breaks=30, col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t1,intradistM.t1))* c(0,1.1))
-hist(intradistM.t1, col=rgb(0,0,1,0.6), breaks=30, add=TRUE)
+hist(interdist.t1, xlab='mean distance (JND)', breaks=seq(0,100,by=4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t1,intradistM.t1))* c(0,1.1))
+hist(intradistM.t1, col=rgb(0,0,1,0.6), breaks=seq(0,100,by=4), add=TRUE)
 legend('topright', fill=c('red','blue'), c('intra','inter'))
 
 plot(interdist.t1~intradistM.t1, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
@@ -253,9 +255,95 @@ boxplot(intradistM.t1~I(adonisP.t1 < 0.05),
         xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
+rm(adonissim.t1, lmesim.t1, simulatedata.t1, simulatecoldist.t1, interdist.t1, intradistA.t1, intradistB.t1, intradistM.t1, adonisP.t1, adonisR2.t1)
 ```
 
 We see the same results. Note that the between-group distance also increased tenfold, but that's just because of the within-group increase (they're essentially sampled from the same population!).
+
+## Test 2: increase between-group distance
+
+Now let's change the multiplier for the difference between group A and group B such that $X \sim \mathcal{U}(0.6,1.4)$ (that is, group B _usml_ should be up to 40% different than group A _usml_)
+
+
+Simulate 500 datasets
+
+```{r coldistcache.t2, cache=TRUE}
+simulatedata.t2 <- replicate(100, 
+                  simdich(N=50, sgsqsrate=10, multiplier=c(0.6, 1.4)), 
+                  simplify=FALSE)
+
+simulatecoldist.t2 <- parallel::mclapply(simulatedata.t2, function(x) {
+  Y <- coldist(x, achro=FALSE)
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  }, mc.cores=6)
+```
+
+Groups still overlap a lot but their variation increased a LOT.
+
+```{r, dependson='coldistcache.t2', fig.width=10}
+par(mfrow=c(3,3))
+
+for(i in 1:9) dichtcp(simulatedata.t2[[i]])
+```
+
+**Step 1:** Run permuational ANOVA (PERMANOVA) on simulated data to ask if group A is different than group B
+
+```{r adoniscache.t2, cache=TRUE, dependson='coldistcache.t2'}
+adonissim.t2 <- parallel::mclapply(simulatecoldist.t2, adoniscoldist, mc.cores=6)
+```
+
+
+**Step 2:** Run a linear model to get average within- and between-group distances.
+
+```{r lmercache.t2, cache=TRUE, dependson='coldistcache.t2'}
+lmesim.t2 <- parallel::mclapply(simulatecoldist.t2, function(x) 
+  lmer(dS~comparison - 1 + (1|patch1) + (1|patch2), data=x), 
+  mc.cores=6)
+```
+
+What do the results look like in this case?
+
+```{r, echo=FALSE, dependson=c('coldistcache.t2', 'adoniscache.t2', 'lmercache.t2')}
+interdist.t2 <- unlist(lapply(lmesim.t2, function(x) x@beta[1]))
+
+adonisP.t2 <- unlist(lapply(adonissim.t2, function(x) x$aov.tab$'Pr(>F)'[1]))
+adonisR2.t2 <- unlist(lapply(adonissim.t2, function(x) x$aov.tab$'R2'[1]))
+
+intradistA.t2 <- unlist(lapply(lmesim.t2, function(x) x@beta[2]))
+intradistB.t2 <- unlist(lapply(lmesim.t2, function(x) x@beta[3]))
+
+intradistM.t2 <- apply(cbind(intradistA.t2,intradistB.t2),1, mean)
+
+
+par(mfrow=c(3,2))
+
+hist(interdist.t2, xlab='mean distance (JND)', breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t2,intradistM.t2))* c(0,1.1))
+hist(intradistM.t2, col=rgb(0,0,1,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
+legend('topright', fill=c('red','blue'), c('intra','inter'))
+
+plot(interdist.t2~intradistM.t2, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
+abline(0,1, lty=3)
+
+plot(I(adonisR2.t2*100)~interdist.t2, ylab='Rsquared from PERMANOVA (%)', xlab='mean between-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
+
+plot(I(adonisR2.t2*100)~intradistM.t2, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group  distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
+
+boxplot(interdist.t2~I(adonisP.t2 < 0.05), 
+        xlab='PERMANOVA test significant?', ylab='mean between-group distance (JND)', 
+        boxwex=0.3, col=grey(0.7), pch=19, log='y')
+
+boxplot(intradistM.t2~I(adonisP.t2 < 0.05), 
+        xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
+        boxwex=0.3, col=grey(0.7), pch=19, log='y')
+
+rm(adonissim.t2, lmesim.t2, simulatedata.t2, simulatecoldist.t2, interdist.t2, intradistA.t2, intradistB.t2, intradistM.t2, adonisP.t2, adonisR2.t2)
+```
+
+What is this sorcery? In this case significant results even have *lower* deltaS! We can see that's because high values of between-group distance also have high values of within-group distance in our simulations.
 
 ```{r}
 sessionInfo()
