@@ -2,19 +2,24 @@ Simulation definitions
 ----------------------
 
 -   *u**s**m**l* ∼ 𝓁𝓃𝒩(*l**n*(*μ*),*σ*<sup>2</sup>)
--   *μ*<sub>*u**s**m**l*</sub> ∼ 𝒰(10<sup>−6</sup>, 10<sup>0</sup>), covariances = 0
+-   *μ*<sub>*u**s**m**l*</sub> ∼ 𝒰(1, 10), covariances = 0
 -   *σ*<sub>*u**s**m**l*</sub><sup>2</sup> ∼ ℰ𝓍𝓅(*λ* = 10) (such that $\\overline{\\sigma^2} = 0.1$).
 -   Also, *σ*<sub>*A*<sub>*u**s**m**l*</sub></sub><sup>2</sup> = *σ*<sub>*B*<sub>*u**s**m**l*</sub></sub><sup>2</sup>
--   difference between group A and group B: *μ*<sub>*A*<sub>*u**s**m**l*</sub></sub> = *μ*<sub>*B*<sub>*u**s**m**l*</sub></sub> \* *X*, where *X* ∼ 𝒩(*μ* = 1, *σ*<sup>2</sup> = 0.01) (that is, group B *usml* should be about 5% different than group A *usml* 95% of the time)
--   *N* = 50
+-   difference between group A and group B: *μ*<sub>*A*<sub>*u**s**m**l*</sub></sub> = *μ*<sub>*B*<sub>*u**s**m**l*</sub></sub> \* *X*, where *X* ∼ 𝒰(0.95, 1.05) (that is, group B *usml* should be up to 5% different than group A *usml*)
+-   *N*<sub>*A*</sub> = *N*<sub>*B*</sub> = 50
 
 ``` r
-simdich <- function(N=50){
+source('R/dichtcp.R')
 
-  musA <- runif(4, 1e-6,1e0) # vector of means for group A
+
+simdich <- function(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)){
+
+  musA <- runif(4, 1e-6, 1e0) # vector of means for group A
+  musA <- runif(4, 1, 10)
   #musB <- musA*runif(4, .8, 1.2) # vector of means for group B
-  musB <- musA*rnorm(4, 1, 0.01)
-  sgsqs <- rexp(4,10) # vector of standard deviations
+  #musB <- musA * rnorm(4, multiplier[1], multiplier[2])
+  musB <- musA * runif(4, multiplier[1], multiplier[2])
+  sgsqs <- rexp(4, sgsqsrate) # vector of standard deviations
   
   groupA <- matrix(NA, nrow=N, ncol=4)
   groupA[,1] <- rlnorm(N, meanlog=log(musA[1]), sdlog=sgsqs[1])
@@ -42,12 +47,29 @@ simdich <- function(N=50){
   
   combined
   }
+
+
+adoniscoldist <- function(x){
+  dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
+  rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
+  
+  for(i in rownames(dmat))
+    for(j in colnames(dmat))
+      if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
+      dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
+  
+  grouping <- gsub('[0-9]','', rownames(dmat))
+  
+  adonis(dmat~grouping)
+  }
 ```
 
-Simulate 1000 datasets
+Simulate 500 datasets
 
 ``` r
-simulatedata <- lapply(rep(50, 1000), simdich)
+simulatedata <- replicate(50, 
+                  simdich(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)), 
+                  simplify=FALSE)
 
 simulatecoldist <- parallel::mclapply(simulatedata, function(x) {
   Y <- coldist(x, achro=FALSE)
@@ -61,32 +83,12 @@ simulatecoldist <- parallel::mclapply(simulatedata, function(x) {
 
 Let's see what some of these simulations look like. We can see how similar groups are. This really is a threshold situation. We can also see that simulations do a pretty good job of covering the entire colorspace, as well as a wide range of correlations and variances.
 
-``` r
-source('R/dichtcp.R')
-
-par(mfrow=c(3,3))
-
-for(i in 1:9) dichtcp(simulatedata[[i]])
-```
-
 ![](output/figures/simspt2/simspt2_figunnamed-chunk-2-1.png)
 
 **Step 1:** Run permuational ANOVA (PERMANOVA) on simulated data to ask if group A is different than group B
 
 ``` r
-adonissim <- parallel::mclapply(simulatecoldist, function(x){
-  dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
-  rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
-  
-  for(i in rownames(dmat))
-    for(j in colnames(dmat))
-      if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
-      dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
-  
-  grouping <- gsub('[0-9]','', rownames(dmat))
-  
-  adonis(dmat~grouping)
-  }, mc.cores=6)
+adonissim <- parallel::mclapply(simulatecoldist, adoniscoldist, mc.cores=6)
 ```
 
 **Step 2:** Run a linear model to get average within- and between-group distances.
@@ -97,46 +99,61 @@ lmesim <- parallel::mclapply(simulatecoldist, function(x) lmer(dS~comparison - 1
 
 Let's see what our results look like
 
-``` r
-interdist <- unlist(lapply(lmesim, function(x) x@beta[1]))
-
-adonisP <- unlist(lapply(adonissim, function(x) x$aov.tab$'Pr(>F)'[1]))
-adonisR2 <- unlist(lapply(adonissim, function(x) x$aov.tab$'R2'[1]))
-
-par(mfrow=c(2,2))
-
-hist(interdist, xlab='mean between-group distance (JND)', breaks=30, col=grey(0.7), main='')
-#hist(adonisP)
-hist(I(adonisR2*100), xlab='Rsquared from PERMANOVA (%)', breaks=30, col=grey(0.7), main='')
-plot(I(adonisR2*100)~interdist, ylab='Rsquared from PERMANOVA (%)', xlab='mean between-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
-
-boxplot(interdist~I(adonisP < 0.05), 
-        xlab='PERMANOVA test significant?', ylab='mean between-group distance (JND)', 
-        boxwex=0.3, col=grey(0.7), pch=19, log='y')
-```
-
-![](output/figures/simspt2/simspt2_figunnamed-chunk-3-1.png)
-
 -   There is no association between how well groups can be told apart (PERMANOVA R-squared) and the mean between-group distances
 -   There between-group JND distance is not a good predictor of if the groups can be told apart (i.e. if the PERMANOVA is significant)
 -   If anything these associations are negative - probably because of the mean-variance relationship in lognormal distributions?
 
+This is annoying, wasn't really what I was trying to simulate. But makes the point accross...
+
+Let's try some other simulations.
+
+Test 1: increase within-group variance
+--------------------------------------
+
+Let's change *σ*<sub>*u**s**m**l*</sub><sup>2</sup> such that *σ*<sub>*u**s**m**l*</sub><sup>2</sup> ∼ ℰ𝓍𝓅(*λ* = 1) (and $\\overline{\\sigma^2} = 1$).
+
+Simulate 500 datasets
+
 ``` r
-intradistA <- unlist(lapply(lmesim, function(x) x@beta[2]))
-intradistB <- unlist(lapply(lmesim, function(x) x@beta[3]))
+simulatedata.t1 <- replicate(50, 
+                  simdich(N=50, sgsqsrate=1, multiplier=c(0.7, 1.3)), 
+                  simplify=FALSE)
 
-par(mfrow=c(2,2))
+simulatecoldist.t1 <- parallel::mclapply(simulatedata.t1, function(x) {
+  Y <- coldist(x, achro=FALSE)
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  }, mc.cores=6)
+```
 
-plot(I(adonisR2*100)~intradistA, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group A distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
-plot(I(adonisR2*100)~intradistB, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group B distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
+Groups still overlap a lot but their variation increased a LOT.
 
-plot(interdist~intradistA, ylab='mean between-group distance (JND)', xlab='mean within-group A distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
-plot(interdist~intradistB, ylab='mean between-group distance (JND)', xlab='mean within-group B distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
+``` r
+par(mfrow=c(3,3))
+
+for(i in 1:9) dichtcp(simulatedata.t1[[i]])
 ```
 
 ![](output/figures/simspt2/simspt2_figunnamed-chunk-4-1.png)
 
-This is annoying, wasn't really what I was trying to simulate. But makes the point accross...
+**Step 1:** Run permuational ANOVA (PERMANOVA) on simulated data to ask if group A is different than group B
+
+``` r
+adonissim.t1 <- parallel::mclapply(simulatecoldist.t1, adoniscoldist, mc.cores=6)
+```
+
+**Step 2:** Run a linear model to get average within- and between-group distances.
+
+``` r
+lmesim.t1 <- parallel::mclapply(simulatecoldist.t1, function(x) lmer(dS~comparison - 1 + (1|patch1) + (1|patch2), data=x), mc.cores=6)
+```
+
+![](output/figures/simspt2/simspt2_figunnamed-chunk-5-1.png)
+
+We see the same results. Note that the between-group distance also increased tenfold, but that's just because of the within-group increase (they're essentially sampled from the same population!).
 
 ``` r
 sessionInfo()
@@ -165,5 +182,5 @@ sessionInfo()
     ## [13] parallel_3.3.0     grid_3.3.0         nlme_3.1-127      
     ## [16] mgcv_1.8-12        htmltools_0.3.5    yaml_2.1.13       
     ## [19] digest_0.6.9       nloptr_1.0.4       mapproj_1.2-4     
-    ## [22] formatR_1.4        rcdd_1.1-10        evaluate_0.9      
-    ## [25] rmarkdown_0.9.6.10 stringi_1.0-1
+    ## [22] formatR_1.4        codetools_0.2-14   rcdd_1.1-10       
+    ## [25] evaluate_0.9       rmarkdown_0.9.6.10 stringi_1.0-1
