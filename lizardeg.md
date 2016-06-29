@@ -1,50 +1,17 @@
 ``` r
-require(pavo)
-```
-
-    ## Loading required package: pavo
-
-    ## Warning: package 'pavo' was built under R version 3.2.4
-
-    ## Loading required package: rgl
-
-``` r
-require(scatterplot3d)
-```
-
-    ## Loading required package: scatterplot3d
-
-    ## Warning: package 'scatterplot3d' was built under R version 3.2.5
-
-``` r
-require(ggplot2)
-```
-
-    ## Loading required package: ggplot2
-
-``` r
-require(gridExtra)
-```
-
-    ## Loading required package: gridExtra
-
-``` r
-require(vegan)
-```
-
-    ## Loading required package: vegan
-
-    ## Warning: package 'vegan' was built under R version 3.2.4
-
-    ## Loading required package: permute
-
-    ## Loading required package: lattice
-
-    ## This is vegan 2.3-5
-
-``` r
-knitr::opts_chunk$set(echo = TRUE, 
-                      fig.path='output/figures/lizardeg/lizardeg_fig')
+adoniscoldist <- function(x){
+  dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
+  rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
+  
+  for(i in rownames(dmat))
+    for(j in colnames(dmat))
+      if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
+      dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
+  
+  grouping <- gsub('[0-9]','', rownames(dmat))
+  
+  adonis(dmat~grouping)
+  }
 ```
 
 Example w/ real data
@@ -71,10 +38,13 @@ specs <- list(lab = as.rspec(read.csv('data/lab.csv'), interp = FALSE),
 liz_vis <- sensmodel(c(360, 440, 493, 571)) 
 names(liz_vis) <- c('wl', 'u', 's', 'm', 'l')
 
-models <- lapply(specs, function(x) vismodel(x, visual = liz_vis, relative = FALSE, qcatch = "fi", scale = 10000))  # for deltaS
-models_rel <- lapply(specs, function(x) vismodel(x, visual = liz_vis, relative = TRUE, qcatch = "fi", scale = 10000))  # for tcs plotting
+models <- lapply(specs, function(x) vismodel(x, visual = liz_vis, relative = FALSE, 
+                                             qcatch = "fi", scale = 10000))  # deltaS
+models_rel <- lapply(specs, function(x) vismodel(x, visual = liz_vis, relative = TRUE, 
+                                                 qcatch = "fi", scale = 10000))  # tcs 
 
-deltaS <- lapply(models, function(x) coldist(x, achro = FALSE, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10))
+deltaS <- lapply(models, function(x) coldist(x, achro = FALSE, n1 = 1, n2 = 1, 
+                                             n3 = 3.5, n4 = 6, v = 0.10))
 
 # To add group labels (because I'm bad at R and I feel bad)
 comp_lab <- function(x){
@@ -97,23 +67,30 @@ Plot 'em
 ``` r
 par(pty="s", mfrow = c(2, 2))
 
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$lab[grepl("M", rownames(models_rel$lab)), ])[, c('x','y','z')]), pch=19, box=F, main = 'labium')
-sp3d$points3d(suppressWarnings(tcs(models_rel$lab[grepl("F", rownames(models_rel$lab)), ])[, c('x','y','z')]), col='red',pch=19)
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$lab[grepl("M", rownames(models_rel$lab)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'labium')
+sp3d$points3d(suppressWarnings(tcs(models_rel$lab[grepl("F", rownames(models_rel$lab)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
 
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$throat[grepl("M", rownames(models_rel$throat)), ])[, c('x','y','z')]), pch=19, box=F, main = 'throat')
-sp3d$points3d(suppressWarnings(tcs(models_rel$throat[grepl("F", rownames(models_rel$throat)), ])[, c('x','y','z')]), col='red',pch=19)
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$throat[grepl("M", rownames(models_rel$throat)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'throat')
+sp3d$points3d(suppressWarnings(tcs(models_rel$throat[grepl("F", rownames(models_rel$throat)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
 
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$roof[grepl("M", rownames(models_rel$roof)), ])[, c('x','y','z')]), pch=19, box=F, main = 'roof')
-sp3d$points3d(suppressWarnings(tcs(models_rel$roof[grepl("F", rownames(models_rel$roof)), ])[, c('x','y','z')]), col='red',pch=19)
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$roof[grepl("M", rownames(models_rel$roof)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'roof')
+sp3d$points3d(suppressWarnings(tcs(models_rel$roof[grepl("F", rownames(models_rel$roof)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
 
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$tongue[grepl("M", rownames(models_rel$tongue)), ])[, c('x','y','z')]), pch=19, box=F, main = 'tongue')
-sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_rel$tongue)), ])[, c('x','y','z')]), col='red',pch=19)
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$tongue[grepl("M", rownames(models_rel$tongue)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'tongue')
+sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_rel$tongue)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
 ```
 
 ![](output/figures/lizardeg/lizardeg_figtcs-1.png)<!-- -->
 
 ``` r
-# Check 'em out
 p1 <- ggplot(deltaS$lab, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
         facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
         ggtitle('labial') + theme(legend.position="none")
