@@ -6,11 +6,12 @@ output:
 
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 require(pavo)
 require(scatterplot3d)
 require(ggplot2)
 require(gridExtra)
+require(vegan)
 
 knitr::opts_chunk$set(echo = TRUE, 
                       fig.path='output/figures/lizardeg/lizardeg_fig')
@@ -22,7 +23,7 @@ knitr::opts_chunk$set(echo = TRUE,
 
 Calculate deltaS
 
-```{r, echo = FALSE}
+```{r message=FALSE}
 
 specs <- list(lab = as.rspec(read.csv('data/lab.csv'), interp = FALSE),
               throat = as.rspec(read.csv('data/throat.csv'), interp = FALSE),
@@ -62,26 +63,21 @@ Plot 'em
 
 par(pty="s", mfrow = c(2, 2))
 
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$lab[grepl("M", rownames(models_rel$lab)), ])[, c('x','y','z')]), pch=19,
-                      xlim=c(-0.05, 0.05), ylim=c(-0.05,0.02), zlim=c(-0.1, 0.4), box=F, main = 'labium')
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$lab[grepl("M", rownames(models_rel$lab)), ])[, c('x','y','z')]), pch=19, box=F, main = 'labium')
 sp3d$points3d(suppressWarnings(tcs(models_rel$lab[grepl("F", rownames(models_rel$lab)), ])[, c('x','y','z')]), col='red',pch=19)
 
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$throat[grepl("M", rownames(models_rel$throat)), ])[, c('x','y','z')]), pch=19,
-                      xlim=c(-0.05, 0.05), ylim=c(-0.05,0.02), zlim=c(-0.1, 0.4), box=F, main = 'throat')
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$throat[grepl("M", rownames(models_rel$throat)), ])[, c('x','y','z')]), pch=19, box=F, main = 'throat')
 sp3d$points3d(suppressWarnings(tcs(models_rel$throat[grepl("F", rownames(models_rel$throat)), ])[, c('x','y','z')]), col='red',pch=19)
 
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$roof[grepl("M", rownames(models_rel$roof)), ])[, c('x','y','z')]), pch=19,
-                      xlim=c(-0.05, 0.05), ylim=c(-0.05,0.02), zlim=c(-0.1, 0.4), box=F, main = 'roof')
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$roof[grepl("M", rownames(models_rel$roof)), ])[, c('x','y','z')]), pch=19, box=F, main = 'roof')
 sp3d$points3d(suppressWarnings(tcs(models_rel$roof[grepl("F", rownames(models_rel$roof)), ])[, c('x','y','z')]), col='red',pch=19)
 
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$tongue[grepl("M", rownames(models_rel$tongue)), ])[, c('x','y','z')]), pch=19,
-                      xlim=c(-0.05, 0.05), ylim=c(-0.05,0.02), zlim=c(-0.1, 0.4), box=F, main = 'tongue')
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$tongue[grepl("M", rownames(models_rel$tongue)), ])[, c('x','y','z')]), pch=19, box=F, main = 'tongue')
 sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_rel$tongue)), ])[, c('x','y','z')]), col='red',pch=19)
 ```
 
 
-
-```{r deltaplot}
+```{r deltaplot, fig.width=8, fig.height=8}
 # Check 'em out
 p1 <- ggplot(deltaS$lab, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
         facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
