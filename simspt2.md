@@ -1,7 +1,7 @@
 The Problem
 -----------
 
-people are really interested in using color and visual models to detect separation between groups (i.e. sexual dichromatism, \[sub\]species differences, so on). These models are really useful because we know from physiological studies that there's a "detection threshold" over which two colors are considered different. This translates to a weighted distance equation in units of "Just Noticeable Differences" (JND), and when these distances (in multivariate space) are above 1, then two colors are considered different.
+There has been a lot of interest in using color and visual models to detect separation between groups (i.e. sexual dichromatism, \[sub\]species differences, so on). <!--- Add more intro here for those of us who don't think about what this all means very often ---> These models are really useful because we know from physiological studies that there's a "detection threshold" over which two colors are considered different. This translates to a weighted distance equation in units of "Just Noticeable Differences" (JND), and when these distances (in multivariate space) are above 1, then two colors are considered different.
 
 Therefore, many studies have used the idea that if two groups differ in their means by over 1JND, they are different. So for example, if male colors are 1JND distant from female colors, the species is dichromatic, or if two subspecies are 1JND apart they are visually different.
 
