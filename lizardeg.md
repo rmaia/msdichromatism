@@ -1,5 +1,7 @@
-Example using reflectance data from several body regions of male and female *Ctenophorus ornatus* (Whiting et al. 2015, Biol J Linn Soc)
-========================================================================================================================================
+Example w/ real data
+====================
+
+### Reflectance data from several body regions of male and female *Ctenophorus ornatus* (Whiting et al. 2015, Biol J Linn Soc)
 
 Calculate deltaS
 
@@ -62,7 +64,7 @@ p4 <- ggplot(deltaS$tongue, aes(x=dS, fill=comparison)) + geom_histogram(bins=50
 grid.arrange(p1, p2, p3, p4, ncol=2)
 ```
 
-![](output/lizardeg/lizardeg_figunnamed-chunk-2-1.png)<!-- -->
+![](output/figures/lizardeg/lizardeg_figunnamed-chunk-2-1.png)<!-- -->
 
 ``` r
 sessionInfo()
