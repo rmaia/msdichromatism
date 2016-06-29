@@ -1,19 +1,3 @@
-``` r
-adoniscoldist <- function(x){
-  dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
-  rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
-  
-  for(i in rownames(dmat))
-    for(j in colnames(dmat))
-      if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
-      dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
-  
-  grouping <- gsub('[0-9]','', rownames(dmat))
-  
-  adonis(dmat~grouping)
-  }
-```
-
 Example w/ real data
 ====================
 
