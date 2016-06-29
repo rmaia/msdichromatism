@@ -90,7 +90,7 @@ adoniscoldist <- function(x){
 Simulate 500 datasets
 
 ```{r coldistcache, cache=TRUE}
-simulatedata <- replicate(200, 
+simulatedata <- replicate(500, 
                   simdich(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)), 
                   simplify=FALSE)
 
@@ -184,7 +184,7 @@ Let's change $\sigma^2_{usml}$ such that $\sigma^2_{usml} \sim \mathcal{Exp}(\la
 Simulate 500 datasets
 
 ```{r coldistcache.t1, cache=TRUE}
-simulatedata.t1 <- replicate(200, 
+simulatedata.t1 <- replicate(500, 
                   simdich(N=50, sgsqsrate=5, multiplier=c(0.95, 1.05)), 
                   simplify=FALSE)
 
@@ -269,7 +269,7 @@ Now let's change the multiplier for the difference between group A and group B s
 Simulate 500 datasets
 
 ```{r coldistcache.t2, cache=TRUE}
-simulatedata.t2 <- replicate(200, 
+simulatedata.t2 <- replicate(500, 
                   simdich(N=50, sgsqsrate=10, multiplier=c(0.6, 1.4)), 
                   simplify=FALSE)
 
