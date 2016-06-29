@@ -16,6 +16,10 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.path='output/lizardeg/lizardeg_fig')
 ```
 
+# Example using reflectance data from several body regions of male and female _Ctenophorus ornatus_ (Whiting et al. 2015, Biol J Linn Soc)
+
+
+Calculate deltaS
 
 ```{r}
 
@@ -46,6 +50,12 @@ deltaS$throat <- comp_lab(deltaS$throat)
 deltaS$roof <- comp_lab(deltaS$roof)
 deltaS$tongue <- comp_lab(deltaS$tongue)
 
+
+```
+
+Plot 'em
+
+```{r, fig.width=7}
 # Check 'em out
 p1 <- ggplot(deltaS$lab, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
         facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +

@@ -1,3 +1,8 @@
+Example using reflectance data from several body regions of male and female *Ctenophorus ornatus* (Whiting et al. 2015, Biol J Linn Soc)
+========================================================================================================================================
+
+Calculate deltaS
+
 ``` r
 specs <- list(lab = as.rspec(read.csv('data/lab.csv'), interp = FALSE),
               throat = as.rspec(read.csv('data/throat.csv'), interp = FALSE),
@@ -32,7 +37,11 @@ deltaS$lab <- comp_lab(deltaS$lab)
 deltaS$throat <- comp_lab(deltaS$throat)
 deltaS$roof <- comp_lab(deltaS$roof)
 deltaS$tongue <- comp_lab(deltaS$tongue)
+```
 
+Plot 'em
+
+``` r
 # Check 'em out
 p1 <- ggplot(deltaS$lab, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
         facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
@@ -53,7 +62,7 @@ p4 <- ggplot(deltaS$tongue, aes(x=dS, fill=comparison)) + geom_histogram(bins=50
 grid.arrange(p1, p2, p3, p4, ncol=2)
 ```
 
-![](output/lizardeg/lizardeg_figunnamed-chunk-1-1.png)<!-- -->
+![](output/lizardeg/lizardeg_figunnamed-chunk-2-1.png)<!-- -->
 
 ``` r
 sessionInfo()
