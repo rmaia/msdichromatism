@@ -5,43 +5,34 @@ Example w/ real data
 
 Calculate deltaS
 
-``` r
-specs <- list(lab = as.rspec(read.csv('data/lab.csv'), interp = FALSE),
-              throat = as.rspec(read.csv('data/throat.csv'), interp = FALSE),
-              roof = as.rspec(read.csv('data/roof.csv'), interp = FALSE),
-              tongue = as.rspec(read.csv('data/tongue.csv'), interp = FALSE))
-```
-
     ## wavelengths found in column 1 
     ## wavelengths found in column 1 
     ## wavelengths found in column 1 
     ## wavelengths found in column 1
 
+Plot 'em
+
 ``` r
-# Ctenophorus ornatus
-liz_vis <- sensmodel(c(360, 440, 493, 571)) 
-names(liz_vis) <- c('wl', 'u', 's', 'm', 'l')
+par(pty="s", mfrow = c(2, 2))
 
-models <- lapply(specs, function(x) vismodel(x, visual = liz_vis, relative = FALSE, qcatch = "fi", scale = 10000))
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$lab[grepl("M", rownames(models_rel$lab)), ])[, c('x','y','z')]), pch=19,
+                      xlim=c(-0.05, 0.05), ylim=c(-0.05,0.02), zlim=c(-0.1, 0.4), box=F, main = 'labium')
+sp3d$points3d(suppressWarnings(tcs(models_rel$lab[grepl("F", rownames(models_rel$lab)), ])[, c('x','y','z')]), col='red',pch=19)
 
-deltaS <- lapply(models, function(x) coldist(x, achro = FALSE, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10))
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$throat[grepl("M", rownames(models_rel$throat)), ])[, c('x','y','z')]), pch=19,
+                      xlim=c(-0.05, 0.05), ylim=c(-0.05,0.02), zlim=c(-0.1, 0.4), box=F, main = 'throat')
+sp3d$points3d(suppressWarnings(tcs(models_rel$throat[grepl("F", rownames(models_rel$throat)), ])[, c('x','y','z')]), col='red',pch=19)
 
-# To add group labels
-comp_lab <- function(x){
-  x$comparison[grepl('F', x$patch1) & grepl('F', x$patch2)] <- 'intra.F'
-  x$comparison[grepl('M', x$patch1) & grepl('M', x$patch2)] <- 'intra.M'
-  x$comparison[grepl('M', x$patch1) & grepl('F', x$patch2)] <- 'inter'
-  x$comparison[grepl('F', x$patch1) & grepl('M', x$patch2)] <- 'inter'
-  x
-}
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$roof[grepl("M", rownames(models_rel$roof)), ])[, c('x','y','z')]), pch=19,
+                      xlim=c(-0.05, 0.05), ylim=c(-0.05,0.02), zlim=c(-0.1, 0.4), box=F, main = 'roof')
+sp3d$points3d(suppressWarnings(tcs(models_rel$roof[grepl("F", rownames(models_rel$roof)), ])[, c('x','y','z')]), col='red',pch=19)
 
-deltaS$lab <- comp_lab(deltaS$lab) 
-deltaS$throat <- comp_lab(deltaS$throat)
-deltaS$roof <- comp_lab(deltaS$roof)
-deltaS$tongue <- comp_lab(deltaS$tongue)
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$tongue[grepl("M", rownames(models_rel$tongue)), ])[, c('x','y','z')]), pch=19,
+                      xlim=c(-0.05, 0.05), ylim=c(-0.05,0.02), zlim=c(-0.1, 0.4), box=F, main = 'tongue')
+sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_rel$tongue)), ])[, c('x','y','z')]), col='red',pch=19)
 ```
 
-Plot 'em
+![](output/figures/lizardeg/lizardeg_figtcs-1.png)<!-- -->
 
 ``` r
 # Check 'em out
@@ -64,7 +55,7 @@ p4 <- ggplot(deltaS$tongue, aes(x=dS, fill=comparison)) + geom_histogram(bins=50
 grid.arrange(p1, p2, p3, p4, ncol=2)
 ```
 
-![](output/figures/lizardeg/lizardeg_figunnamed-chunk-2-1.png)<!-- -->
+![](output/figures/lizardeg/lizardeg_figdeltaplot-1.png)<!-- -->
 
 ``` r
 sessionInfo()
