@@ -144,7 +144,7 @@ intradistM <- apply(cbind(intradistA,intradistB),1, mean)
 
 par(mfrow=c(3,2))
 
-hist(interdist, xlab='mean distance (JND)', breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist,intradistM))* c(0,1.1))
+hist(interdist, xlab='mean distance (JND)', breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist,intradistM))* c(0,1.1), ylim=c(0,120))
 hist(intradistM, col=rgb(0,0,1,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
 legend('topright', fill=c('red','blue'), c('intra','inter'))
 
@@ -155,13 +155,15 @@ plot(I(adonisR2*100)~interdist, ylab='Rsquared from PERMANOVA (%)', xlab='mean b
 
 plot(I(adonisR2*100)~intradistM, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group  distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
 
+plot(I(adonisR2*100)~I(interdist/intradistM), ylab='Rsquared from PERMANOVA (%)', xlab='between/within group distance ratio', pch=19, col=rgb(0,0,0,0.4))
+
 boxplot(interdist~I(adonisP < 0.05), 
         xlab='PERMANOVA test significant?', ylab='mean between-group distance (JND)', 
         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
-boxplot(intradistM~I(adonisP < 0.05), 
-        xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
-        boxwex=0.3, col=grey(0.7), pch=19, log='y')
+# boxplot(intradistM~I(adonisP < 0.05), 
+#         xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
+#         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
 rm(adonissim, lmesim, simulatedata, simulatecoldist, interdist, intradistA, intradistB, intradistM, adonisP, adonisR2)
 ```
@@ -237,7 +239,7 @@ intradistM.t1 <- apply(cbind(intradistA.t1,intradistB.t1),1, mean)
 
 par(mfrow=c(3,2))
 
-hist(interdist.t1, xlab='mean distance (JND)', breaks=seq(0,100,by=1), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t1,intradistM.t1))* c(0,1.1))
+hist(interdist.t1, xlab='mean distance (JND)', breaks=seq(0,100,by=1), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t1,intradistM.t1))* c(0,1.1), ylim=c(0,120))
 hist(intradistM.t1, col=rgb(0,0,1,0.6), breaks=seq(0,100,by=1), add=TRUE)
 legend('topright', fill=c('red','blue'), c('intra','inter'))
 
@@ -248,13 +250,15 @@ plot(I(adonisR2.t1*100)~interdist.t1, ylab='Rsquared from PERMANOVA (%)', xlab='
 
 plot(I(adonisR2.t1*100)~intradistM.t1, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group  distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
 
+plot(I(adonisR2.t1*100)~I(interdist.t1/intradistM.t1), ylab='Rsquared from PERMANOVA (%)', xlab='between/within group distance ratio', pch=19, col=rgb(0,0,0,0.4))
+
 boxplot(interdist.t1~I(adonisP.t1 < 0.05), 
         xlab='PERMANOVA test significant?', ylab='mean between-group distance (JND)', 
         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
-boxplot(intradistM.t1~I(adonisP.t1 < 0.05), 
-        xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
-        boxwex=0.3, col=grey(0.7), pch=19, log='y')
+# boxplot(intradistM.t1~I(adonisP.t1 < 0.05), 
+#         xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
+#         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
 rm(adonissim.t1, lmesim.t1, simulatedata.t1, simulatecoldist.t1, interdist.t1, intradistA.t1, intradistB.t1, intradistM.t1, adonisP.t1, adonisR2.t1)
 ```
@@ -322,7 +326,7 @@ intradistM.t2 <- apply(cbind(intradistA.t2,intradistB.t2),1, mean)
 
 par(mfrow=c(3,2))
 
-hist(interdist.t2, xlab='mean distance (JND)', breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t2,intradistM.t2))* c(0,1.1))
+hist(interdist.t2, xlab='mean distance (JND)', breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t2,intradistM.t2))* c(0,1.1), ylim=c(0,120))
 hist(intradistM.t2, col=rgb(0,0,1,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
 legend('topright', fill=c('red','blue'), c('intra','inter'))
 
@@ -333,13 +337,15 @@ plot(I(adonisR2.t2*100)~interdist.t2, ylab='Rsquared from PERMANOVA (%)', xlab='
 
 plot(I(adonisR2.t2*100)~intradistM.t2, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group  distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
 
+plot(I(adonisR2.t2*100)~I(interdist.t2/intradistM.t2), ylab='Rsquared from PERMANOVA (%)', xlab='between/within group distance ratio', pch=19, col=rgb(0,0,0,0.4))
+
 boxplot(interdist.t2~I(adonisP.t2 < 0.05), 
         xlab='PERMANOVA test significant?', ylab='mean between-group distance (JND)', 
         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
-boxplot(intradistM.t2~I(adonisP.t2 < 0.05), 
-        xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
-        boxwex=0.3, col=grey(0.7), pch=19, log='y')
+# boxplot(intradistM.t2~I(adonisP.t2 < 0.05), 
+#        xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
+#        boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
 rm(adonissim.t2, lmesim.t2, simulatedata.t2, simulatecoldist.t2, interdist.t2, intradistA.t2, intradistB.t2, intradistM.t2, adonisP.t2, adonisR2.t2)
 ```
