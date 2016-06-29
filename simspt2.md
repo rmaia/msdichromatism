@@ -5,14 +5,15 @@ There has been a lot of interest in using color and visual models to detect sepa
 
 Therefore, many studies have used the idea that if two groups differ in their means by over 1JND, they are different. So for example, if male colors are 1JND distant from female colors, the species is dichromatic, or if two subspecies are 1JND apart they are visually different.
 
-However, this isn't statistically appropriate because there are conditions where you could take two samples from a same population and compare them and get means that are over 1JND apart. This is particularly problematic if the color is used as a signal, which by definition would require these colors *within a (statistical) population* to be perceptually distinct. That is, for exmaple, if male colors are an ornament and females can tell males apart by their color, then by definition male colors are on average over 1 JND apart - otherwise females wouldn't be able to tell them apart. So if you took two samples from a male population and calculated mean pairwise distances, you'd reach a conclusion that those two samples are "dicrhomatic", when they are obviously not.
+However, this isn't statistically appropriate because there are conditions where you could take two samples from the same population and compare them and get means that are over 1JND apart. This is particularly problematic if the color is used as a signal, which by definition would require these colors *within a (statistical) population* to be perceptually distinct. That is, for example, if male colors are an ornament and females can tell males apart by their color, then by definition male colors are on average over 1 JND apart - otherwise females wouldn't be able to tell them apart <!---I'm confused by this. Are you talking about differences between males within a population, or differences between males and females--->. So if you took two samples from a male population and calculated mean pairwise distances, you'd reach a conclusion that those two samples are "dichromatic", when they are obviously not.
 
-This is of course a basic statistical problem that has permeated the literature: when comparing two distributions you need to consider the distance between means *relative to within-group variation*. That's what a t-test is. In the multivariate case where your "unit" of measure is a distance that because harder but there are methods that allow you to test this (e.g. permuational MANOVA).
+This is of course a basic statistical problem that has permeated the literature: when comparing two distributions you need to consider the distance between means *relative to within-group variation*. That's what a t-test is. In the multivariate case where your "unit" of measure is a distance that because harder <!---Need some edits here, something's off---> but there are methods that allow you to test this (e.g. permuational MANOVA).
 
-Here I propose a two-tiered way of testing between color differences between two groups. For two groups to be considered different, you need to answer "yes" to both these questions:
+Here I propose a two-tiered way of testing whether color differences exist between two groups. For two groups to be considered different, you need to answer "yes" to both these questions:
 
 1.  are the two groups distinguisheable in multivariate space? (tested by permutational MANOVA)
 2.  is the difference between these groups above the threshold value? (tested using mixed-models of between-group comparisons and estimating the average effect size and its confidence interval)
+<!---I don't think you say what you're simulating at any point before getting into it--->
 
 Simulation definitions
 ----------------------
@@ -120,11 +121,11 @@ Let's see what our results look like
 ![](output/figures/simspt2/simspt2_figunnamed-chunk-3-1.png)
 
 -   There is no association between how well groups can be told apart (PERMANOVA R-squared) and the mean between-group distances
--   There between-group JND distance is not a good predictor of if the groups can be told apart (i.e. if the PERMANOVA is significant)
+-   Between-group JND distance is not a good predictor of if the groups can be told apart (i.e. if the PERMANOVA is significant)
 -   If anything these associations are negative - probably because of the mean-variance relationship in lognormal distributions?
 -   I actually think now that it's because in overall low JNDs, the inter-group variance dominates, but in high JNDs it's essentially just the within-group varince (so lower resolution between-groups).
 
-This is annoying, wasn't really what I was trying to simulate. But makes the point accross...
+This is annoying, wasn't really what I was trying to simulate. But gets the point accross...
 
 Let's try some other simulations.
 
