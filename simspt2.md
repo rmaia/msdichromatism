@@ -22,9 +22,6 @@ Here I propose a two-tiered way of testing whether color differences exist betwe
 1. are the two groups distinguisheable in multivariate space? (tested by permutational MANOVA)
 2. is the difference between these groups above the threshold value? (tested using mixed-models of between-group comparisons and estimating the average effect size and its confidence interval)
 
-### TODO
-- get the centroid for each group, calculate distance between centroids, and between centroids and each point in that group; could be a measure of effect size? How would this relate to JNDs? (JND ratio would be dimensionless).
-
 ## Simulation definitions
 
 - $usml \sim \mathcal{lnN}(ln(\mu), \sigma^2)$
@@ -424,10 +421,10 @@ sessionInfo()
 ## [7] pavo_0.5-5           rgl_0.95.1441        knitr_1.13          
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_0.12.5      cluster_2.0.4    magrittr_1.5     splines_3.3.0   
-##  [5] maps_3.1.0       magic_1.5-6      MASS_7.3-45      minqa_1.2.4     
-##  [9] geometry_0.3-6   stringr_1.0.0    tools_3.3.0      parallel_3.3.0  
-## [13] grid_3.3.0       nlme_3.1-127     mgcv_1.8-12      digest_0.6.9    
-## [17] nloptr_1.0.4     mapproj_1.2-4    formatR_1.4      codetools_0.2-14
-## [21] rcdd_1.1-10      evaluate_0.9     stringi_1.0-1
+##  [1] Rcpp_0.12.5    cluster_2.0.4  magrittr_1.5   splines_3.3.0 
+##  [5] maps_3.1.0     magic_1.5-6    MASS_7.3-45    minqa_1.2.4   
+##  [9] geometry_0.3-6 stringr_1.0.0  tools_3.3.0    parallel_3.3.0
+## [13] grid_3.3.0     nlme_3.1-127   mgcv_1.8-12    digest_0.6.9  
+## [17] nloptr_1.0.4   mapproj_1.2-4  formatR_1.4    rcdd_1.1-10   
+## [21] evaluate_0.9   stringi_1.0-1
 ```

@@ -34,9 +34,6 @@ Here I propose a two-tiered way of testing whether color differences exist betwe
 1. are the two groups distinguisheable in multivariate space? (tested by permutational MANOVA)
 2. is the difference between these groups above the threshold value? (tested using mixed-models of between-group comparisons and estimating the average effect size and its confidence interval)
 
-### TODO
-- get the centroid for each group, calculate distance between centroids, and between centroids and each point in that group; could be a measure of effect size? How would this relate to JNDs? (JND ratio would be dimensionless).
-
 ## Simulation definitions
 
 - $usml \sim \mathcal{lnN}(ln(\mu), \sigma^2)$
