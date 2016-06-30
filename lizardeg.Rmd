@@ -160,13 +160,12 @@ adoniscoldist(deltaS$tongue)
 ```
 
 So this is telling us (?):
-- labium: distinct
-- throat: distinct
-- mouth: nope
-- tongue: nope
+* labium: distinct
+* throat: distinct
+* mouth: nope
+* tongue: nope
 
 Which seems sensible based on the earlier plots & what the lizards actually look like (in the Whiting et al. paper). Neat.
-
 
 **Step 2:** Run a linear model to get average within- and between-group distances.
 

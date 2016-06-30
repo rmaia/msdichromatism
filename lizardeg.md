@@ -177,7 +177,7 @@ adoniscoldist(deltaS$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## grouping   1      3.22  3.2242 0.49025 0.009    0.5
+    ## grouping   1      3.22  3.2242 0.49025 0.009  0.516
     ## Residuals 54    355.14  6.5766         0.991       
     ## Total     55    358.36                 1.000
 
@@ -197,11 +197,11 @@ adoniscoldist(deltaS$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## grouping   1     12.17 12.1726  1.6766 0.02857  0.199
+    ## grouping   1     12.17 12.1726  1.6766 0.02857  0.216
     ## Residuals 57    413.82  7.2601         0.97143       
     ## Total     58    426.00                 1.00000
 
-So this is telling us (?): - labium: distinct - throat: distinct - mouth: nope - tongue: nope
+So this is telling us (?): \* labium: distinct \* throat: distinct \* mouth: nope \* tongue: nope
 
 Which seems sensible based on the earlier plots & what the lizards actually look like (in the Whiting et al. paper). Neat.
 
