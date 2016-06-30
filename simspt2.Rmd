@@ -46,11 +46,14 @@ Here I propose a two-tiered way of testing whether color differences exist betwe
 - difference between group A and group B: $\mu_{A_{usml}} = \mu_{B_{usml}}*X$, where $X \sim \mathcal{U}(0.95,1.05)$ (that is, group B _usml_ should be up to 5% different than group A _usml_)
 - $N_{A} = N_{B} = 50$
 
+Make some functions
+
 ```{r}
 
+# tetrahedral plot
 source('R/dichtcp.R')
 
-
+# simulate two groups of data
 simdich <- function(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)){
 
   musA <- runif(4, 1e-6, 1e0) # vector of means for group A
@@ -87,7 +90,7 @@ simdich <- function(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)){
   combined
   }
 
-
+# make distance matrix and run adonis
 adoniscoldist <- function(x){
   dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
   rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
@@ -102,6 +105,7 @@ adoniscoldist <- function(x){
   adonis(dmat~grouping)
   }
 
+# split data and run volume overlap
 voloverlaptest <- function(dat){
   tcsdat <- suppressWarnings(tcs(dat))
   gA <- tcsdat[1:(dim(dat)[1]/2),]
@@ -109,6 +113,15 @@ voloverlaptest <- function(dat){
   
   voloverlap(gA, gB)
 }
+
+# split data, get centroids, get color distance
+centroidist <- function(dat){
+  gA.c <- colMeans(dat[1:(dim(dat)[1]/2),])
+  gB.c <- colMeans(dat[(dim(dat)[1]/2+1):(dim(dat)[1]),])
+  
+  coldist(rbind(gA.c, gB.c), achro=FALSE)$dS
+}
+
 
 ```
 
@@ -159,11 +172,15 @@ lmesim <- parallel::mclapply(simulatecoldist, function(x)
 vovsim <- parallel::mclapply(simulatedata, voloverlaptest, mc.cores=6)
 ```
 
+**Step 4** Get JND distance between centroids
+```{r centroidcache, cache=TRUE, dependson='coldistcache'}
+centdist <- unlist(parallel::mclapply(simulatedata, centroidist, mc.cores=6))
+```
 
 
 Let's see what our results look like
 
-```{r, echo=FALSE, fig.height=12, dependson=c('coldistcache', 'adoniscache', 'lmercache', 'vovcache')}
+```{r, echo=FALSE, fig.height=12, dependson=c('coldistcache', 'adoniscache', 'lmercache', 'vovcache', 'centroidcache')}
 interdist <- unlist(lapply(lmesim, function(x) x@beta[1]))
 
 adonisP <- unlist(lapply(adonissim, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -174,15 +191,19 @@ intradistB <- unlist(lapply(lmesim, function(x) x@beta[3]))
 
 intradistM <- apply(cbind(intradistA,intradistB),1, mean)
 
+
 #vovlpsm <- unlist(lapply(vovsim, '[','vsmallest'))
 vovlpbo <- unlist(lapply(vovsim, '[','vboth'))
 # vsmallest and vboth are very similar, so let's just use one.
 
 par(mfrow=c(5,2))
 
-hist(interdist, xlab='mean distance (JND)', breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist,intradistM))* c(0,1.1), ylim=c(0,120))
+hist(interdist, xlab='mean distance (JND)', 
+     breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), 
+     main='', xlim=range(c(interdist,intradistM))* c(0,1.1), ylim=c(0,250))
 hist(intradistM, col=rgb(0,0,1,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
-legend('topright', fill=c('red','blue'), c('intra','inter'))
+hist(centdist, col=rgb(0,1,0,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
+legend('topright', fill=c('red','blue', 'green'), c('intra','inter', 'centroid'))
 
 plot(interdist~intradistM, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
 abline(0,1, lty=3)
@@ -214,8 +235,6 @@ boxplot(vovlpbo~I(adonisP < 0.05),
 # boxplot(intradistM~I(adonisP < 0.05), 
 #         xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
 #         boxwex=0.3, col=grey(0.7), pch=19, log='y')
-
-rm(adonissim, lmesim, simulatedata, simulatecoldist, interdist, intradistA, intradistB, intradistM, adonisP, adonisR2,vovlpbo)
 ```
 
 - There is no association between how well groups can be told apart (PERMANOVA R-squared) and the mean between-group distances
@@ -224,6 +243,26 @@ rm(adonissim, lmesim, simulatedata, simulatecoldist, interdist, intradistA, intr
 - I actually think now that it's because in overall low JNDs, the inter-group variance dominates, but in high JNDs it's essentially just the within-group varince (so lower resolution between-groups).
 
 This is annoying, wasn't really what I was trying to simulate. But gets the point accross... 
+
+**For what it's worth**: There is a near-perfect correlation between estimates obtained from mixed-models and just taking the means within each group. Probably because the design is perfectly balanced. There is no correlation between this distance and the centroid distance, though, which I think is more appropriate.
+
+```{r, echo=FALSE, fig.height=12, dependson=c('centroidcache')}
+gmeans <- lapply(simulatecoldist, function(x) tapply(x$dS, x$comparison, mean))
+gmeans <- do.call(rbind, gmeans)
+
+par(mfrow=c(3,2))
+plot(gmeans[,'intra.A']~intradistA, pch=19, col=rgb(0,0,0,0.4), log='xy')
+plot(gmeans[,'intra.B']~intradistB, pch=19, col=rgb(0,0,0,0.4), log='xy')
+plot(gmeans[,'inter']~interdist, pch=19, col=rgb(0,0,0,0.4), log='xy')
+plot(interdist~centdist, pch=19, col=rgb(0,0,0,0.4), log='xy')
+plot(I(adonisR2*100)~centdist,  pch=19, col=rgb(0,0,0,0.4),
+     ylab='Rsquared from PERMANOVA (%)', xlab='centroid distance', log='xy')
+boxplot(centdist~I(adonisP < 0.05), 
+        xlab='PERMANOVA test significant?', ylab='centroid distance', 
+        boxwex=0.3, col=grey(0.7), pch=19, log='y')
+
+rm(adonissim, lmesim, simulatedata, simulatecoldist, interdist, intradistA, intradistB, intradistM, adonisP, adonisR2,vovlpbo)
+```
 
 
 Let's try some other simulations.
@@ -279,9 +318,15 @@ lmesim.t1 <- parallel::mclapply(simulatecoldist.t1, function(x)
 vovsim.t1 <- parallel::mclapply(simulatedata.t1, voloverlaptest, mc.cores=6)
 ```
 
+**Step 4** Get JND distance between centroids
+```{r centroidcache.t1, cache=TRUE, dependson='coldistcache.t1'}
+centdist.t1 <- unlist(parallel::mclapply(simulatedata.t1, centroidist, mc.cores=6))
+```
+
+
 What do the results look like in this case?
 
-```{r, echo=FALSE, fig.height=12, dependson=c('coldistcache.t1', 'adoniscache.t1', 'lmercache.t1', 'vovcache.t1')}
+```{r, echo=FALSE, fig.height=12, dependson=c('coldistcache.t1', 'adoniscache.t1', 'lmercache.t1', 'vovcache.t1', 'centroidcache.t1')}
 interdist.t1 <- unlist(lapply(lmesim.t1, function(x) x@beta[1]))
 
 adonisP.t1 <- unlist(lapply(adonissim.t1, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -297,9 +342,10 @@ vovlpbo.t1 <- unlist(lapply(vovsim.t1, '[','vboth'))
 
 par(mfrow=c(5,2))
 
-hist(interdist.t1, xlab='mean distance (JND)', breaks=seq(0,100,by=1), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t1,intradistM.t1))* c(0,1.1), ylim=c(0,120))
+hist(interdist.t1, xlab='mean distance (JND)', breaks=seq(0,100,by=1), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t1,intradistM.t1))* c(0,1.1), ylim=c(0,300))
 hist(intradistM.t1, col=rgb(0,0,1,0.6), breaks=seq(0,100,by=1), add=TRUE)
-legend('topright', fill=c('red','blue'), c('intra','inter'))
+hist(centdist.t1, col=rgb(0,1,0,0.6), breaks=seq(0,100,by=1), add=TRUE)
+legend('topright', fill=c('red','blue', 'green'), c('intra','inter', 'centroid'))
 
 plot(interdist.t1~intradistM.t1, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
 abline(0,1, lty=3)
@@ -336,6 +382,9 @@ rm(adonissim.t1, lmesim.t1, simulatedata.t1, simulatecoldist.t1, interdist.t1, i
 ```
 
 We see the same results. Note that the between-group distance also increased tenfold, but that's just because of the within-group increase (they're essentially sampled from the same population!).
+
+
+
 
 ## Test 2: increase between-group distance
 
@@ -388,10 +437,15 @@ lmesim.t2 <- parallel::mclapply(simulatecoldist.t2, function(x)
 vovsim.t2 <- parallel::mclapply(simulatedata.t2, voloverlaptest, mc.cores=6)
 ```
 
+**Step 4** Get JND distance between centroids
+```{r centroidcache.t2, cache=TRUE, dependson='coldistcache.t2'}
+centdist.t2 <- unlist(parallel::mclapply(simulatedata.t2, centroidist, mc.cores=6))
+```
+
 
 What do the results look like in this case?
 
-```{r, echo=FALSE, fig.height=12, dependson=c('coldistcache.t2', 'adoniscache.t2', 'lmercache.t2', 'vovcache.t2')}
+```{r, echo=FALSE, fig.height=12, dependson=c('coldistcache.t2', 'adoniscache.t2', 'lmercache.t2', 'vovcache.t2','centroidcache.t2')}
 interdist.t2 <- unlist(lapply(lmesim.t2, function(x) x@beta[1]))
 
 adonisP.t2 <- unlist(lapply(adonissim.t2, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -407,9 +461,10 @@ vovlpbo.t2 <- unlist(lapply(vovsim.t2, '[','vboth'))
 
 par(mfrow=c(5,2))
 
-hist(interdist.t2, xlab='mean distance (JND)', breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t2,intradistM.t2))* c(0,1.1), ylim=c(0,120))
+hist(interdist.t2, xlab='mean distance (JND)', breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t2,intradistM.t2))* c(0,1.1), ylim=c(0,150))
 hist(intradistM.t2, col=rgb(0,0,1,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
-legend('topright', fill=c('red','blue'), c('intra','inter'))
+hist(centdist.t2, col=rgb(0,1,0,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
+legend('topright', fill=c('red','blue','green'), c('intra','inter', 'centroid'))
 
 plot(interdist.t2~intradistM.t2, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
 abline(0,1, lty=3)

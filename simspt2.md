@@ -28,10 +28,13 @@ Simulation definitions
 -   difference between group A and group B: *μ*<sub>*A*<sub>*u**s**m**l*</sub></sub> = *μ*<sub>*B*<sub>*u**s**m**l*</sub></sub> \* *X*, where *X* ∼ 𝒰(0.95, 1.05) (that is, group B *usml* should be up to 5% different than group A *usml*)
 -   *N*<sub>*A*</sub> = *N*<sub>*B*</sub> = 50
 
+Make some functions
+
 ``` r
+# tetrahedral plot
 source('R/dichtcp.R')
 
-
+# simulate two groups of data
 simdich <- function(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)){
 
   musA <- runif(4, 1e-6, 1e0) # vector of means for group A
@@ -68,7 +71,7 @@ simdich <- function(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)){
   combined
   }
 
-
+# make distance matrix and run adonis
 adoniscoldist <- function(x){
   dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
   rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
@@ -83,12 +86,21 @@ adoniscoldist <- function(x){
   adonis(dmat~grouping)
   }
 
+# split data and run volume overlap
 voloverlaptest <- function(dat){
   tcsdat <- suppressWarnings(tcs(dat))
   gA <- tcsdat[1:(dim(dat)[1]/2),]
   gB <- tcsdat[(dim(dat)[1]/2+1):(dim(dat)[1]),]
   
   voloverlap(gA, gB)
+}
+
+# split data, get centroids, get color distance
+centroidist <- function(dat){
+  gA.c <- colMeans(dat[1:(dim(dat)[1]/2),])
+  gB.c <- colMeans(dat[(dim(dat)[1]/2+1):(dim(dat)[1]),])
+  
+  coldist(rbind(gA.c, gB.c), achro=FALSE)$dS
 }
 ```
 
@@ -133,6 +145,12 @@ lmesim <- parallel::mclapply(simulatecoldist, function(x)
 vovsim <- parallel::mclapply(simulatedata, voloverlaptest, mc.cores=6)
 ```
 
+**Step 4** Get JND distance between centroids
+
+``` r
+centdist <- unlist(parallel::mclapply(simulatedata, centroidist, mc.cores=6))
+```
+
 Let's see what our results look like
 
 ![](output/figures/simspt2/simspt2_figunnamed-chunk-3-1.png)
@@ -143,6 +161,10 @@ Let's see what our results look like
 -   I actually think now that it's because in overall low JNDs, the inter-group variance dominates, but in high JNDs it's essentially just the within-group varince (so lower resolution between-groups).
 
 This is annoying, wasn't really what I was trying to simulate. But gets the point accross...
+
+**For what it's worth**: There is a near-perfect correlation between estimates obtained from mixed-models and just taking the means within each group. Probably because the design is perfectly balanced. There is no correlation between this distance and the centroid distance, though, which I think is more appropriate.
+
+![](output/figures/simspt2/simspt2_figunnamed-chunk-4-1.png)
 
 Let's try some other simulations.
 
@@ -176,7 +198,7 @@ par(mfrow=c(3,3))
 for(i in 1:9) dichtcp(simulatedata.t1[[i]])
 ```
 
-![](output/figures/simspt2/simspt2_figunnamed-chunk-4-1.png)
+![](output/figures/simspt2/simspt2_figunnamed-chunk-5-1.png)
 
 **Step 1:** Run permuational ANOVA (PERMANOVA) on simulated data to ask if group A is different than group B
 
@@ -198,9 +220,15 @@ lmesim.t1 <- parallel::mclapply(simulatecoldist.t1, function(x)
 vovsim.t1 <- parallel::mclapply(simulatedata.t1, voloverlaptest, mc.cores=6)
 ```
 
+**Step 4** Get JND distance between centroids
+
+``` r
+centdist.t1 <- unlist(parallel::mclapply(simulatedata.t1, centroidist, mc.cores=6))
+```
+
 What do the results look like in this case?
 
-![](output/figures/simspt2/simspt2_figunnamed-chunk-5-1.png)
+![](output/figures/simspt2/simspt2_figunnamed-chunk-6-1.png)
 
 We see the same results. Note that the between-group distance also increased tenfold, but that's just because of the within-group increase (they're essentially sampled from the same population!).
 
@@ -234,7 +262,7 @@ par(mfrow=c(3,3))
 for(i in 1:9) dichtcp(simulatedata.t2[[i]])
 ```
 
-![](output/figures/simspt2/simspt2_figunnamed-chunk-6-1.png)
+![](output/figures/simspt2/simspt2_figunnamed-chunk-7-1.png)
 
 **Step 1:** Run permuational ANOVA (PERMANOVA) on simulated data to ask if group A is different than group B
 
@@ -256,9 +284,15 @@ lmesim.t2 <- parallel::mclapply(simulatecoldist.t2, function(x)
 vovsim.t2 <- parallel::mclapply(simulatedata.t2, voloverlaptest, mc.cores=6)
 ```
 
+**Step 4** Get JND distance between centroids
+
+``` r
+centdist.t2 <- unlist(parallel::mclapply(simulatedata.t2, centroidist, mc.cores=6))
+```
+
 What do the results look like in this case?
 
-![](output/figures/simspt2/simspt2_figunnamed-chunk-7-1.png)
+![](output/figures/simspt2/simspt2_figunnamed-chunk-8-1.png)
 
 ``` r
 sessionInfo()
