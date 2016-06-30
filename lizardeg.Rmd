@@ -21,6 +21,23 @@ knitr::opts_chunk$set(echo = TRUE,
 
 ### Reflectance data from several body regions of male and female _Ctenophorus ornatus_ (Whiting et al. 2015, Biol J Linn Soc)
 
+```{r}
+# Stolen from simspt2
+adoniscoldist <- function(x){
+  dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
+  rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
+  
+  for(i in rownames(dmat))
+    for(j in colnames(dmat))
+      if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
+      dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
+  
+  grouping <- gsub('[0-9]','', rownames(dmat))
+  
+  adonis(dmat~grouping)
+  }
+```
+
 Calculate deltaS
 
 ```{r message=FALSE, warning=FALSE}
@@ -109,6 +126,46 @@ p4 <- ggplot(deltaS$tongue, aes(x=dS, fill=comparison)) + geom_histogram(bins=50
 grid.arrange(p1, p2, p3, p4, ncol=2)
 
 ```
+
+### So what's dimorphic?
+
+**Step 1:** Run permuational ANOVA (PERMANOVA) on lizard bits to ask if group A is different than group B
+
+**Labium**
+```{r}
+
+adoniscoldist(deltaS$lab)
+
+```
+
+**Throat**
+```{r}
+
+adoniscoldist(deltaS$throat)
+
+```
+
+**Mouth-roof**
+```{r}
+
+adoniscoldist(deltaS$roof)
+
+```
+
+**Tongue**
+```{r}
+
+adoniscoldist(deltaS$tongue)
+
+```
+
+So this is telling us (?): labium = distinct, throat = distinct, mouth = nope, tongue = nope.
+
+Which seems sensible based on the earlier plots & what the lizards actually look like (in the Whiting et al. paper). Neat.
+
+**Step 2:** Run a linear model to get average within- and between-group distances.
+
+tbc...
 
 ```{r}
 sessionInfo()
