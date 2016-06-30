@@ -3,6 +3,23 @@ Example w/ real data
 
 ### Reflectance data from several body regions of male and female *Ctenophorus ornatus* (Whiting et al. 2015, Biol J Linn Soc)
 
+``` r
+# Stolen from simspt2
+adoniscoldist <- function(x){
+  dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
+  rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
+  
+  for(i in rownames(dmat))
+    for(j in colnames(dmat))
+      if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
+      dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
+  
+  grouping <- gsub('[0-9]','', rownames(dmat))
+  
+  adonis(dmat~grouping)
+  }
+```
+
 Calculate deltaS
 
 ``` r
@@ -95,6 +112,102 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
 ```
 
 ![](output/figures/lizardeg/lizardeg_figdeltaplot-1.png)<!-- -->
+
+### So what's dimorphic?
+
+**Step 1:** Run permuational ANOVA (PERMANOVA) on lizard bits to ask if group A is different than group B
+
+**Labium**
+
+``` r
+adoniscoldist(deltaS$lab)
+```
+
+    ## 
+    ## Call:
+    ## adonis(formula = dmat ~ grouping) 
+    ## 
+    ## Permutation: free
+    ## Number of permutations: 999
+    ## 
+    ## Terms added sequentially (first to last)
+    ## 
+    ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+    ## grouping   1    150.12 150.119  14.117 0.20134  0.001 ***
+    ## Residuals 56    595.50  10.634         0.79866           
+    ## Total     57    745.62                 1.00000           
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+**Throat**
+
+``` r
+adoniscoldist(deltaS$throat)
+```
+
+    ## 
+    ## Call:
+    ## adonis(formula = dmat ~ grouping) 
+    ## 
+    ## Permutation: free
+    ## Number of permutations: 999
+    ## 
+    ## Terms added sequentially (first to last)
+    ## 
+    ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+    ## grouping   1    202.58 202.583  14.978 0.20809  0.001 ***
+    ## Residuals 57    770.97  13.526         0.79191           
+    ## Total     58    973.55                 1.00000           
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+**Mouth-roof**
+
+``` r
+adoniscoldist(deltaS$roof)
+```
+
+    ## 
+    ## Call:
+    ## adonis(formula = dmat ~ grouping) 
+    ## 
+    ## Permutation: free
+    ## Number of permutations: 999
+    ## 
+    ## Terms added sequentially (first to last)
+    ## 
+    ##           Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
+    ## grouping   1      3.22  3.2242 0.49025 0.009    0.5
+    ## Residuals 54    355.14  6.5766         0.991       
+    ## Total     55    358.36                 1.000
+
+**Tongue**
+
+``` r
+adoniscoldist(deltaS$tongue)
+```
+
+    ## 
+    ## Call:
+    ## adonis(formula = dmat ~ grouping) 
+    ## 
+    ## Permutation: free
+    ## Number of permutations: 999
+    ## 
+    ## Terms added sequentially (first to last)
+    ## 
+    ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+    ## grouping   1     12.17 12.1726  1.6766 0.02857  0.199
+    ## Residuals 57    413.82  7.2601         0.97143       
+    ## Total     58    426.00                 1.00000
+
+So this is telling us (?): - labium: distinct - throat: distinct - mouth: nope - tongue: nope
+
+Which seems sensible based on the earlier plots & what the lizards actually look like (in the Whiting et al. paper). Neat.
+
+**Step 2:** Run a linear model to get average within- and between-group distances.
+
+tbc...
 
 ``` r
 sessionInfo()
