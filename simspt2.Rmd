@@ -342,9 +342,9 @@ vovlpbo.t1 <- unlist(lapply(vovsim.t1, '[','vboth'))
 
 par(mfrow=c(5,2))
 
-hist(interdist.t1, xlab='mean distance (JND)', breaks=seq(0,100,by=1), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t1,intradistM.t1))* c(0,1.1), ylim=c(0,300))
-hist(intradistM.t1, col=rgb(0,0,1,0.6), breaks=seq(0,100,by=1), add=TRUE)
-hist(centdist.t1, col=rgb(0,1,0,0.6), breaks=seq(0,100,by=1), add=TRUE)
+hist(interdist.t1, xlab='mean distance (JND)', breaks=seq(0,100,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t1,intradistM.t1))* c(0,1.1), ylim=c(0,250))
+hist(intradistM.t1, col=rgb(0,0,1,0.6), breaks=seq(0,100,by=0.4), add=TRUE)
+hist(centdist.t1, col=rgb(0,1,0,0.6), breaks=seq(0,100,by=0.4), add=TRUE)
 legend('topright', fill=c('red','blue', 'green'), c('intra','inter', 'centroid'))
 
 plot(interdist.t1~intradistM.t1, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
