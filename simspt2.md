@@ -9,10 +9,14 @@ However, this isn't statistically appropriate because there are conditions where
 
 This is of course a basic statistical problem that has permeated the literature: when comparing two distributions you need to consider the distance between means *relative to within-group variation*. That's what a t-test is. In the multivariate case where your "unit" of measure is a distance that because harder but there are methods that allow you to test this (e.g. permuational MANOVA).
 
-Here I propose a two-tiered way of testing between color differences between two groups. For two groups to be considered different, you need to answer "yes" to both these questions:
+Here I propose a two-tiered way of testing whether color differences exist between two groups. For two groups to be considered different, you need to answer "yes" to both these questions:
 
 1.  are the two groups distinguisheable in multivariate space? (tested by permutational MANOVA)
 2.  is the difference between these groups above the threshold value? (tested using mixed-models of between-group comparisons and estimating the average effect size and its confidence interval)
+
+### TODO
+
+-   get the centroid for each group, calculate distance between centroids, and between centroids and each point in that group; could be a measure of effect size? How would this relate to JNDs? (JND ratio would be dimensionless).
 
 Simulation definitions
 ----------------------
@@ -78,6 +82,14 @@ adoniscoldist <- function(x){
   
   adonis(dmat~grouping)
   }
+
+voloverlaptest <- function(dat){
+  tcsdat <- suppressWarnings(tcs(dat))
+  gA <- tcsdat[1:(dim(dat)[1]/2),]
+  gB <- tcsdat[(dim(dat)[1]/2+1):(dim(dat)[1]),]
+  
+  voloverlap(gA, gB)
+}
 ```
 
 Simulate 500 datasets
@@ -115,16 +127,22 @@ lmesim <- parallel::mclapply(simulatecoldist, function(x)
   mc.cores=6)
 ```
 
+**Step 3** how does it compare to volume overlap?
+
+``` r
+vovsim <- parallel::mclapply(simulatedata, voloverlaptest, mc.cores=6)
+```
+
 Let's see what our results look like
 
 ![](output/figures/simspt2/simspt2_figunnamed-chunk-3-1.png)
 
 -   There is no association between how well groups can be told apart (PERMANOVA R-squared) and the mean between-group distances
--   There between-group JND distance is not a good predictor of if the groups can be told apart (i.e. if the PERMANOVA is significant)
+-   Between-group JND distance fails to predict if the groups can be told apart (i.e. if the PERMANOVA is significant)
 -   If anything these associations are negative - probably because of the mean-variance relationship in lognormal distributions?
 -   I actually think now that it's because in overall low JNDs, the inter-group variance dominates, but in high JNDs it's essentially just the within-group varince (so lower resolution between-groups).
 
-This is annoying, wasn't really what I was trying to simulate. But makes the point accross...
+This is annoying, wasn't really what I was trying to simulate. But gets the point accross...
 
 Let's try some other simulations.
 
@@ -172,6 +190,12 @@ adonissim.t1 <- parallel::mclapply(simulatecoldist.t1, adoniscoldist, mc.cores=6
 lmesim.t1 <- parallel::mclapply(simulatecoldist.t1, function(x) 
   lmer(dS~comparison - 1 + (1|patch1) + (1|patch2), data=x), 
   mc.cores=6)
+```
+
+**Step 3** how does it compare to volume overlap?
+
+``` r
+vovsim.t1 <- parallel::mclapply(simulatedata.t1, voloverlaptest, mc.cores=6)
 ```
 
 What do the results look like in this case?
@@ -226,11 +250,15 @@ lmesim.t2 <- parallel::mclapply(simulatecoldist.t2, function(x)
   mc.cores=6)
 ```
 
+**Step 3** how does it compare to volume overlap?
+
+``` r
+vovsim.t2 <- parallel::mclapply(simulatedata.t2, voloverlaptest, mc.cores=6)
+```
+
 What do the results look like in this case?
 
 ![](output/figures/simspt2/simspt2_figunnamed-chunk-7-1.png)
-
-What is this sorcery? In this case significant results even have *lower* deltaS! We can see that's because high values of between-group distance also have high values of within-group distance in our simulations.
 
 ``` r
 sessionInfo()

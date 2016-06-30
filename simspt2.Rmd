@@ -29,10 +29,13 @@ However, this isn't statistically appropriate because there are conditions where
 
 This is of course a basic statistical problem that has permeated the literature: when comparing two distributions you need to consider the distance between means _relative to within-group variation_. That's what a t-test is. In the multivariate case where your "unit" of measure is a distance that because harder but there are methods that allow you to test this (e.g. permuational MANOVA). 
 
-Here I propose a two-tiered way of testing between color differences between two groups. For two groups to be considered different, you need to answer "yes" to both these questions:
+Here I propose a two-tiered way of testing whether color differences exist between two groups. For two groups to be considered different, you need to answer "yes" to both these questions:
 
 1. are the two groups distinguisheable in multivariate space? (tested by permutational MANOVA)
 2. is the difference between these groups above the threshold value? (tested using mixed-models of between-group comparisons and estimating the average effect size and its confidence interval)
+
+### TODO
+- get the centroid for each group, calculate distance between centroids, and between centroids and each point in that group; could be a measure of effect size? How would this relate to JNDs? (JND ratio would be dimensionless).
 
 ## Simulation definitions
 
@@ -99,6 +102,14 @@ adoniscoldist <- function(x){
   adonis(dmat~grouping)
   }
 
+voloverlaptest <- function(dat){
+  tcsdat <- suppressWarnings(tcs(dat))
+  gA <- tcsdat[1:(dim(dat)[1]/2),]
+  gB <- tcsdat[(dim(dat)[1]/2+1):(dim(dat)[1]),]
+  
+  voloverlap(gA, gB)
+}
+
 ```
 
 Simulate 500 datasets
@@ -142,9 +153,17 @@ lmesim <- parallel::mclapply(simulatecoldist, function(x)
   mc.cores=6)
 ```
 
+**Step 3** how does it compare to volume overlap?
+
+```{r vovcache, cache=TRUE, dependson='coldistcache'}
+vovsim <- parallel::mclapply(simulatedata, voloverlaptest, mc.cores=6)
+```
+
+
+
 Let's see what our results look like
 
-```{r, echo=FALSE, dependson=c('coldistcache', 'adoniscache', 'lmercache')}
+```{r, echo=FALSE, fig.height=12, dependson=c('coldistcache', 'adoniscache', 'lmercache', 'vovcache')}
 interdist <- unlist(lapply(lmesim, function(x) x@beta[1]))
 
 adonisP <- unlist(lapply(adonissim, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -155,8 +174,11 @@ intradistB <- unlist(lapply(lmesim, function(x) x@beta[3]))
 
 intradistM <- apply(cbind(intradistA,intradistB),1, mean)
 
+#vovlpsm <- unlist(lapply(vovsim, '[','vsmallest'))
+vovlpbo <- unlist(lapply(vovsim, '[','vboth'))
+# vsmallest and vboth are very similar, so let's just use one.
 
-par(mfrow=c(3,2))
+par(mfrow=c(5,2))
 
 hist(interdist, xlab='mean distance (JND)', breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist,intradistM))* c(0,1.1), ylim=c(0,120))
 hist(intradistM, col=rgb(0,0,1,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
@@ -175,19 +197,33 @@ boxplot(interdist~I(adonisP < 0.05),
         xlab='PERMANOVA test significant?', ylab='mean between-group distance (JND)', 
         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
+plot(interdist~vovlpbo,  pch=19, col=rgb(0,0,0,0.4), log='y', 
+     ylab='mean between-group distance (JND)', xlab='mean color volume overlap')
+
+plot(intradistM~vovlpbo,  pch=19, col=rgb(0,0,0,0.4), log='y',
+     ylab='mean within-group distance (JND)', xlab='mean color volume overlap')
+
+plot(I(adonisR2*100)~vovlpbo,  pch=19, col=rgb(0,0,0,0.4), log='y',
+     ylab='Rsquared from PERMANOVA (%)', xlab='mean color volume overlap')
+
+boxplot(vovlpbo~I(adonisP < 0.05), 
+        xlab='PERMANOVA test significant?', ylab='mean color volume overlap', 
+        boxwex=0.3, col=grey(0.7), pch=19)
+
+
 # boxplot(intradistM~I(adonisP < 0.05), 
 #         xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
 #         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
-rm(adonissim, lmesim, simulatedata, simulatecoldist, interdist, intradistA, intradistB, intradistM, adonisP, adonisR2)
+rm(adonissim, lmesim, simulatedata, simulatecoldist, interdist, intradistA, intradistB, intradistM, adonisP, adonisR2,vovlpbo)
 ```
 
 - There is no association between how well groups can be told apart (PERMANOVA R-squared) and the mean between-group distances
-- There between-group JND distance is not a good predictor of if the groups can be told apart (i.e. if the PERMANOVA is significant)
+- Between-group JND distance fails to predict if the groups can be told apart (i.e. if the PERMANOVA is significant)
 - If anything these associations are negative - probably because of the mean-variance relationship in lognormal distributions?
 - I actually think now that it's because in overall low JNDs, the inter-group variance dominates, but in high JNDs it's essentially just the within-group varince (so lower resolution between-groups).
 
-This is annoying, wasn't really what I was trying to simulate. But makes the point accross... 
+This is annoying, wasn't really what I was trying to simulate. But gets the point accross... 
 
 
 Let's try some other simulations.
@@ -237,9 +273,15 @@ lmesim.t1 <- parallel::mclapply(simulatecoldist.t1, function(x)
   mc.cores=6)
 ```
 
+**Step 3** how does it compare to volume overlap?
+
+```{r vovcache.t1, cache=TRUE, dependson='coldistcache.t1'}
+vovsim.t1 <- parallel::mclapply(simulatedata.t1, voloverlaptest, mc.cores=6)
+```
+
 What do the results look like in this case?
 
-```{r, echo=FALSE, dependson=c('coldistcache.t1', 'adoniscache.t1', 'lmercache.t1')}
+```{r, echo=FALSE, fig.height=12, dependson=c('coldistcache.t1', 'adoniscache.t1', 'lmercache.t1', 'vovcache.t1')}
 interdist.t1 <- unlist(lapply(lmesim.t1, function(x) x@beta[1]))
 
 adonisP.t1 <- unlist(lapply(adonissim.t1, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -250,8 +292,10 @@ intradistB.t1 <- unlist(lapply(lmesim.t1, function(x) x@beta[3]))
 
 intradistM.t1 <- apply(cbind(intradistA.t1,intradistB.t1),1, mean)
 
+vovlpbo.t1 <- unlist(lapply(vovsim.t1, '[','vboth'))
 
-par(mfrow=c(3,2))
+
+par(mfrow=c(5,2))
 
 hist(interdist.t1, xlab='mean distance (JND)', breaks=seq(0,100,by=1), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t1,intradistM.t1))* c(0,1.1), ylim=c(0,120))
 hist(intradistM.t1, col=rgb(0,0,1,0.6), breaks=seq(0,100,by=1), add=TRUE)
@@ -270,11 +314,25 @@ boxplot(interdist.t1~I(adonisP.t1 < 0.05),
         xlab='PERMANOVA test significant?', ylab='mean between-group distance (JND)', 
         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
+plot(interdist.t1~vovlpbo.t1,  pch=19, col=rgb(0,0,0,0.4), log='y', 
+     ylab='mean between-group distance (JND)', xlab='mean color volume overlap')
+
+plot(intradistM.t1~vovlpbo.t1,  pch=19, col=rgb(0,0,0,0.4), log='y',
+     ylab='mean within-group distance (JND)', xlab='mean color volume overlap')
+
+plot(I(adonisR2.t1*100)~vovlpbo.t1,  pch=19, col=rgb(0,0,0,0.4), log='y',
+     ylab='Rsquared from PERMANOVA (%)', xlab='mean color volume overlap')
+
+boxplot(vovlpbo.t1~I(adonisP.t1 < 0.05), 
+        xlab='PERMANOVA test significant?', ylab='mean color volume overlap', 
+        boxwex=0.3, col=grey(0.7), pch=19)
+
+
 # boxplot(intradistM.t1~I(adonisP.t1 < 0.05), 
 #         xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
 #         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
-rm(adonissim.t1, lmesim.t1, simulatedata.t1, simulatecoldist.t1, interdist.t1, intradistA.t1, intradistB.t1, intradistM.t1, adonisP.t1, adonisR2.t1)
+rm(adonissim.t1, lmesim.t1, simulatedata.t1, simulatecoldist.t1, interdist.t1, intradistA.t1, intradistB.t1, intradistM.t1, adonisP.t1, adonisR2.t1, vovlpbo.t1)
 ```
 
 We see the same results. Note that the between-group distance also increased tenfold, but that's just because of the within-group increase (they're essentially sampled from the same population!).
@@ -324,9 +382,16 @@ lmesim.t2 <- parallel::mclapply(simulatecoldist.t2, function(x)
   mc.cores=6)
 ```
 
+**Step 3** how does it compare to volume overlap?
+
+```{r vovcache.t2, cache=TRUE, dependson='coldistcache.t2'}
+vovsim.t2 <- parallel::mclapply(simulatedata.t2, voloverlaptest, mc.cores=6)
+```
+
+
 What do the results look like in this case?
 
-```{r, echo=FALSE, dependson=c('coldistcache.t2', 'adoniscache.t2', 'lmercache.t2')}
+```{r, echo=FALSE, fig.height=12, dependson=c('coldistcache.t2', 'adoniscache.t2', 'lmercache.t2', 'vovcache.t2')}
 interdist.t2 <- unlist(lapply(lmesim.t2, function(x) x@beta[1]))
 
 adonisP.t2 <- unlist(lapply(adonissim.t2, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -337,8 +402,10 @@ intradistB.t2 <- unlist(lapply(lmesim.t2, function(x) x@beta[3]))
 
 intradistM.t2 <- apply(cbind(intradistA.t2,intradistB.t2),1, mean)
 
+vovlpbo.t2 <- unlist(lapply(vovsim.t2, '[','vboth'))
 
-par(mfrow=c(3,2))
+
+par(mfrow=c(5,2))
 
 hist(interdist.t2, xlab='mean distance (JND)', breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t2,intradistM.t2))* c(0,1.1), ylim=c(0,120))
 hist(intradistM.t2, col=rgb(0,0,1,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
@@ -357,14 +424,26 @@ boxplot(interdist.t2~I(adonisP.t2 < 0.05),
         xlab='PERMANOVA test significant?', ylab='mean between-group distance (JND)', 
         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
+plot(interdist.t2~vovlpbo.t2,  pch=19, col=rgb(0,0,0,0.4), log='y', 
+     ylab='mean between-group distance (JND)', xlab='mean color volume overlap')
+
+plot(intradistM.t2~vovlpbo.t2,  pch=19, col=rgb(0,0,0,0.4), log='y',
+     ylab='mean within-group distance (JND)', xlab='mean color volume overlap')
+
+plot(I(adonisR2.t2*100)~vovlpbo.t2,  pch=19, col=rgb(0,0,0,0.4), log='y',
+     ylab='Rsquared from PERMANOVA (%)', xlab='mean color volume overlap')
+
+boxplot(vovlpbo.t2~I(adonisP.t2 < 0.05), 
+        xlab='PERMANOVA test significant?', ylab='mean color volume overlap', 
+        boxwex=0.3, col=grey(0.7), pch=19)
+
+
 # boxplot(intradistM.t2~I(adonisP.t2 < 0.05), 
 #        xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
 #        boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
-rm(adonissim.t2, lmesim.t2, simulatedata.t2, simulatecoldist.t2, interdist.t2, intradistA.t2, intradistB.t2, intradistM.t2, adonisP.t2, adonisR2.t2)
+rm(adonissim.t2, lmesim.t2, simulatedata.t2, simulatecoldist.t2, interdist.t2, intradistA.t2, intradistB.t2, intradistM.t2, adonisP.t2, adonisR2.t2, vovlpbo.t2)
 ```
-
-What is this sorcery? In this case significant results even have *lower* deltaS! We can see that's because high values of between-group distance also have high values of within-group distance in our simulations.
 
 ```{r}
 sessionInfo()
