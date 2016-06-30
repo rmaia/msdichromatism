@@ -180,7 +180,7 @@ centdist <- unlist(parallel::mclapply(simulatedata, centroidist, mc.cores=6))
 
 Let's see what our results look like
 
-```{r, echo=FALSE, cache=TRUE, fig.height=12, dependson=c('coldistcache', 'adoniscache', 'lmercache', 'vovcache', 'centroidcache')}
+```{r, echo=FALSE, cache=TRUE, fig.height=12, fig.width=9, dependson=c('coldistcache', 'adoniscache', 'lmercache', 'vovcache', 'centroidcache')}
 interdist <- unlist(lapply(lmesim, function(x) x@beta[1]))
 
 adonisP <- unlist(lapply(adonissim, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -328,7 +328,7 @@ centdist.t1 <- unlist(parallel::mclapply(simulatedata.t1, centroidist, mc.cores=
 
 What do the results look like in this case?
 
-```{r, echo=FALSE, cache=TRUE, fig.height=12, dependson=c('coldistcache.t1', 'adoniscache.t1', 'lmercache.t1', 'vovcache.t1', 'centroidcache.t1')}
+```{r, echo=FALSE, cache=TRUE, fig.height=12, fig.width=9, dependson=c('coldistcache.t1', 'adoniscache.t1', 'lmercache.t1', 'vovcache.t1', 'centroidcache.t1')}
 # interdist.t1 <- unlist(lapply(lmesim.t1, function(x) x@beta[1]))
 
  adonisP.t1 <- unlist(lapply(adonissim.t1, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -384,7 +384,7 @@ boxplot(vovlpbo.t1~I(adonisP.t1 < 0.05),
 #         xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
 #         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
-rm(adonissim.t1, lmesim.t1, simulatedata.t1, simulatecoldist.t1, interdist.t1, intradistA.t1, intradistB.t1, intradistM.t1, adonisP.t1, adonisR2.t1, vovlpbo.t1)
+rm(adonissim.t1,  simulatedata.t1, simulatecoldist.t1, interdist.t1, intradistM.t1, adonisP.t1, adonisR2.t1, vovlpbo.t1)
 ```
 
 We see the same results. Note that the between-group distance also increased tenfold, but that's just because of the within-group increase (they're essentially sampled from the same population!).
@@ -454,7 +454,7 @@ centdist.t2 <- unlist(parallel::mclapply(simulatedata.t2, centroidist, mc.cores=
 
 What do the results look like in this case?
 
-```{r, echo=FALSE, cache=TRUE, fig.height=12, dependson=c('coldistcache.t2', 'adoniscache.t2', 'lmercache.t2', 'vovcache.t2','centroidcache.t2')}
+```{r, echo=FALSE, cache=TRUE, fig.height=12, fig.width=9, dependson=c('coldistcache.t2', 'adoniscache.t2', 'lmercache.t2', 'vovcache.t2','centroidcache.t2')}
 #interdist.t2 <- unlist(lapply(lmesim.t2, function(x) x@beta[1]))
 
 adonisP.t2 <- unlist(lapply(adonissim.t2, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -511,7 +511,7 @@ boxplot(vovlpbo.t2~I(adonisP.t2 < 0.05),
 #        xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
 #        boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
-rm(adonissim.t2, lmesim.t2, simulatedata.t2, simulatecoldist.t2, interdist.t2, intradistA.t2, intradistB.t2, intradistM.t2, adonisP.t2, adonisR2.t2, vovlpbo.t2)
+rm(adonissim.t2, simulatedata.t2, simulatecoldist.t2, interdist.t2, intradistM.t2, adonisP.t2, adonisR2.t2, vovlpbo.t2)
 ```
 
 ## Test 3: comparable within-group and centroid distance
@@ -575,7 +575,7 @@ centdist.t3 <- unlist(parallel::mclapply(simulatedata.t3, centroidist, mc.cores=
 
 What do the results look like in this case?
 
-```{r, echo=FALSE, cache=TRUE, fig.height=12, dependson=c('coldistcache.t3', 'adoniscache.t3', 'lmercache.t3', 'vovcache.t3','centroidcache.t3')}
+```{r, echo=FALSE, cache=TRUE, fig.height=12, fig.width=9, dependson=c('coldistcache.t3', 'adoniscache.t3', 'lmercache.t3', 'vovcache.t3','centroidcache.t3')}
 #interdist.t3 <- unlist(lapply(lmesim.t3, function(x) x@beta[1]))
 
 adonisP.t3 <- unlist(lapply(adonissim.t3, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -631,7 +631,7 @@ boxplot(vovlpbo.t3~I(adonisP.t3 < 0.05),
 #        xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
 #        boxwex=0.3, col=grey(0.7), pch=19, log='y')
 
-rm(adonissim.t3, lmesim.t3, simulatedata.t3, simulatecoldist.t3, interdist.t3, intradistA.t3, intradistB.t3, intradistM.t3, adonisP.t3, adonisR2.t3, vovlpbo.t3)
+rm(adonissim.t3, simulatedata.t3, simulatecoldist.t3, interdist.t3, intradistM.t3, adonisP.t3, adonisR2.t3, vovlpbo.t3)
 ```
 
 

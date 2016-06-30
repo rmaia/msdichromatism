@@ -254,21 +254,6 @@ What do the results look like in this case?
 
 ![plot of chunk unnamed-chunk-6](output/figures/simspt2/simspt2_figunnamed-chunk-6-1.png)
 
-```
-## Warning in rm(adonissim.t1, lmesim.t1, simulatedata.t1,
-## simulatecoldist.t1, : object 'lmesim.t1' not found
-```
-
-```
-## Warning in rm(adonissim.t1, lmesim.t1, simulatedata.t1,
-## simulatecoldist.t1, : object 'intradistA.t1' not found
-```
-
-```
-## Warning in rm(adonissim.t1, lmesim.t1, simulatedata.t1,
-## simulatecoldist.t1, : object 'intradistB.t1' not found
-```
-
 We see the same results. Note that the between-group distance also increased tenfold, but that's just because of the within-group increase (they're essentially sampled from the same population!).
 
 
@@ -345,21 +330,6 @@ What do the results look like in this case?
 
 ![plot of chunk unnamed-chunk-8](output/figures/simspt2/simspt2_figunnamed-chunk-8-1.png)
 
-```
-## Warning in rm(adonissim.t2, lmesim.t2, simulatedata.t2,
-## simulatecoldist.t2, : object 'lmesim.t2' not found
-```
-
-```
-## Warning in rm(adonissim.t2, lmesim.t2, simulatedata.t2,
-## simulatecoldist.t2, : object 'intradistA.t2' not found
-```
-
-```
-## Warning in rm(adonissim.t2, lmesim.t2, simulatedata.t2,
-## simulatecoldist.t2, : object 'intradistB.t2' not found
-```
-
 ## Test 3: comparable within-group and centroid distance
 
 Now let's change the multiplier for the difference between group A and group B such that $X \sim \mathcal{U}(0.7,1.3)$ (that is, group B _usml_ should be up to 30% different than group A _usml_)
@@ -430,21 +400,6 @@ centdist.t3 <- unlist(parallel::mclapply(simulatedata.t3, centroidist, mc.cores=
 What do the results look like in this case?
 
 ![plot of chunk unnamed-chunk-10](output/figures/simspt2/simspt2_figunnamed-chunk-10-1.png)
-
-```
-## Warning in rm(adonissim.t3, lmesim.t3, simulatedata.t3,
-## simulatecoldist.t3, : object 'lmesim.t3' not found
-```
-
-```
-## Warning in rm(adonissim.t3, lmesim.t3, simulatedata.t3,
-## simulatecoldist.t3, : object 'intradistA.t3' not found
-```
-
-```
-## Warning in rm(adonissim.t3, lmesim.t3, simulatedata.t3,
-## simulatecoldist.t3, : object 'intradistB.t3' not found
-```
 
 
 
