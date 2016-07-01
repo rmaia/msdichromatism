@@ -113,11 +113,137 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
 
 ![](output/figures/lizardeg/lizardeg_figdeltaplot-1.png)<!-- -->
 
-### So what's dimorphic?
+### So what's sexually dichromatic?
+
+#### Old school
+
+Use mean inter-sex distance (eg. Bridge et al. 2008):
+
+``` r
+mean(deltaS$lab[deltaS$lab$comparison == 'inter', ][['dS']])
+```
+
+    ## [1] 5.059284
+
+``` r
+mean(deltaS$throat[deltaS$throat$comparison == 'inter', ][['dS']])
+```
+
+    ## [1] 6.083588
+
+``` r
+mean(deltaS$roof[deltaS$roof$comparison == 'inter', ][['dS']])
+```
+
+    ## [1] 2.514028
+
+``` r
+mean(deltaS$tongue[deltaS$tongue$comparison == 'inter', ][['dS']])
+```
+
+    ## [1] 3.025858
+
+Or the maximums?? (eg. Burns & Schultz 2012):
+
+``` r
+max(deltaS$lab[deltaS$lab$comparison == 'inter', ][['dS']])
+```
+
+    ## [1] 12.71407
+
+``` r
+max(deltaS$throat[deltaS$throat$comparison == 'inter', ][['dS']])
+```
+
+    ## [1] 23.90123
+
+``` r
+max(deltaS$roof[deltaS$roof$comparison == 'inter', ][['dS']])
+```
+
+    ## [1] 13.76762
+
+``` r
+max(deltaS$tongue[deltaS$tongue$comparison == 'inter', ][['dS']])
+```
+
+    ## [1] 13.93182
+
+Or run some t tests (eg. Igic et al. 2010):
+
+``` r
+t.test(deltaS$lab[deltaS$lab$comparison == 'inter', ][['dS']], mu = 1)
+```
+
+    ## 
+    ##  One Sample t-test
+    ## 
+    ## data:  deltaS$lab[deltaS$lab$comparison == "inter", ][["dS"]]
+    ## t = 51.623, df = 863, p-value < 2.2e-16
+    ## alternative hypothesis: true mean is not equal to 1
+    ## 95 percent confidence interval:
+    ##  4.904951 5.213618
+    ## sample estimates:
+    ## mean of x 
+    ##  5.059284
+
+``` r
+t.test(deltaS$throat[deltaS$throat$comparison == 'inter', ][['dS']], mu = 1)
+```
+
+    ## 
+    ##  One Sample t-test
+    ## 
+    ## data:  deltaS$throat[deltaS$throat$comparison == "inter", ][["dS"]]
+    ## t = 42.348, df = 890, p-value < 2.2e-16
+    ## alternative hypothesis: true mean is not equal to 1
+    ## 95 percent confidence interval:
+    ##  5.847989 6.319187
+    ## sample estimates:
+    ## mean of x 
+    ##  6.083588
+
+``` r
+t.test(deltaS$roof[deltaS$roof$comparison == 'inter', ][['dS']], mu = 1)
+```
+
+    ## 
+    ##  One Sample t-test
+    ## 
+    ## data:  deltaS$roof[deltaS$roof$comparison == "inter", ][["dS"]]
+    ## t = 17.577, df = 809, p-value < 2.2e-16
+    ## alternative hypothesis: true mean is not equal to 1
+    ## 95 percent confidence interval:
+    ##  2.344950 2.683107
+    ## sample estimates:
+    ## mean of x 
+    ##  2.514028
+
+``` r
+t.test(deltaS$tongue[deltaS$tongue$comparison == 'inter', ][['dS']], mu = 1)
+```
+
+    ## 
+    ##  One Sample t-test
+    ## 
+    ## data:  deltaS$tongue[deltaS$tongue$comparison == "inter", ][["dS"]]
+    ## t = 24.356, df = 890, p-value < 2.2e-16
+    ## alternative hypothesis: true mean is not equal to 1
+    ## 95 percent confidence interval:
+    ##  2.862611 3.189105
+    ## sample estimates:
+    ## mean of x 
+    ##  3.025858
+
+...etc
+
+**Conclusion**: Dimorphism everywhere!
+
+#### New method
 
 **Step 1:** Run permuational ANOVA (PERMANOVA) on lizard bits to ask if group A is different than group B
 
-**Labium**
+Labium
 
 ``` r
 adoniscoldist(deltaS$lab)
@@ -139,7 +265,7 @@ adoniscoldist(deltaS$lab)
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-**Throat**
+Throat
 
 ``` r
 adoniscoldist(deltaS$throat)
@@ -161,7 +287,7 @@ adoniscoldist(deltaS$throat)
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-**Mouth-roof**
+Mouth-roof
 
 ``` r
 adoniscoldist(deltaS$roof)
@@ -177,11 +303,11 @@ adoniscoldist(deltaS$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## grouping   1      3.22  3.2242 0.49025 0.009  0.514
+    ## grouping   1      3.22  3.2242 0.49025 0.009   0.49
     ## Residuals 54    355.14  6.5766         0.991       
     ## Total     55    358.36                 1.000
 
-**Tongue**
+Tongue
 
 ``` r
 adoniscoldist(deltaS$tongue)
@@ -197,17 +323,17 @@ adoniscoldist(deltaS$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## grouping   1     12.17 12.1726  1.6766 0.02857  0.185
+    ## grouping   1     12.17 12.1726  1.6766 0.02857  0.188
     ## Residuals 57    413.82  7.2601         0.97143       
     ## Total     58    426.00                 1.00000
 
-So this is telling us (?): labium = distinct, throat = distinct, mouth = nope, tongue = nope.
+**Conclusion**: labium = distinct, throat = distinct, mouth = nope, tongue = nope.
 
-Which seems sensible based on the earlier plots & what the lizards actually look like (in the Whiting et al. paper). Neat.
+Much more sensible sensible based on the earlier plots & what the lizards actually look like (in the Whiting et al. paper). Neat.
 
-**Step 2:** Run a linear model to get average within- and between-group distances.
+**Step 2:** Does it crack the threshold?
 
-tbc...
+...tbc
 
 ``` r
 sessionInfo()
