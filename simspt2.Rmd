@@ -34,6 +34,10 @@ Here I propose a two-tiered way of testing whether color differences exist betwe
 1. are the two groups distinguisheable in multivariate space? (tested by permutational MANOVA)
 2. is the difference between these groups above the threshold value? (tested using mixed-models of between-group comparisons and estimating the average effect size and its confidence interval)
 
+here's a 2-dimensional representation of the problem. both populations of points were drawn from the same distribution. If you average the distances between all blue points to all red points, that will be much larger than the distance between the centroids of their distributions (crosses). Also, these average distances might be greater than 1 JND, even though both samples are drawn from the same population. 
+
+![](/figures/2dexample.png)
+
 ## Simulation definitions
 
 - $usml \sim \mathcal{lnN}(ln(\mu), \sigma^2)$
