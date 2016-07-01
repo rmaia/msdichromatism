@@ -127,45 +127,94 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
 
 ```
 
-### So what's dimorphic?
+### So what's sexually dichromatic?
+
+#### Old school
+
+Use mean inter-sex distance (eg. Bridge et al. 2008):
+
+```{r}
+mean(deltaS$lab[deltaS$lab$comparison == 'inter', ][['dS']])
+
+mean(deltaS$throat[deltaS$throat$comparison == 'inter', ][['dS']])
+
+mean(deltaS$roof[deltaS$roof$comparison == 'inter', ][['dS']])
+
+mean(deltaS$tongue[deltaS$tongue$comparison == 'inter', ][['dS']])
+
+```
+
+Or the maximums?? (eg. Burns & Schultz 2012):
+
+```{r}
+max(deltaS$lab[deltaS$lab$comparison == 'inter', ][['dS']])
+
+max(deltaS$throat[deltaS$throat$comparison == 'inter', ][['dS']])
+
+max(deltaS$roof[deltaS$roof$comparison == 'inter', ][['dS']])
+
+max(deltaS$tongue[deltaS$tongue$comparison == 'inter', ][['dS']])
+```
+
+Or run some t tests (eg. Igic et al. 2010):
+
+```{r}
+t.test(deltaS$lab[deltaS$lab$comparison == 'inter', ][['dS']], mu = 1)
+
+t.test(deltaS$throat[deltaS$throat$comparison == 'inter', ][['dS']], mu = 1)
+
+t.test(deltaS$roof[deltaS$roof$comparison == 'inter', ][['dS']], mu = 1)
+
+t.test(deltaS$tongue[deltaS$tongue$comparison == 'inter', ][['dS']], mu = 1)
+```
+
+...etc
+
+**Conclusion**: Dimorphism everywhere!
+
+#### New method
 
 **Step 1:** Run permuational ANOVA (PERMANOVA) on lizard bits to ask if group A is different than group B
 
-**Labium**
+Labium
+
 ```{r}
 
 adoniscoldist(deltaS$lab)
 
 ```
 
-**Throat**
+Throat
+
 ```{r}
 
 adoniscoldist(deltaS$throat)
 
 ```
 
-**Mouth-roof**
+Mouth-roof
+
 ```{r}
 
 adoniscoldist(deltaS$roof)
 
 ```
 
-**Tongue**
+Tongue
+
 ```{r}
 
 adoniscoldist(deltaS$tongue)
 
 ```
 
-So this is telling us (?): labium = distinct, throat = distinct, mouth = nope, tongue = nope.
+**Conclusion**: labium = distinct, throat = distinct, mouth = nope, tongue = nope.
 
-Which seems sensible based on the earlier plots & what the lizards actually look like (in the Whiting et al. paper). Neat.
+Much more sensible sensible based on the earlier plots & what the lizards actually look like (in the Whiting et al. paper). Neat.
 
-**Step 2:** Run a linear model to get average within- and between-group distances.
+**Step 2:** Does it crack the threshold?
 
-tbc...
+...tbc
 
 ```{r}
 sessionInfo()
