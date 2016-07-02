@@ -382,7 +382,7 @@ adoniscoldist(deltaS$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## grouping   1      3.22  3.2242 0.49025 0.009  0.513
+    ## grouping   1      3.22  3.2242 0.49025 0.009  0.502
     ## Residuals 54    355.14  6.5766         0.991       
     ## Total     55    358.36                 1.000
 
@@ -402,7 +402,7 @@ adoniscoldist(deltaS$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## grouping   1     12.17 12.1726  1.6766 0.02857  0.195
+    ## grouping   1     12.17 12.1726  1.6766 0.02857  0.198
     ## Residuals 57    413.82  7.2601         0.97143       
     ## Total     58    426.00                 1.00000
 
@@ -546,54 +546,6 @@ deltaS$comparison[grepl('Y_', deltaS$patch1) & grepl('F_', deltaS$patch2)] <- 'i
 ```
 
 ``` r
-models_tri[grepl("W_", rownames(models_tri)), ]['x']
-```
-
-    ##                x
-    ## W_525 0.02086086
-    ## W_526 0.02186819
-    ## W_527 0.02130068
-    ## W_528 0.02231045
-    ## W_529 0.02199880
-    ## W_530 0.02068185
-    ## W_531 0.01962260
-    ## W_532 0.01830270
-    ## W_533 0.01464304
-    ## W_534 0.03035858
-    ## W_535 0.01753497
-    ## W_536 0.02036854
-    ## W_537 0.02371440
-    ## W_538 0.03071371
-    ## W_539 0.03017189
-    ## W_540 0.03107342
-    ## W_541 0.03302884
-    ## W_542 0.03221561
-    ## W_543 0.03358483
-    ## W_544 0.03468733
-    ## W_545 0.02453519
-    ## W_546 0.02479498
-    ## W_547 0.02911857
-    ## W_548 0.02718114
-    ## W_27  0.01844093
-    ## W_29  0.01524190
-    ## W_30  0.01419107
-    ## W_32  0.02219359
-    ## W_33  0.02198945
-    ## W_34  0.01679113
-    ## W_130 0.03346902
-    ## W_131 0.02278398
-    ## W_132 0.04014903
-    ## W_133 0.04152004
-    ## W_134 0.04303926
-    ## W_135 0.02930809
-    ## W_136 0.03508402
-    ## W_137 0.03049853
-    ## W_138 0.02161395
-    ## W_139 0.03179941
-    ## W_140 0.02782266
-    ## W_141 0.02720274
-
-``` r
 triplot(models_tri[grepl("W_", rownames(models_tri)), ], col = 'darkgrey')
 points(subset(models_tri[grepl("Y_", rownames(models_tri)), ], select = c('x', 'y')), pch = 19, col = 'yellow')
 points(subset(models_tri[grepl("F_", rownames(models_tri)), ], select = c('x', 'y')), pch = 19, col = 'forestgreen')
@@ -621,7 +573,7 @@ rm(deltaS, models, models_rel, models_tri, specs, bee_vis)
 
 #### Example 3: Crypsis.
 
-Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female mantids *Pseudomantis albofimbriata* and 50 background samples (Lomandra longifolia, which they pretty much exclusively hang on).
+Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female mantids *Pseudomantis albofimbriata* and 50 background samples (*Lomandra longifolia*, which they pretty much exclusively hang on).
 
 So six groups, one **Q:** Are mantids cryptic? i.e. are all body regions chromaticically indistinguishable from their background?
 

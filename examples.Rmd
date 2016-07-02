@@ -373,9 +373,7 @@ deltaS$comparison[grepl('Y_', deltaS$patch1) & grepl('F_', deltaS$patch2)] <- 'i
 
 ```
 
-```{r mimic_triplot, fig.width=8, fig.height=8}
-
-models_tri[grepl("W_", rownames(models_tri)), ]['x']
+```{r mimic_triplot, fig.width=6, fig.height=6}
 
 triplot(models_tri[grepl("W_", rownames(models_tri)), ], col = 'darkgrey')
 points(subset(models_tri[grepl("Y_", rownames(models_tri)), ], select = c('x', 'y')), pch = 19, col = 'yellow')
@@ -386,7 +384,7 @@ points(subset(models_tri[grepl("F_", rownames(models_tri)), ], select = c('x', '
 Well that's not terribly helpful. Should actually run it in the hexagon w/ euclidean distances
 since it's a bee model. 
 
-```{r mimic_deltaplot, fig.width=8, fig.height=8}
+```{r mimic_deltaplot, fig.width=6, fig.height=8}
 
 ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
         facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
@@ -406,7 +404,7 @@ rm(deltaS, models, models_rel, models_tri, specs, bee_vis)
 
 #### Example 3: Crypsis. 
 
-Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female mantids _Pseudomantis albofimbriata_ and 50 background samples (Lomandra longifolia, which they pretty much exclusively hang on).
+Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female mantids _Pseudomantis albofimbriata_ and 50 background samples (_Lomandra longifolia_, which they pretty much exclusively hang on).
 
 So six groups, one **Q:** Are mantids cryptic? i.e. are all body regions chromaticically 
 indistinguishable from their background?
@@ -430,7 +428,7 @@ deltaS <- coldist(models, achro = FALSE)
 
 Plot 'em
 
-```{r mantid_tcs, fig.width=8, fig.height=8}
+```{r mantid_tcs, fig.width=6, fig.height=6}
 
 sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel[grepl("B_", rownames(models_rel)), ])
                                        [, c('x','y','z')]), xlim=c(-0.02,0.02), ylim=c(-0.01,0.028), zlim=c(-0.06,0.01), 
