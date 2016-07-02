@@ -1,0 +1,455 @@
+---
+title: "Examples, using real data"
+output:
+  md_document:
+    variant: markdown_github
+
+---
+
+```{r setup, include = FALSE}
+require(pavo)
+require(scatterplot3d)
+require(ggplot2)
+require(gridExtra)
+require(vegan)
+require(lme4)
+
+knitr::opts_chunk$set(echo = TRUE, 
+                      fig.path='output/figures/examples/examples_fig')
+```
+
+# Possible examples w/ real data 
+
+```{r}
+# Stolen from simspt2
+adoniscoldist <- function(x){
+  dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
+  rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
+  
+  for(i in rownames(dmat))
+    for(j in colnames(dmat))
+      if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
+      dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
+  
+  grouping <- gsub('[0-9]','', rownames(dmat))
+  
+  adonis(dmat~grouping)
+}
+
+# Trichromat space & plot (from pavo)
+trispace <- function(vismodeldata){
+  
+  dat <- vismodeldata
+    
+  s <- dat[, 1]
+  m <- dat[, 2]
+  l <- dat[, 3]
+  
+# cartesian coordinates
+    
+  x <- (1/sqrt(2)) * (l - m) 
+  y <- (sqrt(2)/sqrt(3)) * (s - ((l + m)/2))   
+    
+# colorimetrics
+  r.vec <- sqrt((abs(x))^2 + (abs(y)^2))
+  h.theta <- atan2(y, x)
+  
+  res.p <- data.frame(s, m, l, x, y, h.theta, r.vec, row.names = rownames(dat))
+  
+  res <- res.p
+  
+  res
+}
+
+triplot <- function(tridata, labels = TRUE, achro = TRUE, achrocol = 'grey', achrosize = 0.8, 
+                     cex.labels = 1, out.lwd = 1, out.lcol = 'black', out.lty = 1, ...){ 
+  
+  arg <- list(...)
+  
+# Set defaults
+  if(is.null(arg$col))
+    arg$col <- 'black'
+  if(is.null(arg$pch))
+    arg$pch <- 19
+  if(is.null(arg$type))
+    arg$type = 'p'
+  if(is.null(arg$xlim))
+    arg$xlim <- c(-1/sqrt(2), 1/sqrt(2))
+  if(is.null(arg$ylim))
+    arg$ylim <- c(-sqrt(2)/(2*(sqrt(3))), sqrt(2)/sqrt(3))
+    
+# Verticy coordinates  
+  vert <- data.frame(x = c(0, -1/sqrt(2), 1/sqrt(2)),
+                       y = c(sqrt(2)/sqrt(3), -sqrt(2)/(2*(sqrt(3))), -sqrt(2)/(2*(sqrt(3)))))
+  
+# Plot
+  arg$x <- tridata$x
+  arg$y <- tridata$y
+  arg$xlab = ' '
+  arg$ylab = ' '
+  arg$bty = 'n'
+  arg$axes = FALSE
+  
+  do.call(plot, arg)
+  
+# Add lines 
+  segments(vert$x[1], vert$y[1], vert$x[2], vert$y[2], lwd = out.lwd, lty = out.lty, col = out.lcol)
+  segments(vert$x[1], vert$y[1], vert$x[3], vert$y[3], lwd = out.lwd, lty = out.lty, col = out.lcol)
+  segments(vert$x[2], vert$y[2], vert$x[3], vert$y[3], lwd = out.lwd, lty = out.lty, col = out.lcol)
+  
+# Origin
+  if(isTRUE(achro)){
+    points(x = 0, y = 0, pch = 15, col = achrocol, cex = achrosize)
+  }
+  
+# Add text (coloured points better as in tcsplot?)
+  if(isTRUE(labels)){
+    text('S', x = -0.76, y = -0.39, xpd = TRUE, cex = cex.labels)
+    text('M', x = 0, y = 0.88, xpd = TRUE, cex = cex.labels)
+    text('L', x = 0.76, y = -0.39, xpd = TRUE, cex = cex.labels)
+  }
+  
+}
+```
+
+#### Example 1: Dichromatism. 
+
+Reflectance data from four body regions of male and female _Ctenophorus ornatus_ (Whiting et al. 2015, Biol J Linn Soc). Labium, throat, tongue, and mouth-roof.
+
+**Q:** Which body regions are sexually dichromatic?
+
+Calculate deltaS according to conspecific (tetrachromatic) visual system
+
+```{r message=FALSE, warning=FALSE}
+
+specs <- list(lab = as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE),
+              throat = as.rspec(read.csv('data/dichromatism/throat.csv'), interp = FALSE),
+              roof = as.rspec(read.csv('data/dichromatism/roof.csv'), interp = FALSE),
+              tongue = as.rspec(read.csv('data/dichromatism/tongue.csv'), interp = FALSE))
+
+# Ctenophorus ornatus
+liz_vis <- sensmodel(c(360, 440, 493, 571)) 
+names(liz_vis) <- c('wl', 'u', 's', 'm', 'l')
+
+models <- lapply(specs, function(x) vismodel(x, visual = liz_vis, relative = FALSE, 
+                                             qcatch = "fi", scale = 10000))  # deltaS
+models_rel <- lapply(specs, function(x) vismodel(x, visual = liz_vis, relative = TRUE, 
+                                                 qcatch = "fi", scale = 10000))  # tcs 
+
+deltaS <- lapply(models, function(x) coldist(x, achro = FALSE, n1 = 1, n2 = 1, 
+                                             n3 = 3.5, n4 = 6, v = 0.10))
+
+# To add group labels (because I'm bad at R and I feel bad)
+liz_lab <- function(x){
+  x$comparison[grepl('F', x$patch1) & grepl('F', x$patch2)] <- 'intra.F'
+  x$comparison[grepl('M', x$patch1) & grepl('M', x$patch2)] <- 'intra.M'
+  x$comparison[grepl('M', x$patch1) & grepl('F', x$patch2)] <- 'inter'
+  x$comparison[grepl('F', x$patch1) & grepl('M', x$patch2)] <- 'inter'
+  x
+}
+
+# ew
+deltaS$lab <- liz_lab(deltaS$lab) 
+deltaS$throat <- liz_lab(deltaS$throat)
+deltaS$roof <- liz_lab(deltaS$roof)
+deltaS$tongue <- liz_lab(deltaS$tongue)
+
+
+```
+
+Plot 'em
+
+```{r liz_tcs, fig.width=8, fig.height=8}
+
+par(pty="s", mfrow = c(2, 2))
+
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$lab[grepl("M", rownames(models_rel$lab)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'labium')
+sp3d$points3d(suppressWarnings(tcs(models_rel$lab[grepl("F", rownames(models_rel$lab)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
+
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$throat[grepl("M", rownames(models_rel$throat)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'throat')
+sp3d$points3d(suppressWarnings(tcs(models_rel$throat[grepl("F", rownames(models_rel$throat)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
+
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$roof[grepl("M", rownames(models_rel$roof)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'roof')
+sp3d$points3d(suppressWarnings(tcs(models_rel$roof[grepl("F", rownames(models_rel$roof)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
+
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$tongue[grepl("M", rownames(models_rel$tongue)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'tongue')
+sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_rel$tongue)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
+```
+
+```{r liz_deltaplot, fig.width=8, fig.height=8}
+
+p1 <- ggplot(deltaS$lab, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
+        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
+        ggtitle('labial') + theme(legend.position="none")
+
+p2 <- ggplot(deltaS$throat, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
+        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
+        ggtitle('throat') + theme(legend.position="none")
+
+p3 <- ggplot(deltaS$roof, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
+        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
+        ggtitle('roof') + theme(legend.position="none")
+
+p4 <- ggplot(deltaS$tongue, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
+        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
+        ggtitle('tongue') + theme(legend.position="none")
+
+grid.arrange(p1, p2, p3, p4, ncol=2)
+
+```
+
+#### So what's sexually dichromatic?
+
+**Ye olde ways**
+
+Use mean inter-sex distance (eg. Bridge et al. 2008):
+
+```{r}
+mean(deltaS$lab[deltaS$lab$comparison == 'inter', ][['dS']])
+
+mean(deltaS$throat[deltaS$throat$comparison == 'inter', ][['dS']])
+
+mean(deltaS$roof[deltaS$roof$comparison == 'inter', ][['dS']])
+
+mean(deltaS$tongue[deltaS$tongue$comparison == 'inter', ][['dS']])
+
+```
+
+Or the maximums?? (eg. Burns & Schultz 2012):
+
+```{r}
+max(deltaS$lab[deltaS$lab$comparison == 'inter', ][['dS']])
+
+max(deltaS$throat[deltaS$throat$comparison == 'inter', ][['dS']])
+
+max(deltaS$roof[deltaS$roof$comparison == 'inter', ][['dS']])
+
+max(deltaS$tongue[deltaS$tongue$comparison == 'inter', ][['dS']])
+```
+
+Or run some t tests (eg. Igic et al. 2010):
+
+```{r}
+t.test(deltaS$lab[deltaS$lab$comparison == 'inter', ][['dS']], mu = 1)
+
+t.test(deltaS$throat[deltaS$throat$comparison == 'inter', ][['dS']], mu = 1)
+
+t.test(deltaS$roof[deltaS$roof$comparison == 'inter', ][['dS']], mu = 1)
+
+t.test(deltaS$tongue[deltaS$tongue$comparison == 'inter', ][['dS']], mu = 1)
+```
+
+...etc
+
+**Conclusion**: Dimorphism everywhere!
+
+#### New method
+
+**Step 1:** Run permuational ANOVA (PERMANOVA) on lizard bits to ask if group A is different than group B
+
+Labium
+
+```{r}
+
+adoniscoldist(deltaS$lab)
+
+```
+
+Throat
+
+```{r}
+
+adoniscoldist(deltaS$throat)
+
+```
+
+Mouth-roof
+
+```{r}
+
+adoniscoldist(deltaS$roof)
+
+```
+
+Tongue
+
+```{r}
+
+adoniscoldist(deltaS$tongue)
+
+```
+
+**Conclusion**: labium = distinct, throat = distinct, mouth = nope, tongue = nope.
+
+Much more sensible sensible based on the earlier plots & what the lizards actually look like (in the Whiting et al. paper). Neat.
+
+**Step 2:** Effect sizes for distinct bits (i.e. do they crack the threshold?). Intercept-only mixed-models?
+
+```{r}
+
+deltaS.lab.inter <- deltaS$lab[deltaS$lab$comparison == 'inter', ]
+
+grep('M', deltaS.lab.inter$patch1)
+grep('F', deltaS.lab.inter$patch2)
+
+summary(lmer(dS~1+(1|patch1)+(1|patch2), data=deltaS.lab.inter))
+
+```
+
+**95% CI for labium = 4.69, 5.43**
+
+```{r}
+
+deltaS.throat.inter <- deltaS$throat[deltaS$throat$comparison == 'inter', ]
+
+grep('M', deltaS.throat.inter$patch1)
+grep('F', deltaS.throat.inter$patch2)
+
+summary(lmer(dS~1+(1|patch1)+(1|patch2), data=deltaS.throat.inter))
+
+```
+
+**95% CI for throat = 5.48, 6.69**
+
+```{r}
+
+rm(deltaS, deltaS.lab.inter, deltaS.throat.inter, models, models_rel, specs, liz_vis, liz_lab)
+
+```
+
+#### Example 2: Mimicry. 
+
+Reflectance data from colour-polymorphic female spiders _Gasteracantha fornicata_, and sympatic flowers from Qld, Australia. (W = white morph, Y = yellow morph, F = flowers)
+
+So three groups, with **two Q's:** 
+
+**(1)** Are spiders actually polymorphic (to prey)?
+
+**(2)** Do spiders (of each morph) resemble sympatric flowers?
+
+```{r}
+# specs <- list(spider_w = as.rspec(read.csv('data/mimicry/spiders_white.csv'), interp = FALSE),
+#               spider_y = as.rspec(read.csv('data/mimicry/spiders_yellow.csv'), interp = FALSE),
+#               flower = as.rspec(read.csv('data/mimicry/flowers.csv'), interp = FALSE))
+
+specs <- as.rspec(read.csv('data/mimicry/flowers_spiders.csv'), interp = FALSE)
+
+```
+
+Calculate deltaS according to bee (trichromat) visual system
+
+```{r}
+
+# Honeybee
+bee_vis <- sensmodel(c(350, 440, 540)) 
+names(bee_vis) <- c('wl', 's', 'm', 'l')
+
+models <- vismodel(specs, visual = bee_vis, relative = FALSE, 
+                                             qcatch = "fi", scale = 10000)  # deltaS
+models_rel <- vismodel(specs, visual = bee_vis, relative = TRUE, 
+                                                 qcatch = "fi", scale = 10000)  # max triangle
+models_tri <- trispace(models_rel)
+
+deltaS <- coldist(models, achro = FALSE)
+
+# Contrast labels
+deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('W_', deltaS$patch2)] <- 'intra.W'
+deltaS$comparison[grepl('Y_', deltaS$patch1) & grepl('Y_', deltaS$patch2)] <- 'intra.Y'
+deltaS$comparison[grepl('F_', deltaS$patch1) & grepl('F_', deltaS$patch2)] <- 'intra.F'
+deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('Y_', deltaS$patch2)] <- 'inter.WY'
+deltaS$comparison[grepl('Y_', deltaS$patch1) & grepl('W_', deltaS$patch2)] <- 'inter.WY'
+deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('F_', deltaS$patch2)] <- 'inter.WF'
+deltaS$comparison[grepl('F_', deltaS$patch1) & grepl('W_', deltaS$patch2)] <- 'inter.WF'
+deltaS$comparison[grepl('F_', deltaS$patch1) & grepl('Y_', deltaS$patch2)] <- 'inter.YF'
+deltaS$comparison[grepl('Y_', deltaS$patch1) & grepl('F_', deltaS$patch2)] <- 'inter.YF'
+
+```
+
+```{r mimic_triplot, fig.width=6, fig.height=6}
+
+triplot(models_tri[grepl("W_", rownames(models_tri)), ], col = 'darkgrey')
+points(subset(models_tri[grepl("Y_", rownames(models_tri)), ], select = c('x', 'y')), pch = 19, col = 'yellow')
+points(subset(models_tri[grepl("F_", rownames(models_tri)), ], select = c('x', 'y')), pch = 19, col = 'forestgreen')
+
+```
+
+Well that's not terribly helpful. Should actually run it in the hexagon w/ euclidean distances
+since it's a bee model. 
+
+```{r mimic_deltaplot, fig.width=6, fig.height=8}
+
+ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
+        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
+        ggtitle('labial') + theme(legend.position="none")
+
+```
+
+Mmm, maybe not the most exciting example. 
+
+...tbc
+
+```{r}
+
+rm(deltaS, models, models_rel, models_tri, specs, bee_vis)
+
+```
+
+#### Example 3: Crypsis. 
+
+Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female mantids _Pseudomantis albofimbriata_ and 50 background samples (_Lomandra longifolia_, which they pretty much exclusively hang on).
+
+So six groups, one **Q:** Are mantids cryptic? i.e. are all body regions chromaticically 
+indistinguishable from their background?
+
+Calculate deltaS according to blue tits 
+
+```{r}
+
+specs <- as.rspec(read.csv('data/crypsis/mantids_bkgs.csv'), lim = c(300, 700))
+
+```
+
+```{r}
+
+models <- vismodel(specs, visual = 'bluetit', relative = FALSE, qcatch = "fi", scale = 10000)  # deltaS
+models_rel <- vismodel(specs, visual = 'bluetit', relative = TRUE, qcatch = "fi", scale = 10000, achro = FALSE)  # tcs
+
+deltaS <- coldist(models, achro = FALSE)
+
+```
+
+Plot 'em
+
+```{r mantid_tcs, fig.width=6, fig.height=6}
+
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel[grepl("B_", rownames(models_rel)), ])
+                                       [, c('x','y','z')]), xlim=c(-0.02,0.02), ylim=c(-0.01,0.028), zlim=c(-0.06,0.01), 
+                                        pch=19, box=F, color = 'forestgreen')
+sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("H_", rownames(models_rel)), ])
+                               [, c('x','y','z')]), col='darkgoldenrod',pch=19)
+sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("L_", rownames(models_rel)), ])
+                               [, c('x','y','z')]), col='darkgoldenrod1',pch=19)
+sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("R_", rownames(models_rel)), ])
+                               [, c('x','y','z')]), col='darkgoldenrod2',pch=19)
+sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("P_", rownames(models_rel)), ])
+                               [, c('x','y','z')]), col='darkgoldenrod3',pch=19)
+sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("W_", rownames(models_rel)), ])
+                               [, c('x','y','z')]), col='darkgoldenrod4',pch=19)
+sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("A_", rownames(models_rel)), ])
+                               [, c('x','y','z')]), col='gold1',pch=19)
+```
+
+...tbc
+
+
+```{r}
+sessionInfo()
+```
