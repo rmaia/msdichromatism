@@ -112,11 +112,11 @@ triplot <- function(tridata, labels = TRUE, achro = TRUE, achrocol = 'grey', ach
 }
 ```
 
-### Example 1: Dichromatism. Reflectance data from four body regions of male 
-### and female _Ctenophorus ornatus_ (Whiting et al. 2015, Biol J Linn Soc). Labium,
-### throat, tongue, and mouth-roof.
+#### Example 1: Dichromatism. 
 
-### Q: Which body regions are sexually dichromatic?
+Reflectance data from four body regions of male and female _Ctenophorus ornatus_ (Whiting et al. 2015, Biol J Linn Soc). Labium, throat, tongue, and mouth-roof.
+
+**Q:** Which body regions are sexually dichromatic?
 
 Calculate deltaS according to conspecific (tetrachromatic) visual system
 
@@ -206,9 +206,9 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
 
 ```
 
-### So what's sexually dichromatic?
+#### So what's sexually dichromatic?
 
-#### Ye olde ways
+**Ye olde ways**
 
 Use mean inter-sex distance (eg. Bridge et al. 2008):
 
@@ -325,11 +325,11 @@ rm(deltaS, deltaS.lab.inter, deltaS.throat.inter, models, models_rel, specs, liz
 
 ```
 
-### Example 2: Mimicry. Reflectance data from colour-polymorphic female spiders 
-### _Gasteracantha fornicata_, and sympatic flowers from Qld, Australia. (W = white morph,
-### Y = yellow morph, F = flowers)
+#### Example 2: Mimicry. 
 
-So three groups, with two Q's: 
+Reflectance data from colour-polymorphic female spiders _Gasteracantha fornicata_, and sympatic flowers from Qld, Australia. (W = white morph, Y = yellow morph, F = flowers)
+
+So three groups, with **two Q's:** 
 
 **(1)** Are spiders actually polymorphic (to prey)?
 
@@ -404,10 +404,9 @@ rm(deltaS, models, models_rel, models_tri, specs, bee_vis)
 
 ```
 
-### Example 3: Crypsis. Reflectance data from various body regions (H = head, L = left arm,
-### R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female mantids 
-### _Pseudomantis albofimbriata_ and 50 background samples (Lomandra longifolia, which
-### they pretty much exclusively hang on).
+#### Example 3: Crypsis. 
+
+Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female mantids _Pseudomantis albofimbriata_ and 50 background samples (Lomandra longifolia, which they pretty much exclusively hang on).
 
 So six groups, one **Q:** Are mantids cryptic? i.e. are all body regions chromaticically 
 indistinguishable from their background?

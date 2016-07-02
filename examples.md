@@ -93,13 +93,11 @@ triplot <- function(tridata, labels = TRUE, achro = TRUE, achrocol = 'grey', ach
 }
 ```
 
-### Example 1: Dichromatism. Reflectance data from four body regions of male
+#### Example 1: Dichromatism.
 
-### and female *Ctenophorus ornatus* (Whiting et al. 2015, Biol J Linn Soc). Labium,
+Reflectance data from four body regions of male and female *Ctenophorus ornatus* (Whiting et al. 2015, Biol J Linn Soc). Labium, throat, tongue, and mouth-roof.
 
-### throat, tongue, and mouth-roof.
-
-### Q: Which body regions are sexually dichromatic?
+**Q:** Which body regions are sexually dichromatic?
 
 Calculate deltaS according to conspecific (tetrachromatic) visual system
 
@@ -194,9 +192,9 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
 
 ![](output/figures/examples/examples_figliz_deltaplot-1.png)
 
-### So what's sexually dichromatic?
+#### So what's sexually dichromatic?
 
-#### Ye olde ways
+**Ye olde ways**
 
 Use mean inter-sex distance (eg. Bridge et al. 2008):
 
@@ -384,7 +382,7 @@ adoniscoldist(deltaS$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## grouping   1      3.22  3.2242 0.49025 0.009  0.512
+    ## grouping   1      3.22  3.2242 0.49025 0.009  0.513
     ## Residuals 54    355.14  6.5766         0.991       
     ## Total     55    358.36                 1.000
 
@@ -404,7 +402,7 @@ adoniscoldist(deltaS$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## grouping   1     12.17 12.1726  1.6766 0.02857  0.196
+    ## grouping   1     12.17 12.1726  1.6766 0.02857  0.195
     ## Residuals 57    413.82  7.2601         0.97143       
     ## Total     58    426.00                 1.00000
 
@@ -500,13 +498,11 @@ summary(lmer(dS~1+(1|patch1)+(1|patch2), data=deltaS.throat.inter))
 rm(deltaS, deltaS.lab.inter, deltaS.throat.inter, models, models_rel, specs, liz_vis, liz_lab)
 ```
 
-### Example 2: Mimicry. Reflectance data from colour-polymorphic female spiders
+#### Example 2: Mimicry.
 
-### *Gasteracantha fornicata*, and sympatic flowers from Qld, Australia. (W = white morph,
+Reflectance data from colour-polymorphic female spiders *Gasteracantha fornicata*, and sympatic flowers from Qld, Australia. (W = white morph, Y = yellow morph, F = flowers)
 
-### Y = yellow morph, F = flowers)
-
-So three groups, with two Q's:
+So three groups, with **two Q's:**
 
 **(1)** Are spiders actually polymorphic (to prey)?
 
@@ -623,13 +619,9 @@ Mmm, maybe not the most exciting example.
 rm(deltaS, models, models_rel, models_tri, specs, bee_vis)
 ```
 
-### Example 3: Crypsis. Reflectance data from various body regions (H = head, L = left arm,
+#### Example 3: Crypsis.
 
-### R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female mantids
-
-### *Pseudomantis albofimbriata* and 50 background samples (Lomandra longifolia, which
-
-### they pretty much exclusively hang on).
+Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female mantids *Pseudomantis albofimbriata* and 50 background samples (Lomandra longifolia, which they pretty much exclusively hang on).
 
 So six groups, one **Q:** Are mantids cryptic? i.e. are all body regions chromaticically indistinguishable from their background?
 
