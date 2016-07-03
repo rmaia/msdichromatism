@@ -1,3 +1,6 @@
+the 'mean difference and difference of means' problem
+-----------------------------------------------------
+
 One problem with the approach used by most researchers nowadays is that there is an underlying unspoken assumption that the mean of the differences between color points reflects the difference between means of the groups. That is, if I take all pairwise distances between points and average those, I am getting the same result, or at least an approximation, as if I took the mean of those groups and calculated the distance between them. We can demonstrate that this logic is flawed, because it overlooks a little, but important, thing.
 
 First, let's demonstrate the case in which it *is* true, to understand when it's *not*. We'll do it in one dimension for simplicity, where the distance between two numbers is just the difference between them.
@@ -66,7 +69,7 @@ meaneucdist(x,y)
 
 Why does this give a different result? Well, that becomes very clear when we look at the formula for the Euclidean distance:
 
-*s**q**r**t*(*x* − *y*)<sup>2</sup>
+$$\\sqrt{(x-y)^2}$$
 
 Which, in one dimension, simplifies to... (drumrolls!)
 
@@ -84,4 +87,4 @@ females = c(2, -2)
 
 You'd want those two groups to be the same (mean difference = 0). But a translation-invariant metric of distance would tell you they have a mean difference of 2
 
-To make it clearer how this applies to the comparison between groups in color space, let's show this in two dimensions: ![](output/figures/meandiffunnamed-chunk-6-1.png) We can see that taking the average of those distance arrows *ignoring their directions* would give a value greater than zero (which is the distance between their means, represented by crosses). Euclidean (and JND) ignore position information, which is critical when comparing groups of points.
+To make it clearer how this applies to the comparison between groups in color space, let's show this in two dimensions: ![](output/figures/meandiffunnamed-chunk-6-1.png) We can see that taking the average of those distance arrows *ignoring their directions* would give a value greater than zero (which is the distance between their means, represented by crosses). Euclidean (and JND) distances ignore position information, which is critical when comparing groups of points.

@@ -5,6 +5,8 @@ output:
     variant: markdown_github
 ---
 
+## the 'mean difference and difference of means' problem
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
                       fig.path='output/figures/meandiff')
@@ -84,7 +86,7 @@ meaneucdist(x,y)
 
 Why does this give a different result? Well, that becomes very clear when we look at the formula for the Euclidean distance:
 
-$$sqrt{(x-y)^2}$$
+$$\sqrt{(x-y)^2}$$
 
 Which, in one dimension, simplifies to... (drumrolls!)
 
@@ -117,4 +119,4 @@ arrows(1.8, -2, -1.8, -2, length=0.1, code=3, angle=20, lwd=2, col=grey(0,0.8))
 arrows(-2, -1.8, -2, 1.8, length=0.1, code=3, angle=20, lwd=2, col=grey(0,0.8))
 points(c(0,0),c(0,0), pch=c(3,4), col=c('#4575b4','#d73027'), cex=2, lwd=2)
 ```
-We can see that taking the average of those distance arrows *ignoring their directions* would give a value greater than zero (which is the distance between their means, represented by crosses). Euclidean (and JND) ignore position information, which is critical when comparing groups of points.
+We can see that taking the average of those distance arrows *ignoring their directions* would give a value greater than zero (which is the distance between their means, represented by crosses). Euclidean (and JND) distances ignore position information, which is critical when comparing groups of points.
