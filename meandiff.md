@@ -69,16 +69,11 @@ meaneucdist(x,y)
 
 Why does this give a different result? Well, that becomes very clear when we look at the formula for the Euclidean distance:
 
-$$\\sqrt{(x-y)^2}$$
+sqrt((x-y)^2)
 
-<p>
-<span class="math display">
-$$\\sqrt{(x-y)^2}$$
-</span>
-</p>
 Which, in one dimension, simplifies to... (drumrolls!)
 
-|*x* − *y*|
+|x - y|
 
 Boom. There's our problem.
 
