@@ -27,8 +27,8 @@ Now let's create two random samples, and we'll even make them different sample s
 
 ``` r
 set.seed(43805)
-x <- rnorm(10, 5, 1)
-y <- rnorm(13, 7, 1)
+x <- rnorm(10, 50, 20)
+y <- rnorm(13, 70, 20)
 ```
 
 Now we can show that
@@ -37,7 +37,7 @@ Now we can show that
 mean(x) - mean(y)
 ```
 
-    ## [1] -1.366923
+    ## [1] -7.338469
 
 gives us the same result as
 
@@ -45,7 +45,7 @@ gives us the same result as
 meandiff(x,y)
 ```
 
-    ## [1] -1.366923
+    ## [1] -7.338469
 
 But what happens when we look at distances? Let's test with Euclidean distances for this example.
 
@@ -65,7 +65,7 @@ meaneucdist <- function(z1, z2){
 meaneucdist(x,y)
 ```
 
-    ## [1] 1.499098
+    ## [1] 19.8612
 
 Why does this give a different result? Well, that becomes very clear when we look at the formula for the Euclidean distance:
 
@@ -79,12 +79,16 @@ Boom. There's our problem.
 
 The Euclidean distance, and by consequence the JND distance, is **translation-invariant**. It ignores *position in space*. This is a desireable property when calculating distances sometimes, because it means 3 - 2 = 2 - 3 = -2 - (-3) = -3 - (-2). That is, regardless on where those two points are in space, *their difference will have the same magnitude*. Which is good - but **not when comparing populations of points!**, because in that case, **the position of points relative to one another matters (a lot!)**
 
+In fact, the mean of Euclidean distances - mean(sqrt((xi - xj)^2)) - is related to the mean squared difference, or mean squared error - mean(sqrt((mean(x) - xi)^2)) - which is a measure of spread, like the standard deviation. *It therefore will increase as a function of the mean variance of the groups, not the mean distance between the groups*.
+
+![](http://i.giphy.com/i6TQUuiT5hjSU.gif%20=100x)
+
 Say in the problem of dichromatism, if color was one-dimensional, and you had:
 
 males = c(2, -2)
 
 females = c(2, -2)
 
-You'd want those two groups to be the same (mean difference = 0). But a translation-invariant metric of distance would tell you they have a mean difference of 2.
+You'd want those two groups to be the same (mean difference = 0). But a translation-invariant metric of distance (such as the Euclidean distance) would tell you they have a mean difference of 2.
 
 To make it clearer how this applies to the comparison between groups in color space, let's show this in two dimensions: ![](output/figures/meandiffunnamed-chunk-6-1.png) We can see that taking the average of those distance arrows *ignoring their directions* would give a value greater than zero (which is the distance between their means, represented by crosses). Euclidean (and JND) distances ignore position information, which is critical when comparing groups of points.
