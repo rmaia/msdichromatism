@@ -1,7 +1,7 @@
 the 'mean difference and difference of means' problem
 -----------------------------------------------------
 
-One problem with the approach commonly used is that there is an underlying assumption that the mean of the differences between color points reflects the difference between means of the groups. That is, if I take all pairwise distances between points and average those, I am getting the same result, or at least an approximation, as if I took the mean of those groups and calculated the distance between them. We can demonstrate that this logic is flawed, because it overlooks a little, but important, thing.
+One problem with the approach commonly used is that there is an underlying assumption that the mean of the differences between color points of two different groups reflects the difference between the means of those groups. That is, if I take all pairwise distances between points and average those, I am getting the same result, or at least an approximation, as if I took the mean of those groups and calculated the distance between them. We can demonstrate that this logic is flawed, because it overlooks a small, but crucial, thing.
 
 First, let's demonstrate the case in which it *is* true, to understand when it's *not*. We'll do it in one dimension for simplicity, where the distance between two numbers is just the difference between them.
 
