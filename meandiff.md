@@ -81,7 +81,7 @@ The Euclidean distance, and by consequence the JND distance, is **translation-in
 
 In fact, the mean of Euclidean distances - mean(sqrt((xi - xj)^2)) - is related to the mean squared difference, or mean squared error - mean(sqrt((mean(x) - xi)^2)) - which is a measure of spread, like the standard deviation. *It therefore will increase as a function of the mean variance of the groups, not the mean distance between the groups*.
 
-![](http://i.giphy.com/i6TQUuiT5hjSU.gif%20=100x)
+![](http://i.giphy.com/i6TQUuiT5hjSU.gif%20=100x) <img src="http://i.giphy.com/i6TQUuiT5hjSU.gif" width="48">
 
 Say in the problem of dichromatism, if color was one-dimensional, and you had:
 
