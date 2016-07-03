@@ -93,4 +93,4 @@ You'd want those two groups to be the same (mean difference = 0). But a translat
 
 To make it clearer how this applies to the comparison between groups in color space, let's show this in two dimensions: ![](output/figures/meandiffunnamed-chunk-6-1.png)
 
-We can see that taking the average of those distance arrows *ignoring their directions* would give a value greater than zero (which is the distance between their means, represented by crosses). Euclidean (and JND) distances ignore position information, which is critical when comparing groups of points.
+We can see that taking the average of those distance vectors (arrows) *ignoring their directions* would give a value greater than zero (which is the distance between their means, represented by crosses). Euclidean (and JND) distances ignore position information, which is critical when comparing groups of points.
