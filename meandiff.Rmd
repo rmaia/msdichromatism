@@ -103,7 +103,7 @@ males = c(2, -2)
 
 females = c(2, -2)
 
-You'd want those two groups to be the same (mean difference = 0). But a translation-invariant metric of distance would tell you they have a mean difference of `r meaneucdist(c(2,-2), c(2,-2))`
+You'd want those two groups to be the same (mean difference = 0). But a translation-invariant metric of distance would tell you they have a mean difference of `r meaneucdist(c(2,-2), c(2,-2))`.
 
 To make it clearer how this applies to the comparison between groups in color space, let's show this in two dimensions:
 ```{r, echo=FALSE}
