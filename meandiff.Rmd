@@ -26,7 +26,11 @@ movePoints <- function(x0y0, xy, d){
 
 In color analyses, a common approach to estimate the difference between two groups (say, colors of males and females) is to represent these colors as points in cartesian space, then measure the distance between all points in group A and those in group B (between-group distances) and averaging them. If this distance is greater than a stipulated threshold, then the groups are considered to be different. These are usually Euclidean or weighted Euclidean distances.
 
-One problem with this approach is that there is an underlying assumption that the mean of the differences between color points of two different groups reflects the difference between the means of those groups. That is, if I take all pairwise distances between points and average those, I am getting the same result as, or at least an approximation of, taking the mean of each of those groups and calculating the distance between thos means We can demonstrate that this does not follow because it overlooks a property of how these distances are calculated.
+One problem with this approach is that there is an underlying assumption that the mean of the differences between color points of two different groups reflects the difference between the means of those two groups. That is, if I take all pairwise distances between points and average those, I am getting the same result as, or at least an approximation of, taking the mean of each of those groups and calculating the distance between those means.
+
+mean(distances) ~ distance(means)
+
+We can demonstrate that this does not follow because it overlooks a property of how these distances are calculated.
 
 First, let's demonstrate the case in which it _is_ true, to understand when it's _not_. We'll do it in one dimension for simplicity, where the distance between two numbers is just the difference between them.
 
@@ -98,11 +102,11 @@ Boom. There's our problem.
 
 The Euclidean distance, and by consequence the JND distance, is **translation-invariant**. It ignores _position in space_. This is a desireable property when calculating distances sometimes, because it means 3 - 2 = 2 - 3 = -2 - (-3) = -3 - (-2). That is, regardless on where those two points are in space, _their difference will have the same magnitude_. Which is good - but **not when comparing populations of points!**, because in that case, **the position of points relative to one another matters (a lot!)** 
 
-In fact, the mean of Euclidean distances - mean(sqrt((xi - xj)^2)) - is related to the mean squared difference, or mean squared error - mean(sqrt((mean(x) - xi)^2)) - which is a measure of spread, like the standard deviation. _It therefore will increase as a function of the mean variance of the groups, not the mean distance between the groups_.
+In fact, the mean of Euclidean distances - mean(sqrt((xi - xj)^2)) - is related to the mean of the square root of the squared differences - mean(sqrt((mean(x) - xi)^2)) -, and the (mean) squared difference is a measure of spread, like the standard deviation. _It therefore will increase as a function of the **mean variance of the groups**, not the **mean distance between the groups**_.(I'm not sure this is a valid relationship or how it'd scale, but I think I'm on to something.)
 
 <img src="http://i.giphy.com/i6TQUuiT5hjSU.gif" width="250">
 
-Say in the problem of dichromatism, if color was one-dimensional, and you had:
+Bringing this back to the problem of dichromatism, if color was one-dimensional, and you had:
 
 males = c(2, -2)
 
