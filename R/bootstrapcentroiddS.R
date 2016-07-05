@@ -97,7 +97,7 @@ t(rbind(measured.dS, dsCI))
 # (commented so function can be sourced)
 
 # for example where groups aren't different, uncomment this
-# test <- matrix(rnorm(400, 10), ncol=4); colnames(test) <- c('u','s','m','l')
+# test <- matrix(rnorm(400, 10, 3), ncol=4); colnames(test) <- c('u','s','m','l')
 
 # for example where groups are different, uncomment this
 #test <- rbind( matrix(rnorm(200, 10), ncol=4), matrix(c(rnorm(100, 5), rnorm(100, 10)), ncol=4)); colnames(test) <- c('u','s','m','l')

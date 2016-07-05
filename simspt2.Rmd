@@ -199,12 +199,18 @@ vovlpbo <- unlist(lapply(vovsim, '[','vboth'))
 
 par(mfrow=c(5,2))
 
-hist(interdist, xlab='mean distance (JND)', 
-     breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), 
-     main='', xlim=range(c(interdist,intradistM))* c(0,1.1), ylim=c(0,250))
-hist(intradistM, col=rgb(0,0,1,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
-hist(centdist, col=rgb(0,1,0,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
-legend('topright', fill=c('red','blue', 'green'), c('inter','intra', 'centroid'))
+h1 <- hist(interdist, breaks=seq(0, ceiling(max(c(interdist,intradistM,centdist))),by=0.5), plot=F)
+h2 <- hist(intradistM, breaks=seq(0, ceiling(max(c(interdist,intradistM,centdist))),by=0.5), plot=F)
+h3 <- hist(centdist, breaks=seq(0, ceiling(max(c(interdist,intradistM,centdist))),by=0.5), plot=F)
+
+plot(c(0,h1$breaks), c(0,h1$counts,0), type='s',col=rgb(1,0,0,0.6), lwd=3,
+     ylab='Frequency', xlab='mean distance (JND)',
+     ylim=range(c(h1$counts,h2$counts,h3$counts))* c(0,1.1))
+lines(c(0,h2$breaks), c(0,h2$counts,0), col=rgb(0,0,1,0.6), type='s', lwd=3)
+lines(c(0,h3$breaks), c(0,h3$counts,0), col=rgb(0,1,0,0.6), type='s', lwd=3)
+
+legend('topright', fill=c(rgb(1,0,0,0.6),rgb(0,0,1,0.6), rgb(0,1,0,0.6)), 
+       c('inter','intra', 'centroid'))
 
 plot(interdist~intradistM, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
 abline(0,1, lty=3)
@@ -349,10 +355,19 @@ vovlpbo.t1 <- unlist(lapply(vovsim.t1, '[','vboth'))
 
 par(mfrow=c(5,2))
 
-hist(interdist.t1, xlab='mean distance (JND)', breaks=seq(0,100,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t1,intradistM.t1))* c(0,1.1), ylim=c(0,250))
-hist(intradistM.t1, col=rgb(0,0,1,0.6), breaks=seq(0,100,by=0.4), add=TRUE)
-hist(centdist.t1, col=rgb(0,1,0,0.6), breaks=seq(0,100,by=0.4), add=TRUE)
-legend('topright', fill=c('red','blue', 'green'), c('inter','intra', 'centroid'))
+
+h1 <- hist(interdist.t1, breaks=seq(0, ceiling(max(c(interdist.t1,intradistM.t1,centdist.t1))),by=0.5), plot=F)
+h2 <- hist(intradistM.t1, breaks=seq(0, ceiling(max(c(interdist.t1,intradistM.t1,centdist.t1))),by=0.5), plot=F)
+h3 <- hist(centdist.t1, breaks=seq(0, ceiling(max(c(interdist.t1,intradistM.t1,centdist.t1))),by=0.5), plot=F)
+
+plot(c(0,h1$breaks), c(0,h1$counts,0), type='s',col=rgb(1,0,0,0.6), lwd=3,
+     ylab='Frequency', xlab='mean distance (JND)',
+     ylim=range(c(h1$counts,h2$counts,h3$counts))* c(0,1.1))
+lines(c(0,h2$breaks), c(0,h2$counts,0), col=rgb(0,0,1,0.6), type='s', lwd=3)
+lines(c(0,h3$breaks), c(0,h3$counts,0), col=rgb(0,1,0,0.6), type='s', lwd=3)
+
+legend('topright', fill=c(rgb(1,0,0,0.6),rgb(0,0,1,0.6), rgb(0,1,0,0.6)), 
+       c('inter','intra', 'centroid'))
 
 plot(interdist.t1~intradistM.t1, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
 abline(0,1, lty=3)
@@ -476,11 +491,18 @@ vovlpbo.t2 <- unlist(lapply(vovsim.t2, '[','vboth'))
 
 par(mfrow=c(5,2))
 
-hist(interdist.t2, xlab='mean distance (JND)', breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t2,intradistM.t2))* c(0,1.1), ylim=c(0,150))
-hist(intradistM.t2, col=rgb(0,0,1,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
-hist(centdist.t2, col=rgb(0,1,0,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
-legend('topright', fill=c('red','blue','green'), c('inter','intra', 'centroid'))
+h1 <- hist(interdist.t2, breaks=seq(0, ceiling(max(c(interdist.t2,intradistM.t2,centdist.t2))),by=0.5), plot=F)
+h2 <- hist(intradistM.t2, breaks=seq(0, ceiling(max(c(interdist.t2,intradistM.t2,centdist.t2))),by=0.5), plot=F)
+h3 <- hist(centdist.t2, breaks=seq(0, ceiling(max(c(interdist.t2,intradistM.t2,centdist.t2))),by=0.5), plot=F)
 
+plot(c(0,h1$breaks), c(0,h1$counts,0), type='s',col=rgb(1,0,0,0.6), lwd=3,
+     ylab='Frequency', xlab='mean distance (JND)',
+     ylim=range(c(h1$counts,h2$counts,h3$counts))* c(0,1.1))
+lines(c(0,h2$breaks), c(0,h2$counts,0), col=rgb(0,0,1,0.6), type='s', lwd=3)
+lines(c(0,h3$breaks), c(0,h3$counts,0), col=rgb(0,1,0,0.6), type='s', lwd=3)
+
+legend('topright', fill=c(rgb(1,0,0,0.6),rgb(0,0,1,0.6), rgb(0,1,0,0.6)), 
+       c('inter','intra', 'centroid'))
 plot(interdist.t2~intradistM.t2, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
 abline(0,1, lty=3)
 
@@ -596,11 +618,18 @@ vovlpbo.t3 <- unlist(lapply(vovsim.t3, '[','vboth'))
 
 par(mfrow=c(5,2))
 
-hist(interdist.t3, xlab='mean distance (JND)', breaks=seq(0,50,by=0.4), col=rgb(1,0,0,0.6), main='', xlim=range(c(interdist.t3,intradistM.t3))* c(0,1.1), ylim=c(0,100))
-hist(intradistM.t3, col=rgb(0,0,1,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
-hist(centdist.t3, col=rgb(0,1,0,0.6), breaks=seq(0,50,by=0.4), add=TRUE)
-legend('topright', fill=c('red','blue','green'), c('inter','intra', 'centroid'))
+h1 <- hist(interdist.t3, breaks=seq(0, ceiling(max(c(interdist.t3,intradistM.t3,centdist.t3))),by=0.5), plot=F)
+h2 <- hist(intradistM.t3, breaks=seq(0, ceiling(max(c(interdist.t3,intradistM.t3,centdist.t3))),by=0.5), plot=F)
+h3 <- hist(centdist.t3, breaks=seq(0, ceiling(max(c(interdist.t3,intradistM.t3,centdist.t3))),by=0.5), plot=F)
 
+plot(c(0,h1$breaks), c(0,h1$counts,0), type='s',col=rgb(1,0,0,0.6), lwd=3,
+     ylab='Frequency', xlab='mean distance (JND)',
+     ylim=range(c(h1$counts,h2$counts,h3$counts))* c(0,1.1))
+lines(c(0,h2$breaks), c(0,h2$counts,0), col=rgb(0,0,1,0.6), type='s', lwd=3)
+lines(c(0,h3$breaks), c(0,h3$counts,0), col=rgb(0,1,0,0.6), type='s', lwd=3)
+
+legend('topright', fill=c(rgb(1,0,0,0.6),rgb(0,0,1,0.6), rgb(0,1,0,0.6)), 
+       c('inter','intra', 'centroid'))
 plot(interdist.t3~intradistM.t3, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', log='xy', pch=19, col=rgb(0,0,0,0.4))
 abline(0,1, lty=3)
 
