@@ -13,6 +13,7 @@ samplesizes <- table(groups)
 empgroupmeans <- aggregate(dat, list(groups), mean, simplify=TRUE)
 row.names(empgroupmeans) <- empgroupmeans[,1]
 empgroupmeans <- empgroupmeans[, -1]
+
 empcd <- coldist(empgroupmeans, ...)
 empdS <- setNames(empcd$dS, paste(empcd$patch1,empcd$patch2, sep='-') )
 
