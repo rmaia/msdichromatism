@@ -376,17 +376,17 @@ sessionInfo()
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## other attached packages:
-    ## [1] knitr_1.13           lme4_1.1-12          Matrix_1.2-6        
-    ## [4] vegan_2.4-0          lattice_0.20-33      permute_0.9-0       
-    ## [7] scatterplot3d_0.3-37 pavo_0.5-5           rgl_0.95.1441       
+    ## [1] lme4_1.1-12          Matrix_1.2-6         vegan_2.4-0         
+    ## [4] lattice_0.20-33      permute_0.9-0        scatterplot3d_0.3-37
+    ## [7] pavo_0.5-5           rgl_0.95.1441       
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.5        cluster_2.0.4      magrittr_1.5      
-    ##  [4] splines_3.3.0      maps_3.1.0         magic_1.5-6       
-    ##  [7] MASS_7.3-45        minqa_1.2.4        geometry_0.3-6    
-    ## [10] stringr_1.0.0      tools_3.3.0        parallel_3.3.0    
-    ## [13] grid_3.3.0         nlme_3.1-127       mgcv_1.8-12       
-    ## [16] htmltools_0.3.5    yaml_2.1.13        digest_0.6.9      
-    ## [19] nloptr_1.0.4       mapproj_1.2-4      formatR_1.4       
-    ## [22] codetools_0.2-14   rcdd_1.1-10        evaluate_0.9      
+    ##  [1] Rcpp_0.12.5        cluster_2.0.4      knitr_1.13        
+    ##  [4] magrittr_1.5       splines_3.3.0      maps_3.1.0        
+    ##  [7] magic_1.5-6        MASS_7.3-45        minqa_1.2.4       
+    ## [10] geometry_0.3-6     stringr_1.0.0      tools_3.3.0       
+    ## [13] parallel_3.3.0     grid_3.3.0         nlme_3.1-127      
+    ## [16] mgcv_1.8-12        htmltools_0.3.5    yaml_2.1.13       
+    ## [19] digest_0.6.9       nloptr_1.0.4       mapproj_1.2-4     
+    ## [22] formatR_1.4        rcdd_1.1-10        evaluate_0.9      
     ## [25] rmarkdown_0.9.6.10 stringi_1.0-1
