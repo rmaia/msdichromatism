@@ -85,7 +85,7 @@ Boom. There's our problem.
 
 The Euclidean distance, and by consequence the JND distance, is **translation-invariant**. It ignores *position in space*. This is a desireable property when calculating distances sometimes, because it means 3 - 2 = 2 - 3 = -2 - (-3) = -3 - (-2). That is, regardless on where those two points are in space, *their difference will have the same magnitude*. Which is good - but **not when comparing populations of points!**, because in that case, **the position of points relative to one another matters (a lot!)**
 
-In fact, the mean of Euclidean distances - mean(sqrt((xi - xj)^2)) - is related to the mean of the square root of the squared differences - mean(sqrt((mean(x) - xi)^2)) -, and the (mean) squared difference is a measure of spread, like the standard deviation. *It therefore will increase as a function of the **mean variance of the groups**, not the *mean distance between the groups*...*
+In fact, the mean of Euclidean distances - mean(sqrt((xi - xj)^2)) - is related to the mean of the square root of the squared differences - mean(sqrt((mean(x) - xi)^2)) -, and the (mean) squared difference is a measure of spread, like the standard deviation. It therefore will increase as a function of the *mean variance of the groups*, not the *mean distance between the groups*...
 
 <img src="http://i.giphy.com/i6TQUuiT5hjSU.gif" width="250">
 
