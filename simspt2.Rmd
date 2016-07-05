@@ -181,7 +181,7 @@ centdist <- unlist(parallel::mclapply(simulatedata, centroidist, mc.cores=6))
 
 Let's see what our results look like
 
-```{r, echo=FALSE, cache=TRUE, fig.height=12, fig.width=9, dependson=c('coldistcache', 'adoniscache', 'lmercache', 'vovcache', 'centroidcache')}
+```{r, echo=FALSE, fig.height=12, fig.width=9, dependson=c('coldistcache', 'adoniscache', 'lmercache', 'vovcache', 'centroidcache')}
 interdist <- unlist(lapply(lmesim, function(x) x@beta[1]))
 
 adonisP <- unlist(lapply(adonissim, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -335,7 +335,7 @@ centdist.t1 <- unlist(parallel::mclapply(simulatedata.t1, centroidist, mc.cores=
 
 What do the results look like in this case?
 
-```{r, echo=FALSE, cache=TRUE, fig.height=12, fig.width=9, dependson=c('coldistcache.t1', 'adoniscache.t1', 'lmercache.t1', 'vovcache.t1', 'centroidcache.t1')}
+```{r, echo=FALSE, fig.height=12, fig.width=9, dependson=c('coldistcache.t1', 'adoniscache.t1', 'lmercache.t1', 'vovcache.t1', 'centroidcache.t1')}
 # interdist.t1 <- unlist(lapply(lmesim.t1, function(x) x@beta[1]))
 
  adonisP.t1 <- unlist(lapply(adonissim.t1, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -470,7 +470,7 @@ centdist.t2 <- unlist(parallel::mclapply(simulatedata.t2, centroidist, mc.cores=
 
 What do the results look like in this case?
 
-```{r, echo=FALSE, cache=TRUE, fig.height=12, fig.width=9, dependson=c('coldistcache.t2', 'adoniscache.t2', 'lmercache.t2', 'vovcache.t2','centroidcache.t2')}
+```{r, echo=FALSE, fig.height=12, fig.width=9, dependson=c('coldistcache.t2', 'adoniscache.t2', 'lmercache.t2', 'vovcache.t2','centroidcache.t2')}
 #interdist.t2 <- unlist(lapply(lmesim.t2, function(x) x@beta[1]))
 
 adonisP.t2 <- unlist(lapply(adonissim.t2, function(x) x$aov.tab$'Pr(>F)'[1]))
@@ -598,7 +598,7 @@ centdist.t3 <- unlist(parallel::mclapply(simulatedata.t3, centroidist, mc.cores=
 
 What do the results look like in this case?
 
-```{r, echo=FALSE, cache=TRUE, fig.height=12, fig.width=9, dependson=c('coldistcache.t3', 'adoniscache.t3', 'lmercache.t3', 'vovcache.t3','centroidcache.t3')}
+```{r, echo=FALSE, fig.height=12, fig.width=9, dependson=c('coldistcache.t3', 'adoniscache.t3', 'lmercache.t3', 'vovcache.t3','centroidcache.t3')}
 #interdist.t3 <- unlist(lapply(lmesim.t3, function(x) x@beta[1]))
 
 adonisP.t3 <- unlist(lapply(adonissim.t3, function(x) x$aov.tab$'Pr(>F)'[1]))
