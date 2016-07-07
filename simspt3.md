@@ -105,7 +105,7 @@ Scenario 1
 Generate data
 
 ``` r
-simulatedata <- replicate(100, 
+simulatedata <- replicate(500, 
                   simdich(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)), 
                   simplify=FALSE)
 
@@ -122,17 +122,17 @@ simulatecoldist <- parallel::mclapply(simulatedata, function(x) {
 Run stuff
 
 ``` r
-adonissim <- parallel::mclapply(simulatecoldist, adoniscoldist, sqrt.dist=TRUE, mc.cores=6)
+adonissim <- parallel::mclapply(simulatecoldist, adoniscoldist, mc.cores=6)
 vovsim <- parallel::mclapply(simulatedata, voloverlaptest, mc.cores=6)
 centdist <- unlist(parallel::mclapply(simulatedata, centroidist, mc.cores=6))
 gc()
 ```
 
     ##            used  (Mb) gc trigger  (Mb) max used  (Mb)
-    ## Ncells  1338682  71.5    2164898 115.7  1770749  94.6
-    ## Vcells 27231203 207.8   43565530 332.4 36237816 276.5
+    ## Ncells  1370906  73.3    2164898 115.7  1770749  94.6
+    ## Vcells 23027519 175.7   34507917 263.3 34507605 263.3
 
-![](output/figures/simspt3/simspt2_figunnamed-chunk-2-1.png)
+![](output/figures/simspt3/simspt3_figunnamed-chunk-2-1.png)
 
 color legend:
 
@@ -144,7 +144,7 @@ color legend:
 -   dark red: adonis non-significant, centroid distance &gt; 1 (BAD)
 -   light red: adonis and centroid distance &lt; 1 (GOOD)
 
-![](output/figures/simspt3/simspt2_figunnamed-chunk-3-1.png)
+![](output/figures/simspt3/simspt3_figunnamed-chunk-3-1.png)
 
 Scenario 2
 ----------
@@ -152,7 +152,7 @@ Scenario 2
 Generate data
 
 ``` r
-simulatedata2 <- replicate(100, 
+simulatedata2 <- replicate(500, 
                   simdich(N=50, sgsqsrate=7, multiplier=c(0.7, 1.3)), 
                   simplify=FALSE)
 
@@ -175,11 +175,11 @@ centdist2 <- unlist(parallel::mclapply(simulatedata2, centroidist, mc.cores=6))
 gc()
 ```
 
-    ##            used  (Mb) gc trigger  (Mb) max used  (Mb)
-    ## Ncells  1415732  75.7    2164898 115.7  2164898 115.7
-    ## Vcells 52652237 401.8   75801323 578.4 62606487 477.7
+    ##             used   (Mb) gc trigger   (Mb)  max used   (Mb)
+    ## Ncells   1621182   86.6    2637877  140.9   2164898  115.7
+    ## Vcells 149746490 1142.5  248821452 1898.4 199124499 1519.2
 
-![](output/figures/simspt3/simspt2_figunnamed-chunk-4-1.png)
+![](output/figures/simspt3/simspt3_figunnamed-chunk-4-1.png)
 
 color legend:
 
@@ -189,7 +189,7 @@ color legend:
 -   light blue: adonis and centroid distance &gt; 1 (GOOD)
 -   dark blue: adonis significant, centroid distance &lt; 1 (BAD)
 -   dark red: adonis non-significant, centroid distance &gt; 1 (BAD)
--   light red: adonis and centroid distance &lt; 1 (GOOD) ![](output/figures/simspt3/simspt2_figunnamed-chunk-5-1.png)
+-   light red: adonis and centroid distance &lt; 1 (GOOD) ![](output/figures/simspt3/simspt3_figunnamed-chunk-5-1.png)
 
 ``` r
 sessionInfo()
@@ -217,5 +217,5 @@ sessionInfo()
     ## [13] nlme_3.1-127       mgcv_1.8-12        htmltools_0.3.5   
     ## [16] yaml_2.1.13        digest_0.6.9       Matrix_1.2-6      
     ## [19] RColorBrewer_1.1-2 mapproj_1.2-4      formatR_1.4       
-    ## [22] rcdd_1.1-10        evaluate_0.9       rmarkdown_0.9.6.10
-    ## [25] stringi_1.0-1
+    ## [22] codetools_0.2-14   rcdd_1.1-10        evaluate_0.9      
+    ## [25] rmarkdown_0.9.6.10 stringi_1.0-1

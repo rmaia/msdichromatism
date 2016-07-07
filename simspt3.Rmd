@@ -12,7 +12,7 @@ require(scatterplot3d)
 require(vegan)
 
 knitr::opts_chunk$set(echo = TRUE, 
-                      fig.path='output/figures/simspt3/simspt2_fig', 
+                      fig.path='output/figures/simspt3/simspt3_fig', 
                       #fig.height = 10,
                       cache.path = 'output/cache/simspt3/simspt3_cache_')
 
@@ -128,7 +128,7 @@ centroidist <- function(dat){
 
 Generate data
 ```{r coldistcache, cache=TRUE}
-simulatedata <- replicate(100, 
+simulatedata <- replicate(500, 
                   simdich(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)), 
                   simplify=FALSE)
 
@@ -144,7 +144,7 @@ simulatecoldist <- parallel::mclapply(simulatedata, function(x) {
 
 Run stuff
 ```{r adoniscache, cache=TRUE, dependson='coldistcache'}
-adonissim <- parallel::mclapply(simulatecoldist, adoniscoldist, sqrt.dist=TRUE, mc.cores=6)
+adonissim <- parallel::mclapply(simulatecoldist, adoniscoldist, mc.cores=6)
 vovsim <- parallel::mclapply(simulatedata, voloverlaptest, mc.cores=6)
 centdist <- unlist(parallel::mclapply(simulatedata, centroidist, mc.cores=6))
 gc()
@@ -231,7 +231,7 @@ plot(centdist, overlap,  pch=19, col=sigpal,
 
 Generate data
 ```{r coldistcache2, cache=TRUE}
-simulatedata2 <- replicate(100, 
+simulatedata2 <- replicate(500, 
                   simdich(N=50, sgsqsrate=7, multiplier=c(0.7, 1.3)), 
                   simplify=FALSE)
 
