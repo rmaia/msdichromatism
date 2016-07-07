@@ -168,7 +168,7 @@ interdist <- gmeans[,"inter"]
 palette <- rcbalpha(0.8, 3, 'Set1')
 
 sigpal <- as.character(factor(adonisP, labels=palette[1:2]))
-sigpal <- as.character(factor(paste(adonisP, centroidP), labels=rcbalpha(0.8, 5, 'RdYlBu')[c(3,1,5,4)] ))
+sigpal <- as.character(factor(paste(adonisP, centroidP), labels=rcbalpha(0.8, 6, 'RdYlBu')[c(3,1,6,4)] ))
 
 h1 <- hist(interdist, breaks=seq(0, ceiling(max(interdist)),by=0.5), plot=F)
 h2 <- hist(intradist, breaks=seq(0, ceiling(max(intradist)),by=0.5), plot=F)
@@ -273,7 +273,7 @@ centroidP <- centdist > 1
 palette <- rcbalpha(0.8, 3, 'Set1')
 
 sigpal <- as.character(factor(adonisP, labels=palette[1:2]))
-sigpal <- as.character(factor(paste(adonisP, centroidP), labels=rcbalpha(0.8, 5, 'RdYlBu')[c(3,1,5,4)] ))
+sigpal <- as.character(factor(paste(adonisP, centroidP), labels=rcbalpha(0.8, 6, 'RdYlBu')[c(3,1,6,4)] ))
 
 h1 <- hist(interdist, breaks=seq(0, ceiling(max(interdist)),by=0.5), plot=F)
 h2 <- hist(intradist, breaks=seq(0, ceiling(max(intradist)),by=0.5), plot=F)
