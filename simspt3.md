@@ -184,10 +184,10 @@ color legend:
 -   dark colors: methods disagree (BAD)
 -   light colors: methods agree (GOOD)
 
--   light blue: adonis and centroid distance Significant (GOOD)
+-   light blue: adonis and centroid distance &gt; 1 (GOOD)
 -   dark blue: adonis significant, centroid distance &lt; 1 (BAD)
 -   dark red: adonis non-significant, centroid distance &gt; 1 (BAD)
--   light red: adonis and centroid Not significant (GOOD) ![](output/figures/simspt3/simspt2_figunnamed-chunk-5-1.png)![](output/figures/simspt3/simspt2_figunnamed-chunk-5-2.png)
+-   light red: adonis and centroid distance &lt; 1 (GOOD) ![](output/figures/simspt3/simspt2_figunnamed-chunk-5-1.png)![](output/figures/simspt3/simspt2_figunnamed-chunk-5-2.png)
 
 ``` r
 sessionInfo()

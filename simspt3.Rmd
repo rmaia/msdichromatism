@@ -295,10 +295,10 @@ color legend:
 * dark colors: methods disagree (BAD)
 * light colors: methods agree (GOOD)
   
-* light blue: adonis and centroid distance Significant (GOOD)
+* light blue: adonis and centroid distance > 1 (GOOD)
 * dark blue: adonis significant, centroid distance < 1 (BAD)
 * dark red: adonis non-significant, centroid distance > 1 (BAD)
-* light red: adonis and centroid Not significant (GOOD)
+* light red: adonis and centroid distance < 1 (GOOD)
 ```{r, echo=FALSE, fig.width=7, fig.height=4.5, dependson=c('coldistcache2', 'adoniscache2')}
 
 par(mfrow=c(2,3))
