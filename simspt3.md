@@ -144,7 +144,7 @@ color legend:
 -   dark red: adonis non-significant, centroid distance &gt; 1 (BAD)
 -   light red: adonis and centroid distance &lt; 1 (GOOD)
 
-![](output/figures/simspt3/simspt2_figunnamed-chunk-3-1.png)![](output/figures/simspt3/simspt2_figunnamed-chunk-3-2.png)
+![](output/figures/simspt3/simspt2_figunnamed-chunk-3-1.png)
 
 Scenario 2
 ----------
@@ -189,7 +189,7 @@ color legend:
 -   light blue: adonis and centroid distance &gt; 1 (GOOD)
 -   dark blue: adonis significant, centroid distance &lt; 1 (BAD)
 -   dark red: adonis non-significant, centroid distance &gt; 1 (BAD)
--   light red: adonis and centroid distance &lt; 1 (GOOD) ![](output/figures/simspt3/simspt2_figunnamed-chunk-5-1.png)![](output/figures/simspt3/simspt2_figunnamed-chunk-5-2.png)
+-   light red: adonis and centroid distance &lt; 1 (GOOD) ![](output/figures/simspt3/simspt2_figunnamed-chunk-5-1.png)
 
 ``` r
 sessionInfo()

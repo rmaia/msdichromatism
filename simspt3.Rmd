@@ -196,8 +196,8 @@ color legend:
 * dark red: adonis non-significant, centroid distance > 1 (BAD)
 * light red: adonis and centroid distance < 1 (GOOD)
 
-```{r, echo=FALSE, fig.width=7, fig.height=4.5, dependson=c('coldistcache', 'adoniscache')}
-par(mfrow=c(2,3))
+```{r, echo=FALSE, fig.width=7, fig.height=7, dependson=c('coldistcache', 'adoniscache')}
+par(mfrow=c(3,3))
 
 plot(interdist~intradist, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', pch=19, col=sigpal, ylim=range(c(interdist,intradist))*1.1, xlim=range(c(interdist,intradist))*1.1)
 abline(0,1, lty=3)
@@ -300,9 +300,9 @@ color legend:
 * dark blue: adonis significant, centroid distance < 1 (BAD)
 * dark red: adonis non-significant, centroid distance > 1 (BAD)
 * light red: adonis and centroid distance < 1 (GOOD)
-```{r, echo=FALSE, fig.width=7, fig.height=4.5, dependson=c('coldistcache2', 'adoniscache2')}
+```{r, echo=FALSE, fig.width=7, fig.height=7, dependson=c('coldistcache2', 'adoniscache2')}
 
-par(mfrow=c(2,3))
+par(mfrow=c(3,3))
 
 plot(interdist~intradist, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', pch=19, col=sigpal, ylim=range(c(interdist,intradist))*1.1, xlim=range(c(interdist,intradist))*1.1)
 abline(0,1, lty=3)
