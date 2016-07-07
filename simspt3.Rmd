@@ -185,6 +185,7 @@ legend('topright', col=palette, c('between-group  ','within-group', 'centroid'),
        pch=15, pt.cex=2.5, bty='n')
 
 ```
+  
 color legend:
 
 * dark colors: methods disagree (BAD)
