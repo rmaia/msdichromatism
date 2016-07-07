@@ -189,7 +189,7 @@ color legend:
 
 * dark colors: methods disagree (BAD)
 * light colors: methods agree (GOOD)
-  
+
 * light blue: adonis and centroid distance Significant (GOOD)
 * dark blue: adonis significant, centroid distance < 1 (BAD)
 * dark red: adonis non-significant, centroid distance > 1 (BAD)
