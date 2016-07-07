@@ -177,7 +177,9 @@ gc()
     ## Ncells  1415732  75.7    2164898 115.7  2164898 115.7
     ## Vcells 52652237 401.8   75801323 578.4 62606487 477.7
 
-![](output/figures/simspt3/simspt2_figunnamed-chunk-4-1.png) color legend:
+![](output/figures/simspt3/simspt2_figunnamed-chunk-4-1.png)
+
+color legend:
 
 -   dark colors: methods disagree (BAD)
 -   light colors: methods agree (GOOD)

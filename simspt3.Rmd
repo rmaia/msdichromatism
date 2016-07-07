@@ -289,6 +289,7 @@ lines(c(0,h3$breaks), c(0,h3$counts,0), col=palette[3], type='s', lwd=5)
 legend('topright', col=palette, c('between-group  ','within-group', 'centroid'), 
        pch=15, pt.cex=2.5, bty='n')
 ```
+  
 color legend:
 
 * dark colors: methods disagree (BAD)
