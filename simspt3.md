@@ -191,6 +191,51 @@ color legend:
 -   dark red: adonis non-significant, centroid distance &gt; 1 (BAD)
 -   light red: adonis and centroid distance &lt; 1 (GOOD) ![](output/figures/simspt3/simspt3_figunnamed-chunk-5-1.png)
 
+Scenario 3
+----------
+
+Generate data
+
+``` r
+simulatedata3 <- replicate(500, 
+                  simdich(N=50, sgsqsrate=15, multiplier=c(0.85, 1.15)), 
+                  simplify=FALSE)
+
+simulatecoldist3 <- parallel::mclapply(simulatedata3, function(x) {
+  Y <- coldist(x, achro=FALSE)
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  }, mc.cores=6)
+```
+
+Run stuff
+
+``` r
+adonissim3 <- parallel::mclapply(simulatecoldist3, adoniscoldist, sqrt.dist=TRUE, mc.cores=6)
+vovsim3 <- parallel::mclapply(simulatedata3, voloverlaptest, mc.cores=6)
+centdist3 <- unlist(parallel::mclapply(simulatedata3, centroidist, mc.cores=6))
+gc()
+```
+
+    ##             used   (Mb) gc trigger   (Mb)  max used   (Mb)
+    ## Ncells   1821514   97.3    3205452  171.2   2637877  140.9
+    ## Vcells 275922689 2105.2  469417377 3581.4 325861855 2486.2
+
+![](output/figures/simspt3/simspt3_figunnamed-chunk-6-1.png)
+
+color legend:
+
+-   dark colors: methods disagree (BAD)
+-   light colors: methods agree (GOOD)
+
+-   light blue: adonis and centroid distance &gt; 1 (GOOD)
+-   dark blue: adonis significant, centroid distance &lt; 1 (BAD)
+-   dark red: adonis non-significant, centroid distance &gt; 1 (BAD)
+-   light red: adonis and centroid distance &lt; 1 (GOOD) ![](output/figures/simspt3/simspt3_figunnamed-chunk-7-1.png)
+
 ``` r
 sessionInfo()
 ```

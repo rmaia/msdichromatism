@@ -344,6 +344,122 @@ plot(centdist, overlap,  pch=19, col=sigpal,
 
 
 
+## Scenario 3
+
+Generate data
+```{r coldistcache3, cache=TRUE}
+simulatedata3 <- replicate(500, 
+                  simdich(N=50, sgsqsrate=15, multiplier=c(0.85, 1.15)), 
+                  simplify=FALSE)
+
+simulatecoldist3 <- parallel::mclapply(simulatedata3, function(x) {
+  Y <- coldist(x, achro=FALSE)
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  }, mc.cores=6)
+```
+
+Run stuff
+```{r adoniscache3, cache=TRUE, dependson='coldistcache3'}
+adonissim3 <- parallel::mclapply(simulatecoldist3, adoniscoldist, sqrt.dist=TRUE, mc.cores=6)
+vovsim3 <- parallel::mclapply(simulatedata3, voloverlaptest, mc.cores=6)
+centdist3 <- unlist(parallel::mclapply(simulatedata3, centroidist, mc.cores=6))
+gc()
+```
+
+```{r, echo=FALSE, fig.width=7, fig.height=4.5, dependson=c('coldistcache3', 'adoniscache3')}
+adonisP <- unlist(lapply(adonissim3, function(x) x$aov.tab$'Pr(>F)'[1]))
+adonisP <- adonisP < 0.05
+#adonisP <- factor(adonisP < 0.05, labels=c('no', 'yes'))
+adonisR2 <- unlist(lapply(adonissim3, function(x) x$aov.tab$'R2'[1])) * 100
+
+overlap <- unlist(lapply(vovsim3, '[','vboth')) * 100
+
+gmeans <- lapply(simulatecoldist3, function(x) tapply(x$dS, x$comparison, mean))
+gmeans <- do.call(rbind, gmeans)
+
+intradist <- rowMeans(gmeans[, -1])
+interdist <- gmeans[,"inter"]
+
+centdist <- centdist3
+
+centroidP <- centdist > 1
+
+palette <- rcbalpha(0.8, 3, 'Set1')
+
+sigpal <- as.character(factor(adonisP, labels=palette[1:2]))
+sigpal <- as.character(factor(paste(adonisP, centroidP), labels=rcbalpha(0.8, 6, 'RdBu')[c(3,1,6,4)] ))
+
+h1 <- hist(interdist, breaks=seq(0, ceiling(max(interdist)),by=0.5), plot=F)
+h2 <- hist(intradist, breaks=seq(0, ceiling(max(intradist)),by=0.5), plot=F)
+h3 <- hist(centdist, breaks=seq(0, ceiling(max(centdist)),by=0.5), plot=F)
+
+par(mar=c(4,4.5,1.5,1.5))
+
+plot(c(0,h1$breaks), c(0,h1$counts,0), type='s',col=palette[1], lwd=5,
+     ylab='Frequency', xlab='mean distance (JND)',
+     ylim=range(c(h1$counts,h2$counts,h3$counts))* c(0,1.1))
+lines(c(0,h2$breaks), c(0,h2$counts,0), col=palette[2], type='s', lwd=5)
+lines(c(0,h3$breaks), c(0,h3$counts,0), col=palette[3], type='s', lwd=5)
+
+legend('topright', col=palette, c('between-group  ','within-group', 'centroid'), 
+       pch=15, pt.cex=2.5, bty='n')
+```
+  
+color legend:
+
+* dark colors: methods disagree (BAD)
+* light colors: methods agree (GOOD)
+  
+* light blue: adonis and centroid distance > 1 (GOOD)
+* dark blue: adonis significant, centroid distance < 1 (BAD)
+* dark red: adonis non-significant, centroid distance > 1 (BAD)
+* light red: adonis and centroid distance < 1 (GOOD)
+```{r, echo=FALSE, fig.width=7, fig.height=7, dependson=c('coldistcache2', 'adoniscache2')}
+
+par(mfrow=c(3,3))
+
+plot(interdist~intradist, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', pch=19, col=sigpal, ylim=range(c(interdist,intradist))*1.1, xlim=range(c(interdist,intradist))*1.1)
+abline(0,1, lty=3)
+
+# Intradist plot is essentially identical (see histogram)
+#plot(intradist~centdist, ylab='mean between-group distance (JND)', xlab='centroid distance (JND)', pch=19, col=rgb(0,0,0,0.4), ylim=c(0,5.5), xlim=c(0,5.5))
+#abline(0,1, lty=3)
+
+plot(adonisR2~interdist, ylab='Rsquared from PERMANOVA (%)', xlab='mean between-group distance (JND)', log='xy', pch=19, col=sigpal)
+
+plot(adonisR2~intradist, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group  distance (JND)', log='xy', pch=19, col=sigpal)
+
+plot(interdist~centdist, ylab='mean between-group distance (JND)', xlab='centroid distance (JND)', pch=19, col=sigpal, ylim=range(c(interdist,centdist))*1.1, xlim=range(c(interdist,centdist))*1.1)
+abline(0,1, lty=3)
+
+plot(adonisR2~centdist, ylab='Rsquared from PERMANOVA (%)', xlab='centroid distance (JND)', log='xy', pch=19, col=sigpal)
+
+plot(adonisR2~overlap, ylab='Rsquared from PERMANOVA (%)', xlab='color volume overlap',  pch=19, col=sigpal)
+
+plot(interdist,overlap,  pch=19, col=sigpal, 
+     xlab='mean between-group distance (JND)', ylab='color volume overlap')
+
+plot(intradist, overlap,  pch=19, col=sigpal, 
+     xlab='mean within-group distance (JND)', ylab='color volume overlap')
+
+plot(centdist, overlap,  pch=19, col=sigpal, 
+     xlab='centroid distance (JND)', ylab='color volume overlap')
+
+
+#yesnohist(interdist, xlab='mean between-group distance (JND)')
+#yesnohist(intradist, xlab='mean within-group distance (JND)')
+#yesnohist(centdist, xlab='centroid distance (JND)')
+
+
+# boxplot(intradistM~I(adonisP < 0.05), 
+#         xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
+#         boxwex=0.3, col=grey(0.7), pch=19, log='y')
+```
+
 ```{r}
 sessionInfo()
 ```
