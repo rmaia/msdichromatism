@@ -13,7 +13,8 @@ adoniscoldist <- function(x){
       if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
       dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
   
-  grouping <- gsub('[0-9]','', rownames(dmat))
+  #grouping <- gsub('[0-9]','', rownames(dmat))
+  grouping <- substring(rownames(dmat), 1, 1)
   
   adonis(dmat~grouping)
 }
@@ -180,7 +181,7 @@ adoniscoldist(deltaS$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## grouping   1     0.537 0.53736 0.49025 0.009  0.509
+    ## grouping   1     0.537 0.53736 0.49025 0.009  0.544
     ## Residuals 54    59.189 1.09610         0.991       
     ## Total     55    59.727                 1.000
 
@@ -200,7 +201,7 @@ adoniscoldist(deltaS$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## grouping   1     2.029  2.0288  1.6766 0.02857  0.202
+    ## grouping   1     2.029  2.0288  1.6766 0.02857  0.177
     ## Residuals 57    68.971  1.2100         0.97143       
     ## Total     58    71.000                 1.00000
 
@@ -309,10 +310,10 @@ adoniscoldist(deltaS)
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##            Df SumsOfSqs  MeanSqs F.Model      R2 Pr(>F)    
-    ## grouping   18    3.4847 0.193597   6.149 0.38743  0.001 ***
-    ## Residuals 175    5.5098 0.031484         0.61257           
-    ## Total     193    8.9945                  1.00000           
+    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+    ## grouping    2    1.8644 0.93219  24.971 0.20728  0.001 ***
+    ## Residuals 191    7.1301 0.03733         0.79272           
+    ## Total     193    8.9945                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -333,10 +334,10 @@ adoniscoldist(subset(deltaS, comparison != c('intra.F', 'inter.WF', 'inter.YF'))
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##            Df SumsOfSqs  MeanSqs F.Model      R2 Pr(>F)    
-    ## grouping   18    2.2287 0.123816  5.1592 0.34669  0.001 ***
-    ## Residuals 175    4.1999 0.023999         0.65331           
-    ## Total     193    6.4286                  1.00000           
+    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+    ## grouping    2    1.4049 0.70246  26.708 0.21854  0.001 ***
+    ## Residuals 191    5.0237 0.02630         0.78146           
+    ## Total     193    6.4286                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -355,10 +356,10 @@ adoniscoldist(subset(deltaS, comparison != c('inter.WY')))  # drop white-yellow 
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##            Df SumsOfSqs  MeanSqs F.Model      R2 Pr(>F)    
-    ## grouping   18    2.7603 0.153348  4.8706 0.33377  0.001 ***
-    ## Residuals 175    5.5098 0.031484         0.66623           
-    ## Total     193    8.2700                  1.00000           
+    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+    ## grouping    2    1.1399 0.56996  15.268 0.13784  0.001 ***
+    ## Residuals 191    7.1301 0.03733         0.86216           
+    ## Total     193    8.2700                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -366,7 +367,7 @@ adoniscoldist(subset(deltaS, comparison != c('inter.WY')))  # drop white-yellow 
 #bootcentroidDS(models$lab[,1:4], models$lab$group)
 ```
 
-Effect sizes
+**Effect sizes**
 
 ``` r
 models$group <- substring(rownames(models), 1, 1)
@@ -460,7 +461,7 @@ adoniscoldist(deltaS)
     ## Residuals 155    347.90   2.244          6.0071       
     ## Total     160     57.91                  1.0000
 
-So no difference? Nuts, was hoping for a below-threshold example. Need to poke around more.
+No difference? Huh. Was hoping for a below-threshold example. Need to poke around more.
 
 **Step 2:** Effect sizes anyway
 

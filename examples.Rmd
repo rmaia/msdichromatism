@@ -33,7 +33,8 @@ adoniscoldist <- function(x){
       if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
       dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
   
-  grouping <- gsub('[0-9]','', rownames(dmat))
+  #grouping <- gsub('[0-9]','', rownames(dmat))
+  grouping <- substring(rownames(dmat), 1, 1)
   
   adonis(dmat~grouping)
 }
@@ -287,7 +288,7 @@ adoniscoldist(subset(deltaS, comparison != c('inter.WY')))  # drop white-yellow 
 
 ```
 
-Effect sizes
+**Effect sizes**
 ```{r}
 
 models$group <- substring(rownames(models), 1, 1)
@@ -374,7 +375,7 @@ adoniscoldist(deltaS)
 
 ```
 
-So no difference? Nuts, was hoping for a below-threshold example. Need to poke around more.
+No difference? Huh. Was hoping for a below-threshold example. Need to poke around more.
 
 **Step 2:** Effect sizes anyway
 ```{r}
