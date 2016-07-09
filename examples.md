@@ -180,7 +180,7 @@ adoniscoldist(deltaS$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## grouping   1     0.537 0.53736 0.49025 0.009  0.498
+    ## grouping   1     0.537 0.53736 0.49025 0.009  0.509
     ## Residuals 54    59.189 1.09610         0.991       
     ## Total     55    59.727                 1.000
 
@@ -200,7 +200,7 @@ adoniscoldist(deltaS$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## grouping   1     2.029  2.0288  1.6766 0.02857  0.211
+    ## grouping   1     2.029  2.0288  1.6766 0.02857  0.202
     ## Residuals 57    68.971  1.2100         0.97143       
     ## Total     58    71.000                 1.00000
 
@@ -224,17 +224,11 @@ models$tongue$group <- substring(rownames(models$tongue), 1, 1)
 #bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 ```
 
-I think I'm running into bugs in dev pavo's coldist. I'll have to chase it down. This works with v 0.5.
+I think I'm running into bugs in pavo 1.0's coldist. I'll have to chase it down. This works with v 0.5.
 
 ``` r
-rm(deltaS, deltaS.lab.inter, deltaS.throat.inter, models, models_rel, specs, liz_vis, liz_lab)
+rm(deltaS, models, models_rel, specs, liz_vis, liz_lab)
 ```
-
-    ## Warning in rm(deltaS, deltaS.lab.inter, deltaS.throat.inter, models,
-    ## models_rel, : object 'deltaS.lab.inter' not found
-
-    ## Warning in rm(deltaS, deltaS.lab.inter, deltaS.throat.inter, models,
-    ## models_rel, : object 'deltaS.throat.inter' not found
 
 #### Example 2: Mimicry.
 
@@ -256,7 +250,7 @@ specs <- as.rspec(read.csv('data/mimicry/flowers_spiders.csv'), interp = FALSE)
 
     ## wavelengths found in column 1
 
-Calculate deltaS according to bee (trichromat) visual system
+Calculate deltaS (euclidean distances in the hexagon) according to a honeybee
 
 ``` r
 # Honeybee
@@ -279,8 +273,9 @@ deltaS$comparison[grepl('Y_', deltaS$patch1) & grepl('F_', deltaS$patch2)] <- 'i
 ```
 
 ``` r
+# col isn't working in initial plot call for some reason (pavo bug)
 plot(models_hex[grepl("W_", rownames(models_hex)), ], col = 'darkgrey')  
-points(models_hex[grepl("W_", rownames(models_hex)), ], col = 'darkgrey')  # col isn't working in initial plot call for some reason (pavo bug)
+points(models_hex[grepl("W_", rownames(models_hex)), ], col = 'darkgrey')  
 points(models_hex[grepl("Y_", rownames(models_hex)), ], pch = 19, col = 'darkgoldenrod1')
 points(models_hex[grepl("F_", rownames(models_hex)), ], pch = 19, col = 'forestgreen')
 ```
@@ -299,7 +294,7 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 
 **Step 1:** PERMANOVA.
 
-On everything, combined. i.e. are these three groups different? No really required in this situation since we have *a priori* planned tests.
+On everything, combined. i.e. are these three groups different? Not really required in this situation since we have *a priori* planned tests.
 
 ``` r
 adoniscoldist(deltaS)
@@ -323,7 +318,7 @@ adoniscoldist(deltaS)
 
 **Q1:** Are spiders polymorphic?
 
-PERMANOVA on spider-groups only
+Spider-groups only
 
 ``` r
 adoniscoldist(subset(deltaS, comparison != c('intra.F', 'inter.WF', 'inter.YF')))
@@ -344,10 +339,6 @@ adoniscoldist(subset(deltaS, comparison != c('intra.F', 'inter.WF', 'inter.YF'))
     ## Total     193    6.4286                  1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-#bootcentroidDS(models$lab[,1:4], models$lab$group)
-```
 
 **Q2:** Do they bear an indistinguishable resemblance to sympatric flowers?
 
@@ -370,6 +361,17 @@ adoniscoldist(subset(deltaS, comparison != c('inter.WY')))  # drop white-yellow 
     ## Total     193    8.2700                  1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
+#bootcentroidDS(models$lab[,1:4], models$lab$group)
+```
+
+Effect sizes
+
+``` r
+models$group <- substring(rownames(models), 1, 1)
+#bootcentroidDS(models[,1:3], models$group)
+```
 
 ``` r
 rm(deltaS, models, models_hex, specs)
@@ -458,13 +460,12 @@ adoniscoldist(deltaS)
     ## Residuals 155    347.90   2.244          6.0071       
     ## Total     160     57.91                  1.0000
 
-So no difference? Nuts, was hoping for a below-threshold example.
+So no difference? Nuts, was hoping for a below-threshold example. Need to poke around more.
 
 **Step 2:** Effect sizes anyway
 
 ``` r
 models$group <- substring(rownames(models), 1, 1)
-
 #bootcentroidDS(models[,1:4], models$group)  # not working yet
 ```
 
