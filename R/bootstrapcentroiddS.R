@@ -15,7 +15,7 @@ row.names(empgroupmeans) <- empgroupmeans[,1]
 empgroupmeans <- empgroupmeans[, -1]
 
 empcd <- coldist(empgroupmeans, ...)
-empdS <- setNames(empcd$dS, paste(empcd$patch1,empcd$patch2, sep='-') )
+empdS <- setNames(empcd$dS, paste(empcd$patch1,empcd$patch2, sep='-'))
 
 
 # separate data by group
@@ -109,5 +109,5 @@ t(rbind(measured.dS, dsCI))
 # for example with four groups
 #grps <- rep(c('ga','gb', 'gc', 'gd'), each=25)
 
-# bootcentroidDS(test, grps)
+ #bootcentroidDS(test, grps)
 # bootcentroidDS(test, grps, v=0.4)
