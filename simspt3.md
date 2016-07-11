@@ -198,7 +198,7 @@ Generate data
 
 ``` r
 simulatedata3 <- replicate(500, 
-                  simdich(N=50, sgsqsrate=15, multiplier=c(0.85, 1.15)), 
+                  simdich(N=50, sgsqsrate=4, multiplier=c(0.85, 1.15)), 
                   simplify=FALSE)
 
 simulatecoldist3 <- parallel::mclapply(simulatedata3, function(x) {
@@ -222,7 +222,7 @@ gc()
 
     ##             used   (Mb) gc trigger   (Mb)  max used   (Mb)
     ## Ncells   1821514   97.3    3205452  171.2   2637877  140.9
-    ## Vcells 275922689 2105.2  469417377 3581.4 325861855 2486.2
+    ## Vcells 275922689 2105.2  469417708 3581.4 325861837 2486.2
 
 ![](output/figures/simspt3/simspt3_figunnamed-chunk-6-1.png)
 

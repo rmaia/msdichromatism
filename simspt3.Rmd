@@ -349,7 +349,7 @@ plot(centdist, overlap,  pch=19, col=sigpal,
 Generate data
 ```{r coldistcache3, cache=TRUE}
 simulatedata3 <- replicate(500, 
-                  simdich(N=50, sgsqsrate=15, multiplier=c(0.85, 1.15)), 
+                  simdich(N=50, sgsqsrate=4, multiplier=c(0.85, 1.15)), 
                   simplify=FALSE)
 
 simulatecoldist3 <- parallel::mclapply(simulatedata3, function(x) {
