@@ -24,7 +24,9 @@ knitr::opts_chunk$set(echo = TRUE,
 
 source('R/bootstrapcentroiddS.R')
 
-adoniscoldist <- function(x){
+# Pared down to just provide the distance matrix (just so I can trace what's going
+# on a bit more easily).
+distmat <- function(x){
   dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
   rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
   
@@ -32,11 +34,12 @@ adoniscoldist <- function(x){
     for(j in colnames(dmat))
       if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
       dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
+
+  #grouping <- substring(rownames(dmat), 1, 1)
   
-  #grouping <- gsub('[0-9]','', rownames(dmat))
-  grouping <- substring(rownames(dmat), 1, 1)
+  dmat
   
-  adonis(dmat~grouping)
+  #adonis(dmat~grouping)
 }
 
 ```
@@ -134,37 +137,31 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
 
 ```
 
-**Step 1:** PERMANOVA
-
-Labium
+**Step 1:** PERMANOVAs
 
 ```{r}
 
-adoniscoldist(deltaS$lab)
+  # Setup distance matrices & groupings for each body part
+  mat <- list(lab = distmat(deltaS$lab),
+               throat = distmat(deltaS$throat),
+               roof = distmat(deltaS$roof),
+               tongue = distmat(deltaS$tongue))
+  group <- list(lab = substring(rownames(mat$lab), 1, 1),
+               throat = substring(rownames(mat$throat), 1, 1),
+               roof = substring(rownames(mat$roof), 1, 1),
+               tongue = substring(rownames(mat$tongue), 1, 1))
 
-```
-
-Throat
-
-```{r}
-
-adoniscoldist(deltaS$throat)
-
-```
-
-Mouth-roof
-
-```{r}
-
-adoniscoldist(deltaS$roof)
-
-```
-
-Tongue
-
-```{r}
-
-adoniscoldist(deltaS$tongue)
+  # Labium
+  adonis(mat$lab ~ group$lab)
+  
+  # Mouth-roof
+  adonis(mat$roof ~ group$roof)
+  
+  # Throat
+  adonis(mat$throat ~ group$throat)
+  
+  # Tongue
+  adonis(mat$tongue ~ group$tongue)
 
 ```
 
@@ -172,7 +169,7 @@ adoniscoldist(deltaS$tongue)
 
 **Step 2:** Effect sizes.
 
-Add grouping variable, then bootstrap centroids for different patches, as identified in step 1 (labium & throat).
+Add grouping variable to raw models, then bootstrap centroids for different patches, as identified in step 1 (labium & throat).
 
 ```{r}
 
@@ -194,7 +191,7 @@ I think I'm running into bugs in pavo 1.0's coldist. I'll have to chase it down.
 
 ```{r}
 
-rm(deltaS, models, models_rel, specs, liz_vis, liz_lab)
+rm(deltaS, models, models_rel, specs, liz_vis, liz_lab, mat, group)
 
 ```
 
@@ -266,7 +263,9 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 On everything, combined. i.e. are these three groups different? Not really required in this situation since we have _a priori_ planned tests.
 ```{r}
 
-adoniscoldist(deltaS)
+mat <- distmat(deltaS)
+group <- substring(rownames(mat), 1, 1)
+adonis(mat ~ group)
 
 ```
 
@@ -275,7 +274,11 @@ adoniscoldist(deltaS)
 Spider-groups only
 ```{r}
 
-adoniscoldist(subset(deltaS, comparison != c('intra.F', 'inter.WF', 'inter.YF')))
+mat <- distmat(subset(deltaS, !(comparison %in% c('intra.F', 'inter.WF', 'inter.YF'))))
+
+group <- substring(rownames(mat), 1, 1)
+
+adonis(mat ~ group)
 
 ```
 
@@ -283,7 +286,11 @@ adoniscoldist(subset(deltaS, comparison != c('intra.F', 'inter.WF', 'inter.YF'))
 
 ```{r}
 
-adoniscoldist(subset(deltaS, comparison != c('inter.WY')))  # drop white-yellow comparisons
+mat <- distmat(subset(deltaS, !(comparison %in% 'inter.WY')))
+group <- substring(rownames(mat), 1, 1)
+  
+adonis(mat ~ group)
+
 #bootcentroidDS(models$lab[,1:4], models$lab$group)
 
 ```
@@ -298,7 +305,7 @@ models$group <- substring(rownames(models), 1, 1)
 
 ```{r}
 
-rm(deltaS, models, models_hex, specs)
+rm(deltaS, models, models_hex, specs, mat, group)
 
 ```
 
@@ -371,7 +378,10 @@ sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("A_", rownames(models_rel)),
 
 ```{r}
 
-adoniscoldist(deltaS)
+  mat <- distmat(deltaS)
+  group <- substring(rownames(mat), 1, 1)
+  
+  adonis(mat ~ group)
 
 ```
 

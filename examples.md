@@ -4,7 +4,9 @@ Possible examples w/ real data
 ``` r
 source('R/bootstrapcentroiddS.R')
 
-adoniscoldist <- function(x){
+# Pared down to just provide the distance matrix (just so I can trace what's going
+# on a bit more easily).
+distmat <- function(x){
   dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
   rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
   
@@ -12,11 +14,12 @@ adoniscoldist <- function(x){
     for(j in colnames(dmat))
       if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
       dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
+
+  #grouping <- substring(rownames(dmat), 1, 1)
   
-  #grouping <- gsub('[0-9]','', rownames(dmat))
-  grouping <- substring(rownames(dmat), 1, 1)
+  dmat
   
-  adonis(dmat~grouping)
+  #adonis(dmat~grouping)
 }
 ```
 
@@ -119,17 +122,26 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
 
 ![](output/figures/examples/examples_figliz_deltaplot-1.png)
 
-**Step 1:** PERMANOVA
-
-Labium
+**Step 1:** PERMANOVAs
 
 ``` r
-adoniscoldist(deltaS$lab)
+  # Setup distance matrices & groupings for each body part
+  mat <- list(lab = distmat(deltaS$lab),
+               throat = distmat(deltaS$throat),
+               roof = distmat(deltaS$roof),
+               tongue = distmat(deltaS$tongue))
+  group <- list(lab = substring(rownames(mat$lab), 1, 1),
+               throat = substring(rownames(mat$throat), 1, 1),
+               roof = substring(rownames(mat$roof), 1, 1),
+               tongue = substring(rownames(mat$tongue), 1, 1))
+
+  # Labium
+  adonis(mat$lab ~ group$lab)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = dmat ~ grouping) 
+    ## adonis(formula = mat$lab ~ group$lab) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
@@ -137,79 +149,76 @@ adoniscoldist(deltaS$lab)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## grouping   1     25.02 25.0199  14.117 0.20134  0.001 ***
+    ## group$lab  1     25.02 25.0199  14.117 0.20134  0.001 ***
     ## Residuals 56     99.25  1.7723         0.79866           
     ## Total     57    124.27                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Throat
-
 ``` r
-adoniscoldist(deltaS$throat)
+  # Mouth-roof
+  adonis(mat$roof ~ group$roof)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = dmat ~ grouping) 
+    ## adonis(formula = mat$roof ~ group$roof) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## grouping   1    33.764  33.764  14.978 0.20809  0.001 ***
-    ## Residuals 57   128.495   2.254         0.79191           
-    ## Total     58   162.259                 1.00000           
+    ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
+    ## group$roof  1     0.537 0.53736 0.49025 0.009  0.505
+    ## Residuals  54    59.189 1.09610         0.991       
+    ## Total      55    59.727                 1.000
+
+``` r
+  # Throat
+  adonis(mat$throat ~ group$throat)
+```
+
+    ## 
+    ## Call:
+    ## adonis(formula = mat$throat ~ group$throat) 
+    ## 
+    ## Permutation: free
+    ## Number of permutations: 999
+    ## 
+    ## Terms added sequentially (first to last)
+    ## 
+    ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+    ## group$throat  1    33.764  33.764  14.978 0.20809  0.001 ***
+    ## Residuals    57   128.495   2.254         0.79191           
+    ## Total        58   162.259                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Mouth-roof
-
 ``` r
-adoniscoldist(deltaS$roof)
+  # Tongue
+  adonis(mat$tongue ~ group$tongue)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = dmat ~ grouping) 
+    ## adonis(formula = mat$tongue ~ group$tongue) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##           Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## grouping   1     0.537 0.53736 0.49025 0.009  0.544
-    ## Residuals 54    59.189 1.09610         0.991       
-    ## Total     55    59.727                 1.000
-
-Tongue
-
-``` r
-adoniscoldist(deltaS$tongue)
-```
-
-    ## 
-    ## Call:
-    ## adonis(formula = dmat ~ grouping) 
-    ## 
-    ## Permutation: free
-    ## Number of permutations: 999
-    ## 
-    ## Terms added sequentially (first to last)
-    ## 
-    ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## grouping   1     2.029  2.0288  1.6766 0.02857  0.177
-    ## Residuals 57    68.971  1.2100         0.97143       
-    ## Total     58    71.000                 1.00000
+    ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+    ## group$tongue  1     2.029  2.0288  1.6766 0.02857  0.196
+    ## Residuals    57    68.971  1.2100         0.97143       
+    ## Total        58    71.000                 1.00000
 
 **Conclusion**: labium = distinct, throat = distinct, mouth = nope, tongue = nope.
 
 **Step 2:** Effect sizes.
 
-Add grouping variable, then bootstrap centroids for different patches, as identified in step 1 (labium & throat).
+Add grouping variable to raw models, then bootstrap centroids for different patches, as identified in step 1 (labium & throat).
 
 ``` r
 # Groups
@@ -228,7 +237,7 @@ models$tongue$group <- substring(rownames(models$tongue), 1, 1)
 I think I'm running into bugs in pavo 1.0's coldist. I'll have to chase it down. This works with v 0.5.
 
 ``` r
-rm(deltaS, models, models_rel, specs, liz_vis, liz_lab)
+rm(deltaS, models, models_rel, specs, liz_vis, liz_lab, mat, group)
 ```
 
 #### Example 2: Mimicry.
@@ -298,12 +307,14 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 On everything, combined. i.e. are these three groups different? Not really required in this situation since we have *a priori* planned tests.
 
 ``` r
-adoniscoldist(deltaS)
+mat <- distmat(deltaS)
+group <- substring(rownames(mat), 1, 1)
+adonis(mat ~ group)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = dmat ~ grouping) 
+    ## adonis(formula = mat ~ group) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
@@ -311,7 +322,7 @@ adoniscoldist(deltaS)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## grouping    2    1.8644 0.93219  24.971 0.20728  0.001 ***
+    ## group       2    1.8644 0.93219  24.971 0.20728  0.001 ***
     ## Residuals 191    7.1301 0.03733         0.79272           
     ## Total     193    8.9945                 1.00000           
     ## ---
@@ -322,12 +333,16 @@ adoniscoldist(deltaS)
 Spider-groups only
 
 ``` r
-adoniscoldist(subset(deltaS, comparison != c('intra.F', 'inter.WF', 'inter.YF')))
+mat <- distmat(subset(deltaS, !(comparison %in% c('intra.F', 'inter.WF', 'inter.YF'))))
+
+group <- substring(rownames(mat), 1, 1)
+
+adonis(mat ~ group)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = dmat ~ grouping) 
+    ## adonis(formula = mat ~ group) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
@@ -335,21 +350,24 @@ adoniscoldist(subset(deltaS, comparison != c('intra.F', 'inter.WF', 'inter.YF'))
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## grouping    2    1.4049 0.70246  26.708 0.21854  0.001 ***
-    ## Residuals 191    5.0237 0.02630         0.78146           
-    ## Total     193    6.4286                 1.00000           
+    ## group       1   0.68057 0.68057  74.417 0.38877  0.001 ***
+    ## Residuals 117   1.07000 0.00915         0.61123           
+    ## Total     118   1.75057                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 **Q2:** Do they bear an indistinguishable resemblance to sympatric flowers?
 
 ``` r
-adoniscoldist(subset(deltaS, comparison != c('inter.WY')))  # drop white-yellow comparisons
+mat <- distmat(subset(deltaS, !(comparison %in% 'inter.WY')))
+group <- substring(rownames(mat), 1, 1)
+  
+adonis(mat ~ group)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = dmat ~ grouping) 
+    ## adonis(formula = mat ~ group) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
@@ -357,7 +375,7 @@ adoniscoldist(subset(deltaS, comparison != c('inter.WY')))  # drop white-yellow 
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## grouping    2    1.1399 0.56996  15.268 0.13784  0.001 ***
+    ## group       2    1.1399 0.56996  15.268 0.13784  0.001 ***
     ## Residuals 191    7.1301 0.03733         0.86216           
     ## Total     193    8.2700                 1.00000           
     ## ---
@@ -375,7 +393,7 @@ models$group <- substring(rownames(models), 1, 1)
 ```
 
 ``` r
-rm(deltaS, models, models_hex, specs)
+rm(deltaS, models, models_hex, specs, mat, group)
 ```
 
 #### Example 3: Crypsis.
@@ -444,12 +462,15 @@ sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("A_", rownames(models_rel)),
 **Step 1:** PERMANOVA all the things.
 
 ``` r
-adoniscoldist(deltaS)
+  mat <- distmat(deltaS)
+  group <- substring(rownames(mat), 1, 1)
+  
+  adonis(mat ~ group)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = dmat ~ grouping) 
+    ## adonis(formula = mat ~ group) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
@@ -457,7 +478,7 @@ adoniscoldist(deltaS)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## grouping    5   -289.98 -57.996 -25.839 -5.0071      1
+    ## group       5   -289.98 -57.996 -25.839 -5.0071      1
     ## Residuals 155    347.90   2.244          6.0071       
     ## Total     160     57.91                  1.0000
 
