@@ -7,6 +7,11 @@
 
 bootcentroidDS <- function(dat, groups, nboot=1000, alpha=0.95, ...){
 
+sortinggroups <- order(groups)
+dat <- dat[sortinggroups, ]
+groups <- groups[sortinggroups]
+  
+  
 samplesizes <- table(groups)
 
 # calculate empirical deltaS
@@ -30,7 +35,7 @@ its <- lapply(samplesizes, function(x) sample(1:x, x*nboot, replace=TRUE))
 # returns a list with entries = number of groups
 # and rows equal to the sample size for that group times the number of bootstrap replicates
 bootsamples <- lapply(1:length(bygroup), function(x) bygroup[[x]][its[[x]], ] )
-
+#bootsamples <- lapply(1:length(bygroup), function(x) bygroup[[names(its[x])]][its[[x]], ] )
 # next we need to split by bootstrap replicate
 # preserving the same sample size as that original group had
 

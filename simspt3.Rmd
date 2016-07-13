@@ -433,8 +433,12 @@ plot(adonisR2~interdist, ylab='Rsquared from PERMANOVA (%)', xlab='mean between-
 
 plot(adonisR2~intradist, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group  distance (JND)', log='xy', pch=19, col=sigpal)
 
-plot(interdist~centdist, ylab='mean between-group distance (JND)', xlab='centroid distance (JND)', pch=19, col=sigpal, ylim=range(c(interdist,centdist))*1.1, xlim=range(c(interdist,centdist))*1.1)
+#plot(interdist~centdist, ylab='mean between-group distance (JND)', xlab='centroid distance (JND)', pch=19, col=sigpal, ylim=range(c(interdist,centdist))*1.1, xlim=range(c(interdist,centdist))*1.1)
+#abline(0,1, lty=3)
+
+plot(intradist~centdist, ylab='mean within-group distance (JND)', xlab='centroid distance (JND)', pch=19, col=sigpal, ylim=range(c(intradist,centdist))*1.1, xlim=range(centdist)*1.1)
 abline(0,1, lty=3)
+
 
 plot(adonisR2~centdist, ylab='Rsquared from PERMANOVA (%)', xlab='centroid distance (JND)', log='xy', pch=19, col=sigpal)
 

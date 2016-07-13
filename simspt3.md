@@ -262,5 +262,5 @@ sessionInfo()
     ## [13] nlme_3.1-127       mgcv_1.8-12        htmltools_0.3.5   
     ## [16] yaml_2.1.13        digest_0.6.9       Matrix_1.2-6      
     ## [19] RColorBrewer_1.1-2 mapproj_1.2-4      formatR_1.4       
-    ## [22] codetools_0.2-14   rcdd_1.1-10        evaluate_0.9      
-    ## [25] rmarkdown_0.9.6.10 stringi_1.0-1
+    ## [22] rcdd_1.1-10        evaluate_0.9       rmarkdown_0.9.6.10
+    ## [25] stringi_1.0-1
