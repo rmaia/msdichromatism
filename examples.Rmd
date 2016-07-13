@@ -45,7 +45,7 @@ distmat <- function(x){
 
 ```
 
-#### Example 1: Dichromatism. 
+## Example 1: Dichromatism. 
 
 Reflectance data from four body regions of male and female _Ctenophorus ornatus_ (Whiting et al. 2015, Biol J Linn Soc). Labium, throat, tongue, and mouth-roof.
 
@@ -195,7 +195,7 @@ rm(deltaS, models, models_rel, specs, liz_vis, liz_lab, mat, group)
 
 ```
 
-#### Example 2: Mimicry. 
+## Example 2: Mimicry. 
 
 Reflectance data from colour-polymorphic female spiders _Gasteracantha fornicata_, and sympatic flowers from Qld, Australia. (W = white morph, Y = yellow morph, F = flowers)
 
@@ -316,7 +316,7 @@ rm(deltaS, models, models_hex, specs, mat, group)
 
 ```
 
-#### Example 3: Crypsis. 
+## Example 3: Crypsis. 
 
 Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female mantids _Pseudomantis albofimbriata_ and 50 background samples (_Lomandra longifolia_, which they pretty much exclusively hang on).
 
@@ -388,7 +388,7 @@ ggplot(deltaS_plot, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 
 ```
 
-**Step 1:** PERMANOVA all the things, with individuals nested within parts 
+**Step 1:** PERMANOVA all the things
 
 ```{r}
 
@@ -399,8 +399,6 @@ mat <- list(all = distmat(deltaS)
 group <- list(all = substring(rownames(mat$all), 1, 1))
   
 adonis(mat$all ~ group$all)
-  
-#group + group:ind
 
 ```
 

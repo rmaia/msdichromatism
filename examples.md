@@ -24,7 +24,8 @@ distmat <- function(x){
 }
 ```
 
-#### Example 1: Dichromatism.
+Example 1: Dichromatism.
+------------------------
 
 Reflectance data from four body regions of male and female *Ctenophorus ornatus* (Whiting et al. 2015, Biol J Linn Soc). Labium, throat, tongue, and mouth-roof.
 
@@ -171,7 +172,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009   0.54
+    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.545
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -211,7 +212,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.196
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.205
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -233,15 +234,15 @@ bootcentroidDS(models$lab[,1:4], models$lab$group, achro = FALSE, n1 = 1, n2 = 1
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3203267 0.6301217
+    ## F-M   0.4650257 0.3273573 0.6234629
 
 ``` r
 # throat
 bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 ```
 
-    ##     measured.dS    CI.lwr   CI.upr
-    ## F-M   0.5703535 0.3508234 0.826955
+    ##     measured.dS    CI.lwr    CI.upr
+    ## F-M   0.5703535 0.3598512 0.8080296
 
 So lab's & throats are statistically distinct, but fall below threshold on average.
 
@@ -249,7 +250,8 @@ So lab's & throats are statistically distinct, but fall below threshold on avera
 rm(deltaS, models, models_rel, specs, liz_vis, liz_lab, mat, group)
 ```
 
-#### Example 2: Mimicry.
+Example 2: Mimicry.
+-------------------
 
 Reflectance data from colour-polymorphic female spiders *Gasteracantha fornicata*, and sympatic flowers from Qld, Australia. (W = white morph, Y = yellow morph, F = flowers)
 
@@ -389,7 +391,7 @@ adonis(mat$WF ~ group$WF)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$WF    1     115.9 115.897  2.2454 0.01932  0.132
+    ## group$WF    1     115.9 115.897  2.2454 0.01932  0.109
     ## Residuals 114    5884.3  51.617         0.98068       
     ## Total     115    6000.2                 1.00000
 
@@ -430,7 +432,8 @@ rm(deltaS, models, models_hex, specs, mat, group)
     ## Warning in rm(deltaS, models, models_hex, specs, mat, group): object
     ## 'models_hex' not found
 
-#### Example 3: Crypsis.
+Example 3: Crypsis.
+-------------------
 
 Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female mantids *Pseudomantis albofimbriata* and 50 background samples (*Lomandra longifolia*, which they pretty much exclusively hang on).
 
@@ -501,7 +504,7 @@ ggplot(deltaS_plot, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 
 ![](output/figures/examples/examples_figcrypsis_deltaplot-1.png)
 
-**Step 1:** PERMANOVA all the things, with individuals nested within parts
+**Step 1:** PERMANOVA all the things
 
 ``` r
 # Set up distance matrices & groupings for focal comparisons 
@@ -528,10 +531,6 @@ adonis(mat$all ~ group$all)
     ## Total     210   1272.18                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-#group + group:ind
-```
 
 **Step 2:** Effect sizes
 
