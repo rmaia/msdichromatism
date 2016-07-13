@@ -7,7 +7,7 @@ output:
 ---
 
 ```{r setup, include = FALSE}
-require(pavo)  # dev version
+require(pavo)
 require(scatterplot3d)
 require(ggplot2)
 require(gridExtra)
@@ -23,6 +23,7 @@ knitr::opts_chunk$set(echo = TRUE,
 ```{r}
 
 source('R/bootstrapcentroiddS.R')
+source('R/trispace.R')
 
 # Pared down to just provide the distance matrix (just so I can trace what's going
 # on a bit more easily).
@@ -69,9 +70,9 @@ models_rel <- lapply(specs, function(x) vismodel(x, visual = liz_vis, relative =
                                                  qcatch = "fi", scale = 10000))  # tcs 
 
 deltaS <- lapply(models, function(x) coldist(x, achro = FALSE, n1 = 1, n2 = 1, 
-                                             n3 = 3.5, n4 = 6, v = 0.10))
+                                             n3 = 3.5, n4 = 6, v = 0.10, noise = 'neural'))
 
-# To add group labels (because I'm bad at R and I feel bad)
+# Add group labels
 liz_lab <- function(x){
   x$comparison[grepl('F', x$patch1) & grepl('F', x$patch2)] <- 'intra.F'
   x$comparison[grepl('M', x$patch1) & grepl('M', x$patch2)] <- 'intra.M'
@@ -81,14 +82,14 @@ liz_lab <- function(x){
 }
 
 # ew
-deltaS$lab <- liz_lab(deltaS$lab) 
+deltaS$lab <- liz_lab(deltaS$lab)
 deltaS$throat <- liz_lab(deltaS$throat)
 deltaS$roof <- liz_lab(deltaS$roof)
 deltaS$tongue <- liz_lab(deltaS$tongue)
 
 ```
 
-Plot 'em
+Visualise
 
 ```{r liz_tcs, fig.width=8, fig.height=8}
 
@@ -141,27 +142,27 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
 
 ```{r}
 
-  # Setup distance matrices & groupings for each body part
-  mat <- list(lab = distmat(deltaS$lab),
-               throat = distmat(deltaS$throat),
-               roof = distmat(deltaS$roof),
-               tongue = distmat(deltaS$tongue))
-  group <- list(lab = substring(rownames(mat$lab), 1, 1),
-               throat = substring(rownames(mat$throat), 1, 1),
-               roof = substring(rownames(mat$roof), 1, 1),
-               tongue = substring(rownames(mat$tongue), 1, 1))
+# Setup distance matrices & groupings for each body part
+mat <- list(lab = distmat(deltaS$lab),
+             throat = distmat(deltaS$throat),
+             roof = distmat(deltaS$roof),
+             tongue = distmat(deltaS$tongue))
+group <- list(lab = substring(rownames(mat$lab), 1, 1),
+             throat = substring(rownames(mat$throat), 1, 1),
+             roof = substring(rownames(mat$roof), 1, 1),
+             tongue = substring(rownames(mat$tongue), 1, 1))
 
-  # Labium
-  adonis(mat$lab ~ group$lab)
-  
-  # Mouth-roof
-  adonis(mat$roof ~ group$roof)
-  
-  # Throat
-  adonis(mat$throat ~ group$throat)
-  
-  # Tongue
-  adonis(mat$tongue ~ group$tongue)
+# Labium
+adonis(mat$lab ~ group$lab)
+
+# Mouth-roof
+adonis(mat$roof ~ group$roof)
+
+# Throat
+adonis(mat$throat ~ group$throat)
+
+# Tongue
+adonis(mat$tongue ~ group$tongue)
 
 ```
 
@@ -180,14 +181,13 @@ models$roof$group <- substring(rownames(models$roof), 1, 1)
 models$tongue$group <- substring(rownames(models$tongue), 1, 1)
 
 # labium
-#bootcentroidDS(models$lab[,1:4], models$lab$group, achro = FALSE, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)  # not working in dev pavo
-
+bootcentroidDS(models$lab[,1:4], models$lab$group, achro = FALSE, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 # throat
-#bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
+bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 
 ```
 
-I think I'm running into bugs in pavo 1.0's coldist. I'll have to chase it down. This works with v 0.5.
+So lab's & throats are statistically distinct, but fall below threshold on average.
 
 ```{r}
 
@@ -205,28 +205,23 @@ So three groups, with **two Q's:**
 
 **(2)** Do spiders (of each morph) resemble sympatric flowers?
 
+Calculate deltaS (JNDs) according to a honeybee
+
 ```{r}
-# specs <- list(spider_w = as.rspec(read.csv('data/mimicry/spiders_white.csv'), interp = FALSE),
-#               spider_y = as.rspec(read.csv('data/mimicry/spiders_yellow.csv'), interp = FALSE),
-#               flower = as.rspec(read.csv('data/mimicry/flowers.csv'), interp = FALSE))
 
 specs <- as.rspec(read.csv('data/mimicry/flowers_spiders.csv'), interp = FALSE)
 
-```
-
-Calculate deltaS (euclidean distances in the hexagon) according to a honeybee
-
-```{r}
-
 # Honeybee
+bee_vis <- sensmodel(c(350, 440, 540)) 
+names(bee_vis) <- c('wl','s', 'm', 'l')
 
-models <- vismodel(specs, visual = 'apis', relative = FALSE, vonkries = TRUE, 
-                                             bkg = 'green', qcatch = "Ei")
-# models_rel <- vismodel(specs, visual = 'apis', relative = TRUE, 
-#                                                  qcatch = "fi", scale = 10000)  # max triangle
-models_hex <- colspace(models, space = 'hexagon')
+models <- vismodel(specs, visual = bee_vis, relative = FALSE,
+                                                 qcatch = "fi", scale = 10000)  # rn
+models_rel <- vismodel(specs, visual = bee_vis, relative = TRUE,
+                                                 qcatch = "Qi", scale = 10000)  # for plotting
+models_tri <- trispace(models_rel)
 
-deltaS <- coldist(models_hex, achro = FALSE)
+deltaS <- coldist(models, achro = FALSE)
 
 # Contrast labels
 deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('W_', deltaS$patch2)] <- 'intra.W'
@@ -238,68 +233,80 @@ deltaS$comparison[grepl('Y_', deltaS$patch1) & grepl('F_', deltaS$patch2)] <- 'i
 
 ```
 
-```{r mimic_hexplot, fig.width=6, fig.height=6}
+Visualise.
 
-# col isn't working in initial plot call for some reason (pavo bug)
-plot(models_hex[grepl("W_", rownames(models_hex)), ], col = 'darkgrey')  
-points(models_hex[grepl("W_", rownames(models_hex)), ], col = 'darkgrey')  
-points(models_hex[grepl("Y_", rownames(models_hex)), ], pch = 19, col = 'darkgoldenrod1')
-points(models_hex[grepl("F_", rownames(models_hex)), ], pch = 19, col = 'forestgreen')
+```{r mimic_triplot, fig.width=6, fig.height=6}
+
+# Max triangle
+triplot(models_tri[grepl("F_", rownames(models_tri)), ], col = 'forestgreen')
+points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgoldenrod1')
+points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgrey')
 
 ```
 
-Check it. Note there are actually a couple of thresolds in the hexagon model (hence the two lines). < 0.04 is indiscriminable, 0.04 to 0.11 requires differential aversive conditioning, > 0.1 only absolute conditioning. i.e. impossible, hard, and easy to discriminate. 
-
-```{r mimic_deltaplot, fig.width=6, fig.height=8}
+```{r mimic_deltaplot, fig.width=6, fig.height=6}
 
 ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
-        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=c(0.04, 0.11)) +
-        ggtitle('labial') + theme(legend.position="none")
+        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
+        theme(legend.position="none")
 
 ```
 
-**Step 1:** PERMANOVA.
-
-On everything, combined. i.e. are these three groups different? Not really required in this situation since we have _a priori_ planned tests.
+**Step 1:** PERMANOVA
 ```{r}
 
-mat <- distmat(deltaS)
-group <- substring(rownames(mat), 1, 1)
-adonis(mat ~ group)
+# Set up distance matrices & groupings for focal comparisons 
+mat <- list(all = distmat(deltaS),
+            WY = distmat(subset(deltaS, !(comparison %in% c('intra.F', 'inter.WF', 'inter.YF')))),
+            WF = distmat(subset(deltaS, !(comparison %in% c('intra.Y', 'inter.WY', 'inter.YF')))),
+            YF = distmat(subset(deltaS, !(comparison %in% c('intra.W', 'inter.WY', 'inter.WF'))))
+            )
+group <- list(all = substring(rownames(mat$all), 1, 1),
+              WY = substring(rownames(mat$WY), 1, 1),
+              WF = substring(rownames(mat$WF), 1, 1),
+              YF = substring(rownames(mat$YF), 1, 1))
 
 ```
+
+Everything combined. Not really required in this situation since we have _a priori_ planned tests.
+```{r}
+
+adonis(mat$all ~ group$all)
+
+```
+
+So differences exist.
 
 **Q1:** Are spiders polymorphic?
 
-Spider-groups only
 ```{r}
 
-mat <- distmat(subset(deltaS, !(comparison %in% c('intra.F', 'inter.WF', 'inter.YF'))))
-
-group <- substring(rownames(mat), 1, 1)
-
-adonis(mat ~ group)
+# Spiders only
+adonis(mat$WY ~ group$WY)
 
 ```
 
-**Q2:** Do they bear an indistinguishable resemblance to sympatric flowers?
+Yep
+
+**Q2:** Are they distinguishable from sympatric flowers?
 
 ```{r}
 
-mat <- distmat(subset(deltaS, !(comparison %in% 'inter.WY')))
-group <- substring(rownames(mat), 1, 1)
-  
-adonis(mat ~ group)
+# White morph-vs-flowers
+adonis(mat$WF ~ group$WF)
 
-#bootcentroidDS(models$lab[,1:4], models$lab$group)
+# Yellow morph-vs-flowers
+adonis(mat$YF ~ group$YF)
 
 ```
+
+White = distinct, yellow = indistinct. Really? That's....unexpected.
 
 **Effect sizes**
 ```{r}
 
 models$group <- substring(rownames(models), 1, 1)
-#bootcentroidDS(models[,1:3], models$group)
+#bootcentroidDS(models[,1:3], models$group, vis = 'tri')
 
 ```
 
@@ -327,11 +334,12 @@ specs <- as.rspec(read.csv('data/crypsis/mantids_bkgs.csv'), lim = c(300, 700))
 ```{r}
 
 models <- vismodel(specs, visual = 'bluetit', relative = FALSE, qcatch = "fi", scale = 10000)  # deltaS
-models_rel <- vismodel(specs, visual = 'bluetit', relative = TRUE, qcatch = "fi", scale = 10000, achro = FALSE)  # tcs
+models_rel <- vismodel(specs, visual = 'bluetit', relative = TRUE, qcatch = "fi", scale = 10000)  # tcs
 
 deltaS <- coldist(models, achro = FALSE)
 
-# Contrast labels. Only want intra-groups, and mantid-vs-background. No mantid-vs-mantid
+# Contrast labels. 
+
 # Intragroup
 deltaS$comparison[grepl('H_', deltaS$patch1) & grepl('H_', deltaS$patch2)] <- 'intra.H'
 deltaS$comparison[grepl('L_', deltaS$patch1) & grepl('L_', deltaS$patch2)] <- 'intra.L'
@@ -348,14 +356,12 @@ deltaS$comparison[grepl('P_', deltaS$patch1) & grepl('B_', deltaS$patch2)] <- 'i
 deltaS$comparison[grepl('A_', deltaS$patch1) & grepl('B_', deltaS$patch2)] <- 'inter.AB'
 deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('B_', deltaS$patch2)] <- 'inter.WB'
 
-# Ditch anything unlabelled (i.e. intra-mantid)
-deltaS <- deltaS[complete.cases(deltaS),]
-
+deltaS_plot <- deltaS[complete.cases(deltaS),]  # comparisons of interest (for plotting only you fool of a Took)
 ```
 
-Plot 'em
+Visualise
 
-```{r mantid_tcs, fig.width=6, fig.height=6}
+```{r crypsis_tcs, fig.width=6, fig.height=6}
 
 sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel[grepl("B_", rownames(models_rel)), ])
                                        [, c('x','y','z')]), xlim=c(-0.02,0.02), ylim=c(-0.01,0.028), zlim=c(-0.06,0.01), 
@@ -374,24 +380,35 @@ sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("A_", rownames(models_rel)),
                                [, c('x','y','z')]), col='gold1',pch=19)
 ```
 
-**Step 1:** PERMANOVA all the things. 
+```{r crypsis_deltaplot, fig.width=6, fig.height=9}
 
-```{r}
-
-  mat <- distmat(deltaS)
-  group <- substring(rownames(mat), 1, 1)
-  
-  adonis(mat ~ group)
+ggplot(deltaS_plot, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
+        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
+        theme(legend.position="none")
 
 ```
 
-No difference? Huh. Was hoping for a below-threshold example. Need to poke around more.
+**Step 1:** PERMANOVA all the things, with individuals nested within parts 
 
-**Step 2:** Effect sizes anyway
+```{r}
+
+# Set up distance matrices & groupings for focal comparisons 
+mat <- list(all = distmat(deltaS)
+            #WY = distmat(subset(deltaS, !(comparison %in% c('intra.F', 'inter.WF', 'inter.YF')))),
+            )
+group <- list(all = substring(rownames(mat$all), 1, 1))
+  
+adonis(mat$all ~ group$all)
+  
+#group + group:ind
+
+```
+
+**Step 2:** Effect sizes
 ```{r}
 
 models$group <- substring(rownames(models), 1, 1)
-#bootcentroidDS(models[,1:4], models$group)  # not working yet
+#bootcentroidDS(models[,1:4], models$group)  # Not workin'
 
 ```
 

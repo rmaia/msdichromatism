@@ -129,7 +129,7 @@ centroidist <- function(dat){
 Simulate 500 datasets
 
 ```{r coldistcache, cache=TRUE}
-simulatedata <- replicate(500, 
+simulatedata <- replicate(50, 
                   simdich(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)), 
                   simplify=FALSE)
 

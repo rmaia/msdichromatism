@@ -3,6 +3,7 @@ Possible examples w/ real data
 
 ``` r
 source('R/bootstrapcentroiddS.R')
+source('R/trispace.R')
 
 # Pared down to just provide the distance matrix (just so I can trace what's going
 # on a bit more easily).
@@ -54,9 +55,9 @@ models_rel <- lapply(specs, function(x) vismodel(x, visual = liz_vis, relative =
                                                  qcatch = "fi", scale = 10000))  # tcs 
 
 deltaS <- lapply(models, function(x) coldist(x, achro = FALSE, n1 = 1, n2 = 1, 
-                                             n3 = 3.5, n4 = 6, v = 0.10))
+                                             n3 = 3.5, n4 = 6, v = 0.10, noise = 'neural'))
 
-# To add group labels (because I'm bad at R and I feel bad)
+# Add group labels
 liz_lab <- function(x){
   x$comparison[grepl('F', x$patch1) & grepl('F', x$patch2)] <- 'intra.F'
   x$comparison[grepl('M', x$patch1) & grepl('M', x$patch2)] <- 'intra.M'
@@ -66,13 +67,13 @@ liz_lab <- function(x){
 }
 
 # ew
-deltaS$lab <- liz_lab(deltaS$lab) 
+deltaS$lab <- liz_lab(deltaS$lab)
 deltaS$throat <- liz_lab(deltaS$throat)
 deltaS$roof <- liz_lab(deltaS$roof)
 deltaS$tongue <- liz_lab(deltaS$tongue)
 ```
 
-Plot 'em
+Visualise
 
 ``` r
 par(pty="s", mfrow = c(2, 2))
@@ -125,18 +126,18 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
 **Step 1:** PERMANOVAs
 
 ``` r
-  # Setup distance matrices & groupings for each body part
-  mat <- list(lab = distmat(deltaS$lab),
-               throat = distmat(deltaS$throat),
-               roof = distmat(deltaS$roof),
-               tongue = distmat(deltaS$tongue))
-  group <- list(lab = substring(rownames(mat$lab), 1, 1),
-               throat = substring(rownames(mat$throat), 1, 1),
-               roof = substring(rownames(mat$roof), 1, 1),
-               tongue = substring(rownames(mat$tongue), 1, 1))
+# Setup distance matrices & groupings for each body part
+mat <- list(lab = distmat(deltaS$lab),
+             throat = distmat(deltaS$throat),
+             roof = distmat(deltaS$roof),
+             tongue = distmat(deltaS$tongue))
+group <- list(lab = substring(rownames(mat$lab), 1, 1),
+             throat = substring(rownames(mat$throat), 1, 1),
+             roof = substring(rownames(mat$roof), 1, 1),
+             tongue = substring(rownames(mat$tongue), 1, 1))
 
-  # Labium
-  adonis(mat$lab ~ group$lab)
+# Labium
+adonis(mat$lab ~ group$lab)
 ```
 
     ## 
@@ -149,15 +150,15 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$lab  1     25.02 25.0199  14.117 0.20134  0.001 ***
-    ## Residuals 56     99.25  1.7723         0.79866           
-    ## Total     57    124.27                 1.00000           
+    ## group$lab  1    150.12 150.119  14.117 0.20134  0.001 ***
+    ## Residuals 56    595.50  10.634         0.79866           
+    ## Total     57    745.62                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-  # Mouth-roof
-  adonis(mat$roof ~ group$roof)
+# Mouth-roof
+adonis(mat$roof ~ group$roof)
 ```
 
     ## 
@@ -170,13 +171,13 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1     0.537 0.53736 0.49025 0.009  0.505
-    ## Residuals  54    59.189 1.09610         0.991       
-    ## Total      55    59.727                 1.000
+    ## group$roof  1      3.22  3.2242 0.49025 0.009   0.54
+    ## Residuals  54    355.14  6.5766         0.991       
+    ## Total      55    358.36                 1.000
 
 ``` r
-  # Throat
-  adonis(mat$throat ~ group$throat)
+# Throat
+adonis(mat$throat ~ group$throat)
 ```
 
     ## 
@@ -189,15 +190,15 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$throat  1    33.764  33.764  14.978 0.20809  0.001 ***
-    ## Residuals    57   128.495   2.254         0.79191           
-    ## Total        58   162.259                 1.00000           
+    ## group$throat  1    202.58 202.583  14.978 0.20809  0.001 ***
+    ## Residuals    57    770.97  13.526         0.79191           
+    ## Total        58    973.55                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-  # Tongue
-  adonis(mat$tongue ~ group$tongue)
+# Tongue
+adonis(mat$tongue ~ group$tongue)
 ```
 
     ## 
@@ -210,9 +211,9 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     2.029  2.0288  1.6766 0.02857  0.196
-    ## Residuals    57    68.971  1.2100         0.97143       
-    ## Total        58    71.000                 1.00000
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.196
+    ## Residuals    57    413.82  7.2601         0.97143       
+    ## Total        58    426.00                 1.00000
 
 **Conclusion**: labium = distinct, throat = distinct, mouth = nope, tongue = nope.
 
@@ -228,13 +229,21 @@ models$roof$group <- substring(rownames(models$roof), 1, 1)
 models$tongue$group <- substring(rownames(models$tongue), 1, 1)
 
 # labium
-#bootcentroidDS(models$lab[,1:4], models$lab$group, achro = FALSE, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)  # not working in dev pavo
-
-# throat
-#bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
+bootcentroidDS(models$lab[,1:4], models$lab$group, achro = FALSE, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 ```
 
-I think I'm running into bugs in pavo 1.0's coldist. I'll have to chase it down. This works with v 0.5.
+    ##     measured.dS    CI.lwr    CI.upr
+    ## F-M   0.4650257 0.3203267 0.6301217
+
+``` r
+# throat
+bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
+```
+
+    ##     measured.dS    CI.lwr   CI.upr
+    ## F-M   0.5703535 0.3508234 0.826955
+
+So lab's & throats are statistically distinct, but fall below threshold on average.
 
 ``` r
 rm(deltaS, models, models_rel, specs, liz_vis, liz_lab, mat, group)
@@ -250,28 +259,26 @@ So three groups, with **two Q's:**
 
 **(2)** Do spiders (of each morph) resemble sympatric flowers?
 
-``` r
-# specs <- list(spider_w = as.rspec(read.csv('data/mimicry/spiders_white.csv'), interp = FALSE),
-#               spider_y = as.rspec(read.csv('data/mimicry/spiders_yellow.csv'), interp = FALSE),
-#               flower = as.rspec(read.csv('data/mimicry/flowers.csv'), interp = FALSE))
+Calculate deltaS (JNDs) according to a honeybee
 
+``` r
 specs <- as.rspec(read.csv('data/mimicry/flowers_spiders.csv'), interp = FALSE)
 ```
 
     ## wavelengths found in column 1
 
-Calculate deltaS (euclidean distances in the hexagon) according to a honeybee
-
 ``` r
 # Honeybee
+bee_vis <- sensmodel(c(350, 440, 540)) 
+names(bee_vis) <- c('wl','s', 'm', 'l')
 
-models <- vismodel(specs, visual = 'apis', relative = FALSE, vonkries = TRUE, 
-                                             bkg = 'green', qcatch = "Ei")
-# models_rel <- vismodel(specs, visual = 'apis', relative = TRUE, 
-#                                                  qcatch = "fi", scale = 10000)  # max triangle
-models_hex <- colspace(models, space = 'hexagon')
+models <- vismodel(specs, visual = bee_vis, relative = FALSE,
+                                                 qcatch = "fi", scale = 10000)  # rn
+models_rel <- vismodel(specs, visual = bee_vis, relative = TRUE,
+                                                 qcatch = "Qi", scale = 10000)  # for plotting
+models_tri <- trispace(models_rel)
 
-deltaS <- coldist(models_hex, achro = FALSE)
+deltaS <- coldist(models, achro = FALSE)
 
 # Contrast labels
 deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('W_', deltaS$patch2)] <- 'intra.W'
@@ -282,39 +289,49 @@ deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('F_', deltaS$patch2)] <- 'i
 deltaS$comparison[grepl('Y_', deltaS$patch1) & grepl('F_', deltaS$patch2)] <- 'inter.YF'
 ```
 
+Visualise.
+
 ``` r
-# col isn't working in initial plot call for some reason (pavo bug)
-plot(models_hex[grepl("W_", rownames(models_hex)), ], col = 'darkgrey')  
-points(models_hex[grepl("W_", rownames(models_hex)), ], col = 'darkgrey')  
-points(models_hex[grepl("Y_", rownames(models_hex)), ], pch = 19, col = 'darkgoldenrod1')
-points(models_hex[grepl("F_", rownames(models_hex)), ], pch = 19, col = 'forestgreen')
+# Max triangle
+triplot(models_tri[grepl("F_", rownames(models_tri)), ], col = 'forestgreen')
+points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgoldenrod1')
+points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgrey')
 ```
 
-![](output/figures/examples/examples_figmimic_hexplot-1.png)
-
-Check it. Note there are actually a couple of thresolds in the hexagon model (hence the two lines). &lt; 0.04 is indiscriminable, 0.04 to 0.11 requires differential aversive conditioning, &gt; 0.1 only absolute conditioning. i.e. impossible, hard, and easy to discriminate.
+![](output/figures/examples/examples_figmimic_triplot-1.png)
 
 ``` r
 ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
-        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=c(0.04, 0.11)) +
-        ggtitle('labial') + theme(legend.position="none")
+        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
+        theme(legend.position="none")
 ```
 
 ![](output/figures/examples/examples_figmimic_deltaplot-1.png)
 
-**Step 1:** PERMANOVA.
-
-On everything, combined. i.e. are these three groups different? Not really required in this situation since we have *a priori* planned tests.
+**Step 1:** PERMANOVA
 
 ``` r
-mat <- distmat(deltaS)
-group <- substring(rownames(mat), 1, 1)
-adonis(mat ~ group)
+# Set up distance matrices & groupings for focal comparisons 
+mat <- list(all = distmat(deltaS),
+            WY = distmat(subset(deltaS, !(comparison %in% c('intra.F', 'inter.WF', 'inter.YF')))),
+            WF = distmat(subset(deltaS, !(comparison %in% c('intra.Y', 'inter.WY', 'inter.YF')))),
+            YF = distmat(subset(deltaS, !(comparison %in% c('intra.W', 'inter.WY', 'inter.WF'))))
+            )
+group <- list(all = substring(rownames(mat$all), 1, 1),
+              WY = substring(rownames(mat$WY), 1, 1),
+              WF = substring(rownames(mat$WF), 1, 1),
+              YF = substring(rownames(mat$YF), 1, 1))
+```
+
+Everything combined. Not really required in this situation since we have *a priori* planned tests.
+
+``` r
+adonis(mat$all ~ group$all)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = mat ~ group) 
+    ## adonis(formula = mat$all ~ group$all) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
@@ -322,27 +339,24 @@ adonis(mat ~ group)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group       2    1.8644 0.93219  24.971 0.20728  0.001 ***
-    ## Residuals 191    7.1301 0.03733         0.79272           
-    ## Total     193    8.9945                 1.00000           
+    ## group$all   2    1228.4  614.22  18.514 0.16239  0.001 ***
+    ## Residuals 191    6336.5   33.18         0.83761           
+    ## Total     193    7564.9                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+So differences exist.
 
 **Q1:** Are spiders polymorphic?
 
-Spider-groups only
-
 ``` r
-mat <- distmat(subset(deltaS, !(comparison %in% c('intra.F', 'inter.WF', 'inter.YF'))))
-
-group <- substring(rownames(mat), 1, 1)
-
-adonis(mat ~ group)
+# Spiders only
+adonis(mat$WY ~ group$WY)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = mat ~ group) 
+    ## adonis(formula = mat$WY ~ group$WY) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
@@ -350,24 +364,43 @@ adonis(mat ~ group)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group       1   0.68057 0.68057  74.417 0.38877  0.001 ***
-    ## Residuals 117   1.07000 0.00915         0.61123           
-    ## Total     118   1.75057                 1.00000           
+    ## group$WY    1    424.25  424.25  74.969 0.39053  0.001 ***
+    ## Residuals 117    662.10    5.66         0.60947           
+    ## Total     118   1086.35                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-**Q2:** Do they bear an indistinguishable resemblance to sympatric flowers?
+Yep
+
+**Q2:** Are they distinguishable from sympatric flowers?
 
 ``` r
-mat <- distmat(subset(deltaS, !(comparison %in% 'inter.WY')))
-group <- substring(rownames(mat), 1, 1)
-  
-adonis(mat ~ group)
+# White morph-vs-flowers
+adonis(mat$WF ~ group$WF)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = mat ~ group) 
+    ## adonis(formula = mat$WF ~ group$WF) 
+    ## 
+    ## Permutation: free
+    ## Number of permutations: 999
+    ## 
+    ## Terms added sequentially (first to last)
+    ## 
+    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+    ## group$WF    1     115.9 115.897  2.2454 0.01932  0.132
+    ## Residuals 114    5884.3  51.617         0.98068       
+    ## Total     115    6000.2                 1.00000
+
+``` r
+# Yellow morph-vs-flowers
+adonis(mat$YF ~ group$YF)
+```
+
+    ## 
+    ## Call:
+    ## adonis(formula = mat$YF ~ group$YF) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
@@ -375,26 +408,27 @@ adonis(mat ~ group)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group       2    1.1399 0.56996  15.268 0.13784  0.001 ***
-    ## Residuals 191    7.1301 0.03733         0.86216           
-    ## Total     193    8.2700                 1.00000           
+    ## group$YF    1    1143.5 1143.53  28.007 0.15734  0.001 ***
+    ## Residuals 150    6124.4   40.83         0.84266           
+    ## Total     151    7268.0                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-``` r
-#bootcentroidDS(models$lab[,1:4], models$lab$group)
-```
+White = distinct, yellow = indistinct. Really? That's....unexpected.
 
 **Effect sizes**
 
 ``` r
 models$group <- substring(rownames(models), 1, 1)
-#bootcentroidDS(models[,1:3], models$group)
+#bootcentroidDS(models[,1:3], models$group, vis = 'tri')
 ```
 
 ``` r
 rm(deltaS, models, models_hex, specs, mat, group)
 ```
+
+    ## Warning in rm(deltaS, models, models_hex, specs, mat, group): object
+    ## 'models_hex' not found
 
 #### Example 3: Crypsis.
 
@@ -412,11 +446,12 @@ specs <- as.rspec(read.csv('data/crypsis/mantids_bkgs.csv'), lim = c(300, 700))
 
 ``` r
 models <- vismodel(specs, visual = 'bluetit', relative = FALSE, qcatch = "fi", scale = 10000)  # deltaS
-models_rel <- vismodel(specs, visual = 'bluetit', relative = TRUE, qcatch = "fi", scale = 10000, achro = FALSE)  # tcs
+models_rel <- vismodel(specs, visual = 'bluetit', relative = TRUE, qcatch = "fi", scale = 10000)  # tcs
 
 deltaS <- coldist(models, achro = FALSE)
 
-# Contrast labels. Only want intra-groups, and mantid-vs-background. No mantid-vs-mantid
+# Contrast labels. 
+
 # Intragroup
 deltaS$comparison[grepl('H_', deltaS$patch1) & grepl('H_', deltaS$patch2)] <- 'intra.H'
 deltaS$comparison[grepl('L_', deltaS$patch1) & grepl('L_', deltaS$patch2)] <- 'intra.L'
@@ -433,11 +468,10 @@ deltaS$comparison[grepl('P_', deltaS$patch1) & grepl('B_', deltaS$patch2)] <- 'i
 deltaS$comparison[grepl('A_', deltaS$patch1) & grepl('B_', deltaS$patch2)] <- 'inter.AB'
 deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('B_', deltaS$patch2)] <- 'inter.WB'
 
-# Ditch anything unlabelled (i.e. intra-mantid)
-deltaS <- deltaS[complete.cases(deltaS),]
+deltaS_plot <- deltaS[complete.cases(deltaS),]  # comparisons of interest (for plotting only you fool of a Took)
 ```
 
-Plot 'em
+Visualise
 
 ``` r
 sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel[grepl("B_", rownames(models_rel)), ])
@@ -457,38 +491,53 @@ sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("A_", rownames(models_rel)),
                                [, c('x','y','z')]), col='gold1',pch=19)
 ```
 
-![](output/figures/examples/examples_figmantid_tcs-1.png)
-
-**Step 1:** PERMANOVA all the things.
+![](output/figures/examples/examples_figcrypsis_tcs-1.png)
 
 ``` r
-  mat <- distmat(deltaS)
-  group <- substring(rownames(mat), 1, 1)
+ggplot(deltaS_plot, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
+        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
+        theme(legend.position="none")
+```
+
+![](output/figures/examples/examples_figcrypsis_deltaplot-1.png)
+
+**Step 1:** PERMANOVA all the things, with individuals nested within parts
+
+``` r
+# Set up distance matrices & groupings for focal comparisons 
+mat <- list(all = distmat(deltaS)
+            #WY = distmat(subset(deltaS, !(comparison %in% c('intra.F', 'inter.WF', 'inter.YF')))),
+            )
+group <- list(all = substring(rownames(mat$all), 1, 1))
   
-  adonis(mat ~ group)
+adonis(mat$all ~ group$all)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = mat ~ group) 
+    ## adonis(formula = mat$all ~ group$all) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group       5   -289.98 -57.996 -25.839 -5.0071      1
-    ## Residuals 155    347.90   2.244          6.0071       
-    ## Total     160     57.91                  1.0000
+    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+    ## group$all   7    858.38 122.626  60.156 0.67473  0.001 ***
+    ## Residuals 203    413.80   2.038         0.32527           
+    ## Total     210   1272.18                 1.00000           
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-No difference? Huh. Was hoping for a below-threshold example. Need to poke around more.
+``` r
+#group + group:ind
+```
 
-**Step 2:** Effect sizes anyway
+**Step 2:** Effect sizes
 
 ``` r
 models$group <- substring(rownames(models), 1, 1)
-#bootcentroidDS(models[,1:4], models$group)  # not working yet
+#bootcentroidDS(models[,1:4], models$group)  # Not workin'
 ```
 
 ``` r
@@ -506,9 +555,10 @@ sessionInfo()
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## other attached packages:
-    ## [1] lme4_1.1-12          Matrix_1.2-6         vegan_2.4-0         
-    ## [4] lattice_0.20-33      permute_0.9-0        gridExtra_2.2.1     
-    ## [7] ggplot2_2.1.0        scatterplot3d_0.3-37 pavo_0.99           
+    ##  [1] lme4_1.1-12          Matrix_1.2-6         vegan_2.4-0         
+    ##  [4] lattice_0.20-33      permute_0.9-0        gridExtra_2.2.1     
+    ##  [7] ggplot2_2.1.0        scatterplot3d_0.3-37 pavo_0.5-5          
+    ## [10] rgl_0.95.1441       
     ## 
     ## loaded via a namespace (and not attached):
     ##  [1] Rcpp_0.12.5      nloptr_1.0.4     formatR_1.4      plyr_1.8.4      
