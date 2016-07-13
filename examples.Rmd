@@ -181,7 +181,7 @@ models$roof$group <- substring(rownames(models$roof), 1, 1)
 models$tongue$group <- substring(rownames(models$tongue), 1, 1)
 
 # labium
-bootcentroidDS(models$lab[,1:4], models$lab$group, achro = FALSE, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
+bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 # throat
 bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 
@@ -312,7 +312,7 @@ models$group <- substring(rownames(models), 1, 1)
 
 ```{r}
 
-rm(deltaS, models, models_hex, specs, mat, group)
+rm(deltaS, models, specs, mat, group)
 
 ```
 

@@ -172,7 +172,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.545
+    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.515
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -212,7 +212,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.205
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.197
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -230,11 +230,11 @@ models$roof$group <- substring(rownames(models$roof), 1, 1)
 models$tongue$group <- substring(rownames(models$tongue), 1, 1)
 
 # labium
-bootcentroidDS(models$lab[,1:4], models$lab$group, achro = FALSE, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
+bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3273573 0.6234629
+    ## F-M   0.4650257 0.3188262 0.6328443
 
 ``` r
 # throat
@@ -242,7 +242,7 @@ bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.5703535 0.3598512 0.8080296
+    ## F-M   0.5703535 0.3759861 0.8470593
 
 So lab's & throats are statistically distinct, but fall below threshold on average.
 
@@ -391,7 +391,7 @@ adonis(mat$WF ~ group$WF)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$WF    1     115.9 115.897  2.2454 0.01932  0.109
+    ## group$WF    1     115.9 115.897  2.2454 0.01932  0.121
     ## Residuals 114    5884.3  51.617         0.98068       
     ## Total     115    6000.2                 1.00000
 
@@ -426,11 +426,8 @@ models$group <- substring(rownames(models), 1, 1)
 ```
 
 ``` r
-rm(deltaS, models, models_hex, specs, mat, group)
+rm(deltaS, models, specs, mat, group)
 ```
-
-    ## Warning in rm(deltaS, models, models_hex, specs, mat, group): object
-    ## 'models_hex' not found
 
 Example 3: Crypsis.
 -------------------
