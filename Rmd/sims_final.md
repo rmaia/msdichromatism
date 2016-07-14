@@ -107,7 +107,7 @@ Scenario 3
 Generate data
 
 ``` r
-simulatedata <- replicate(50, 
+simulatedata <- replicate(500, 
                   simdich(N=50, sgsqsrate=4, multiplier=c(0.85, 1.15)), 
                   simplify=FALSE)
 
@@ -130,9 +130,9 @@ centdist <- unlist(parallel::mclapply(simulatedata, centroidist, mc.cores=6))
 gc()
 ```
 
-    ##            used  (Mb) gc trigger  (Mb) max used  (Mb)
-    ## Ncells  1316927  70.4    2164898 115.7  1681103  89.8
-    ## Vcells 14568823 111.2   23786444 181.5 19646627 149.9
+    ##             used  (Mb) gc trigger   (Mb)  max used   (Mb)
+    ## Ncells   1511777  80.8    2637877  140.9   1770749   94.6
+    ## Vcells 128524431 980.6  196607064 1500.0 177902902 1357.3
 
 ![](../output/figures/finalsims/fs_unnamed-chunk-2-1.png)
 
