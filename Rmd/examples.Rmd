@@ -15,7 +15,8 @@ require(vegan)
 require(lme4)
 
 knitr::opts_chunk$set(echo = TRUE, 
-                      fig.path='output/figures/examples/examples_fig')
+                      fig.path='../output/figures/examples/examples_fig')
+knitr::opts_knit$set(root.dir=normalizePath(".."))
 ```
 
 # Possible examples w/ real data 

@@ -13,9 +13,10 @@ require(vegan)
 require(lme4)
 
 knitr::opts_chunk$set(echo = TRUE, 
-                      fig.path='output/figures/simspt2/simspt2_fig', 
+                      fig.path='../output/figures/simspt2/simspt2_fig', 
                       fig.height = 10,
-                      cache.path = 'output/cache/simspt2/simspt2_cache')
+                      cache.path = '../output/cache/simspt2/simspt2_cache')
+knitr::opts_knit$set(root.dir=normalizePath(".."))
 
 set.seed(6210)
 ```

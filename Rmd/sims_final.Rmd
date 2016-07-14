@@ -1,0 +1,248 @@
+---
+title: "Final simulations"
+output: 
+  #html_document
+  md_document:
+    variant: markdown_github
+---
+
+```{r setup, include=FALSE}
+require(pavo)
+require(scatterplot3d)
+require(vegan)
+
+knitr::opts_chunk$set(echo = TRUE, 
+                      fig.path='../output/figures/finalsims/fs_', 
+                      #fig.height = 10,
+                      cache.path = '../output/cache/finalsims/fs_')
+knitr::opts_knit$set(root.dir=normalizePath(".."))
+
+set.seed(6210)
+```
+
+useful functions
+```{r}
+
+# Make RColorBrewer colors transparent
+rcbalpha <- function(alpha=1, ...){
+  aa <- data.frame(t(col2rgb(RColorBrewer::brewer.pal(...), alpha=F)))/255
+  #aa$alpha <- alpha
+  rgb(aa, alpha=alpha)
+}
+
+# significant/not significant histogram 
+yesnohist <- function(x, xlab=""){
+  bq <- 0.5  
+  while(length(seq(0, ceiling(max(x)),by=bq)) < 10) 
+    bq <- bq/2
+
+yes <- hist(x[adonisP], breaks=seq(0, ceiling(max(x)),by=bq), plot=F)
+no <- hist(x[!adonisP], breaks=seq(0, ceiling(max(x)),by=bq), plot=F)
+
+plot(c(0,yes$breaks), c(0,yes$counts,0), type='s',col=palette[1], lwd=5,
+     ylab='Frequency', xlab=xlab,
+     ylim=range(c(yes$counts,no$counts))* c(0,1.1),
+     xlim=c(0, max(c(yes$breaks, no$breaks)*1.1)))
+lines(c(0,no$breaks), c(0,no$counts,0), col=palette[2], type='s', lwd=5)
+
+legend('topright', col=palette[1:2], c('significant  ','not significant  '), 
+       pch=15, pt.cex=2.5, bty='n')
+}
+
+
+# tetrahedral plot
+source('R/dichtcp.R')
+
+# simulate two groups of data
+simdich <- function(N=50, sgsqsrate=10, multiplier=c(0.95, 1.05)){
+
+  musA <- runif(4, 1e-6, 1e0) # vector of means for group A
+  musA <- runif(4, 1, 10)
+  #musB <- musA*runif(4, .8, 1.2) # vector of means for group B
+  #musB <- musA * rnorm(4, multiplier[1], multiplier[2])
+  musB <- musA * runif(4, multiplier[1], multiplier[2])
+  sgsqs <- rexp(4, sgsqsrate) # vector of standard deviations
+  
+  groupA <- matrix(NA, nrow=N, ncol=4)
+  groupA[,1] <- rlnorm(N, meanlog=log(musA[1]), sdlog=sgsqs[1])
+  groupA[,2] <- rlnorm(N, meanlog=log(musA[2]), sdlog=sgsqs[2])
+  groupA[,3] <- rlnorm(N, meanlog=log(musA[3]), sdlog=sgsqs[3])
+  groupA[,4] <- rlnorm(N, meanlog=log(musA[4]), sdlog=sgsqs[4])
+  
+  groupB <- matrix(NA, nrow=N, ncol=4)
+  groupB[,1] <- rlnorm(N, meanlog=log(musB[1]), sdlog=sgsqs[1])
+  groupB[,2] <- rlnorm(N, meanlog=log(musB[2]), sdlog=sgsqs[2])
+  groupB[,3] <- rlnorm(N, meanlog=log(musB[3]), sdlog=sgsqs[3])
+  groupB[,4] <- rlnorm(N, meanlog=log(musB[4]), sdlog=sgsqs[4])
+  
+  combined <- data.frame(rbind(groupA,groupB))
+  
+  colnames(combined) <- c('u','s','m', 'l')
+  rownames(combined) <- paste(rep(c('gA','gB'), each=N),1:N, sep='')
+  
+  attr(combined, 'relative') <- FALSE
+  
+  simpars <- data.frame(rbind(musA, musB, sgsqs))
+  colnames(simpars) <- c('u','s','m', 'l')
+  rownames(simpars) <- c('muA','muB','ssq')
+  attr(combined, 'simpar') <- simpars
+  
+  combined
+  }
+
+# make distance matrix and run adonis
+adoniscoldist <- function(x, ...){
+  dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
+  rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
+  
+  for(i in rownames(dmat))
+    for(j in colnames(dmat))
+      if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
+      dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
+  
+  grouping <- gsub('[0-9]','', rownames(dmat))
+  
+  adonis(dmat~grouping, ...)
+  }
+
+# split data and run volume overlap
+voloverlaptest <- function(dat){
+  tcsdat <- suppressWarnings(tcs(dat))
+  gA <- tcsdat[1:(dim(dat)[1]/2),]
+  gB <- tcsdat[(dim(dat)[1]/2+1):(dim(dat)[1]),]
+  
+  voloverlap(gA, gB)
+}
+
+# split data, get centroids, get color distance
+centroidist <- function(dat){
+  gA.c <- colMeans(dat[1:(dim(dat)[1]/2),])
+  gB.c <- colMeans(dat[(dim(dat)[1]/2+1):(dim(dat)[1]),])
+  
+  coldist(rbind(gA.c, gB.c), achro=FALSE)$dS
+}
+
+
+```
+
+## Scenario 3
+
+Generate data
+```{r coldistcache, cache=TRUE}
+simulatedata <- replicate(50, 
+                  simdich(N=50, sgsqsrate=4, multiplier=c(0.85, 1.15)), 
+                  simplify=FALSE)
+
+simulatecoldist <- parallel::mclapply(simulatedata, function(x) {
+  Y <- coldist(x, achro=FALSE)
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  }, mc.cores=6)
+```
+
+Run stuff
+```{r adoniscache, cache=TRUE, dependson='coldistcache'}
+adonissim <- parallel::mclapply(simulatecoldist, adoniscoldist, sqrt.dist=TRUE, mc.cores=6)
+vovsim <- parallel::mclapply(simulatedata, voloverlaptest, mc.cores=6)
+centdist <- unlist(parallel::mclapply(simulatedata, centroidist, mc.cores=6))
+gc()
+```
+
+```{r, echo=FALSE, fig.width=7, fig.height=4.5, dependson=c('coldistcache', 'adoniscache')}
+adonisP <- unlist(lapply(adonissim, function(x) x$aov.tab$'Pr(>F)'[1]))
+adonisP <- adonisP < 0.05
+#adonisP <- factor(adonisP < 0.05, labels=c('no', 'yes'))
+adonisR2 <- unlist(lapply(adonissim, function(x) x$aov.tab$'R2'[1])) * 100
+
+overlap <- unlist(lapply(vovsim, '[','vboth')) * 100
+
+gmeans <- lapply(simulatecoldist, function(x) tapply(x$dS, x$comparison, mean))
+gmeans <- do.call(rbind, gmeans)
+
+intradist <- rowMeans(gmeans[, -1])
+interdist <- gmeans[,"inter"]
+
+centroidP <- centdist > 1
+
+palette <- rcbalpha(0.8, 3, 'Set1')
+
+sigpal <- as.character(factor(adonisP, labels=palette[1:2]))
+sigpal <- as.character(factor(paste(adonisP, centroidP), labels=rcbalpha(0.8, 6, 'RdBu')[c(3,1,6,4)] ))
+
+h1 <- hist(interdist, breaks=seq(0, ceiling(max(interdist)),by=0.5), plot=F)
+h2 <- hist(intradist, breaks=seq(0, ceiling(max(intradist)),by=0.5), plot=F)
+h3 <- hist(centdist, breaks=seq(0, ceiling(max(centdist)),by=0.5), plot=F)
+
+par(mar=c(4,4.5,1.5,1.5))
+
+plot(c(0,h1$breaks), c(0,h1$counts,0), type='s',col=palette[1], lwd=5,
+     ylab='Frequency', xlab='mean distance (JND)',
+     ylim=range(c(h1$counts,h2$counts,h3$counts))* c(0,1.1))
+lines(c(0,h2$breaks), c(0,h2$counts,0), col=palette[2], type='s', lwd=5)
+lines(c(0,h3$breaks), c(0,h3$counts,0), col=palette[3], type='s', lwd=5)
+
+legend('topright', col=palette, c('between-group  ','within-group', 'centroid'), 
+       pch=15, pt.cex=2.5, bty='n')
+```
+  
+color legend:
+
+* dark colors: methods disagree (BAD)
+* light colors: methods agree (GOOD)
+  
+* light blue: adonis and centroid distance > 1 (GOOD)
+* dark blue: adonis significant, centroid distance < 1 (BAD)
+* dark red: adonis non-significant, centroid distance > 1 (BAD)
+* light red: adonis and centroid distance < 1 (GOOD)
+```{r, echo=FALSE, fig.width=7, fig.height=7, dependson=c('coldistcache', 'adoniscache')}
+
+par(mfrow=c(3,3))
+
+plot(interdist~intradist, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', pch=19, col=sigpal, ylim=range(c(interdist,intradist))*1.1, xlim=range(c(interdist,intradist))*1.1)
+abline(0,1, lty=3)
+
+# Intradist plot is essentially identical (see histogram)
+#plot(intradist~centdist, ylab='mean between-group distance (JND)', xlab='centroid distance (JND)', pch=19, col=rgb(0,0,0,0.4), ylim=c(0,5.5), xlim=c(0,5.5))
+#abline(0,1, lty=3)
+
+plot(adonisR2~interdist, ylab='Rsquared from PERMANOVA (%)', xlab='mean between-group distance (JND)', log='xy', pch=19, col=sigpal)
+
+plot(adonisR2~intradist, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group  distance (JND)', log='xy', pch=19, col=sigpal)
+
+#plot(interdist~centdist, ylab='mean between-group distance (JND)', xlab='centroid distance (JND)', pch=19, col=sigpal, ylim=range(c(interdist,centdist))*1.1, xlim=range(c(interdist,centdist))*1.1)
+#abline(0,1, lty=3)
+
+plot(intradist~centdist, ylab='mean within-group distance (JND)', xlab='centroid distance (JND)', pch=19, col=sigpal, ylim=range(c(intradist,centdist))*1.1, xlim=range(centdist)*1.1)
+abline(0,1, lty=3)
+
+
+plot(adonisR2~centdist, ylab='Rsquared from PERMANOVA (%)', xlab='centroid distance (JND)', log='xy', pch=19, col=sigpal)
+
+plot(adonisR2~overlap, ylab='Rsquared from PERMANOVA (%)', xlab='color volume overlap',  pch=19, col=sigpal)
+
+plot(interdist,overlap,  pch=19, col=sigpal, 
+     xlab='mean between-group distance (JND)', ylab='color volume overlap')
+
+plot(intradist, overlap,  pch=19, col=sigpal, 
+     xlab='mean within-group distance (JND)', ylab='color volume overlap')
+
+plot(centdist, overlap,  pch=19, col=sigpal, 
+     xlab='centroid distance (JND)', ylab='color volume overlap')
+
+
+#yesnohist(interdist, xlab='mean between-group distance (JND)')
+#yesnohist(intradist, xlab='mean within-group distance (JND)')
+#yesnohist(centdist, xlab='centroid distance (JND)')
+
+
+# boxplot(intradistM~I(adonisP < 0.05), 
+#         xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
+#         boxwex=0.3, col=grey(0.7), pch=19, log='y')
+```
+
+```{r}
+sessionInfo()
+```
