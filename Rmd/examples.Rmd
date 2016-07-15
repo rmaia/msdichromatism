@@ -307,9 +307,13 @@ White = distinct, yellow = indistinct. Really? That's....unexpected.
 ```{r}
 
 models$group <- substring(rownames(models), 1, 1)
-#bootcentroidDS(models[,1:3], models$group, vis = 'tri')
+bootcentroidDS(models[,1:3], models$group, vis = 'tri')
 
 ```
+
+So white-vs-flowers are statistically distinct but below threshold. 
+
+And white-versus-yellow are imperceptable (i.e. not polymorphic)? I know, empirically, that that's bullshit, so maybe I messed up the modelling somewhere. 
 
 ```{r}
 
@@ -394,22 +398,25 @@ ggplot(deltaS_plot, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 ```{r}
 
 # Set up distance matrices & groupings for focal comparisons 
-mat <- list(all = distmat(deltaS)
-            #WY = distmat(subset(deltaS, !(comparison %in% c('intra.F', 'inter.WF', 'inter.YF')))),
-            )
+mat <- list(all = distmat(deltaS))
 group <- list(all = substring(rownames(mat$all), 1, 1))
   
 adonis(mat$all ~ group$all)
 
 ```
 
+Yep, differences exist...
+
 **Step 2:** Effect sizes
 ```{r}
 
 models$group <- substring(rownames(models), 1, 1)
-#bootcentroidDS(models[,1:4], models$group)  # Not workin'
+cents <- bootcentroidDS(models[,1:4], models$group)
+cents[grep("B", rownames(cents)), ]  # Mantid-background comparisons
 
 ```
+
+....but they're probably imperceptable.
 
 ```{r}
 sessionInfo()

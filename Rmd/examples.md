@@ -100,7 +100,7 @@ sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_
                                [, c('x','y','z')]), col='red',pch=19)
 ```
 
-![](output/figures/examples/examples_figliz_tcs-1.png)
+![](../output/figures/examples/examples_figliz_tcs-1.png)
 
 ``` r
 p1 <- ggplot(deltaS$lab, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
@@ -122,7 +122,7 @@ p4 <- ggplot(deltaS$tongue, aes(x=dS, fill=comparison)) + geom_histogram(bins=50
 grid.arrange(p1, p2, p3, p4, ncol=2)
 ```
 
-![](output/figures/examples/examples_figliz_deltaplot-1.png)
+![](../output/figures/examples/examples_figliz_deltaplot-1.png)
 
 **Step 1:** PERMANOVAs
 
@@ -172,7 +172,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.515
+    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.502
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -212,7 +212,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.197
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857   0.18
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -234,15 +234,15 @@ bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3188262 0.6328443
+    ## F-M   0.4650257 0.3254145 0.6341863
 
 ``` r
 # throat
 bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 ```
 
-    ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.5703535 0.3759861 0.8470593
+    ##     measured.dS    CI.lwr   CI.upr
+    ## F-M   0.5703535 0.3566584 0.834706
 
 So lab's & throats are statistically distinct, but fall below threshold on average.
 
@@ -300,7 +300,7 @@ points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 19, c
 points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgrey')
 ```
 
-![](output/figures/examples/examples_figmimic_triplot-1.png)
+![](../output/figures/examples/examples_figmimic_triplot-1.png)
 
 ``` r
 ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
@@ -308,7 +308,7 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
         theme(legend.position="none")
 ```
 
-![](output/figures/examples/examples_figmimic_deltaplot-1.png)
+![](../output/figures/examples/examples_figmimic_deltaplot-1.png)
 
 **Step 1:** PERMANOVA
 
@@ -390,10 +390,12 @@ adonis(mat$WF ~ group$WF)
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$WF    1     115.9 115.897  2.2454 0.01932  0.121
-    ## Residuals 114    5884.3  51.617         0.98068       
-    ## Total     115    6000.2                 1.00000
+    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
+    ## group$WF    1     115.9 115.897  2.2454 0.01932  0.095 .
+    ## Residuals 114    5884.3  51.617         0.98068         
+    ## Total     115    6000.2                 1.00000         
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
 # Yellow morph-vs-flowers
@@ -422,8 +424,17 @@ White = distinct, yellow = indistinct. Really? That's....unexpected.
 
 ``` r
 models$group <- substring(rownames(models), 1, 1)
-#bootcentroidDS(models[,1:3], models$group, vis = 'tri')
+bootcentroidDS(models[,1:3], models$group, vis = 'tri')
 ```
+
+    ##     measured.dS    CI.lwr    CI.upr
+    ## F-W   0.4090420 0.1731691 0.7018014
+    ## F-Y   0.8856988 0.6588614 1.1344064
+    ## W-Y   0.5391760 0.4786755 0.6014757
+
+So white-vs-flowers are statistically distinct but below threshold.
+
+And white-versus-yellow are imperceptable (i.e. not polymorphic)? I know, empirically, that that's bullshit, so maybe I messed up the modelling somewhere.
 
 ``` r
 rm(deltaS, models, specs, mat, group)
@@ -491,7 +502,7 @@ sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("A_", rownames(models_rel)),
                                [, c('x','y','z')]), col='gold1',pch=19)
 ```
 
-![](output/figures/examples/examples_figcrypsis_tcs-1.png)
+![](../output/figures/examples/examples_figcrypsis_tcs-1.png)
 
 ``` r
 ggplot(deltaS_plot, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
@@ -499,15 +510,13 @@ ggplot(deltaS_plot, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
         theme(legend.position="none")
 ```
 
-![](output/figures/examples/examples_figcrypsis_deltaplot-1.png)
+![](../output/figures/examples/examples_figcrypsis_deltaplot-1.png)
 
 **Step 1:** PERMANOVA all the things
 
 ``` r
 # Set up distance matrices & groupings for focal comparisons 
-mat <- list(all = distmat(deltaS)
-            #WY = distmat(subset(deltaS, !(comparison %in% c('intra.F', 'inter.WF', 'inter.YF')))),
-            )
+mat <- list(all = distmat(deltaS))
 group <- list(all = substring(rownames(mat$all), 1, 1))
   
 adonis(mat$all ~ group$all)
@@ -529,12 +538,26 @@ adonis(mat$all ~ group$all)
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
+Yep, differences exist...
+
 **Step 2:** Effect sizes
 
 ``` r
 models$group <- substring(rownames(models), 1, 1)
-#bootcentroidDS(models[,1:4], models$group)  # Not workin'
+cents <- bootcentroidDS(models[,1:4], models$group)
+cents[grep("B", rownames(cents)), ]  # Mantid-background comparisons
 ```
+
+    ##     measured.dS    CI.lwr    CI.upr
+    ## A-B   0.5224247 0.4767164 0.5747650
+    ## B-F   0.7419853 0.7255917 0.7581719
+    ## B-H   0.5468573 0.4967462 0.5945283
+    ## B-L   0.5346704 0.4745654 0.5968056
+    ## B-P   0.5646888 0.5113209 0.6173403
+    ## B-R   0.4502396 0.3991810 0.5115921
+    ## B-W   0.4415552 0.4012396 0.4861967
+
+....but they're probably imperceptable.
 
 ``` r
 sessionInfo()
