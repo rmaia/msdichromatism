@@ -168,7 +168,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.495
+    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.502
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -208,7 +208,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.199
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.208
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -230,7 +230,7 @@ bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3143062 0.6348654
+    ## F-M   0.4650257 0.3203307 0.6294769
 
 ``` r
 # throat
@@ -238,7 +238,7 @@ bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.5703535 0.3591093 0.8313688
+    ## F-M   0.5703535 0.3747763 0.8107785
 
 So lab's & throats are statistically distinct, but fall below threshold on average.
 
@@ -387,10 +387,12 @@ adonis(mat$WF ~ group$WF)
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$WF    1       256 256.033  2.6981 0.02312  0.109
-    ## Residuals 114     10818  94.894         0.97688       
-    ## Total     115     11074                 1.00000
+    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
+    ## group$WF    1       256 256.033  2.6981 0.02312  0.088 .
+    ## Residuals 114     10818  94.894         0.97688         
+    ## Total     115     11074                 1.00000         
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
 # Yellow morph-vs-flowers
@@ -423,9 +425,9 @@ bootcentroidDS(models[,1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 =
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.6307334 0.2154213 1.1062694
-    ## F-Y   1.0915541 0.7529778 1.5295851
-    ## W-Y   0.5420380 0.4643210 0.6477248
+    ## F-W   0.6307334 0.2468819 1.0877537
+    ## F-Y   1.0915541 0.7626628 1.4859664
+    ## W-Y   0.5420380 0.4626907 0.6569736
 
 So white-vs-flowers are statistically distinct but below threshold.
 
@@ -438,9 +440,9 @@ rm(deltaS, models, specs, mat, group)
 Example 3: Crypsis.
 -------------------
 
-Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female mantids *Pseudomantis albofimbriata* and 50 background samples (*Lomandra longifolia*, which they pretty much exclusively hang on).
+Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female and 7 male mantids *Pseudomantis albofimbriata* and 50 background samples (*Lomandra longifolia*, which they pretty much exclusively hang on).
 
-So six groups, one **Q:** Are mantids cryptic? i.e. are all body regions chromaticically indistinguishable from their background?
+So six groups, a couple of **Q's:** Are mantids cryptic? i.e. are all body regions chromaticically indistinguishable from their background? And are they any sex differences ('hidden' UV sexual signals perhaps)?
 
 Calculate deltaS according to blue tits
 
@@ -536,7 +538,7 @@ adonis(mat ~ patch * sex)
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Yep, differences exist...
+Large patch effect, minor sex \* patch interaction.
 
 **Step 2:** Effect sizes
 
@@ -562,7 +564,7 @@ cents_f$comp <- rownames(cents_f)
 cents <- rbind(cents_m, cents_f)
 ```
 
-Plot (patch \* sex)-vs-bkg
+Plot (patch \* sex)-versus-bkg
 
 ``` r
   pd <- position_dodge(.5)
@@ -572,18 +574,12 @@ Plot (patch \* sex)-vs-bkg
     geom_hline(yintercept = 1, linetype = 2) +
     scale_y_continuous(limits = c(0, 1.2)) +
     ylab("dS") +
-    theme(axis.line = element_line(colour = 'black'),
-          axis.text = element_text(colour = 'black'),
-          text = element_text(size = 18),
-          axis.title.x = element_text(vjust = -0.5),
-          axis.title.y = element_text(vjust = 1.2),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          panel.border = element_blank(),
-          legend.position = 'none')  
+    theme(legend.position = 'none')  
 ```
 
 ![](../output/figures/examples/examples_figcrypsis_effectplot-1.png)
+
+So all patches are below threshold (i.e. cryptic), and there are some very minor, imperceptible differences between sexes. There's a ton of variance in males due to relatively low sample size.
 
 ``` r
 sessionInfo()
