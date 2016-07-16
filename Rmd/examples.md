@@ -1,12 +1,11 @@
-Possible examples w/ real data
-==============================
+Worked examples
+===============
 
 ``` r
 source('R/bootstrapcentroiddS.R')
 source('R/trispace.R')
 
-# Pared down to just provide the distance matrix (just so I can trace what's going
-# on a bit more easily).
+# Distance matrix generator
 distmat <- function(x){
   dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
   rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
@@ -15,12 +14,9 @@ distmat <- function(x){
     for(j in colnames(dmat))
       if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
       dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
-
-  #grouping <- substring(rownames(dmat), 1, 1)
   
   dmat
   
-  #adonis(dmat~grouping)
 }
 ```
 
@@ -172,7 +168,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.502
+    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.495
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -212,7 +208,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857   0.18
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.199
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -234,15 +230,15 @@ bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3254145 0.6341863
+    ## F-M   0.4650257 0.3143062 0.6348654
 
 ``` r
 # throat
 bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 ```
 
-    ##     measured.dS    CI.lwr   CI.upr
-    ## F-M   0.5703535 0.3566584 0.834706
+    ##     measured.dS    CI.lwr    CI.upr
+    ## F-M   0.5703535 0.3591093 0.8313688
 
 So lab's & throats are statistically distinct, but fall below threshold on average.
 
@@ -274,13 +270,14 @@ specs <- as.rspec(read.csv('data/mimicry/flowers_spiders.csv'), interp = FALSE)
 bee_vis <- sensmodel(c(350, 440, 540)) 
 names(bee_vis) <- c('wl','s', 'm', 'l')
 
+# Receptor-noise
 models <- vismodel(specs, visual = bee_vis, relative = FALSE,
                                                  qcatch = "fi", scale = 10000)  # rn
 models_rel <- vismodel(specs, visual = bee_vis, relative = TRUE,
                                                  qcatch = "Qi", scale = 10000)  # for plotting
 models_tri <- trispace(models_rel)
 
-deltaS <- coldist(models, achro = FALSE)
+deltaS <- coldist(models, achro = FALSE, n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
 
 # Contrast labels
 deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('W_', deltaS$patch2)] <- 'intra.W'
@@ -341,9 +338,9 @@ adonis(mat$all ~ group$all)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$all   2    1228.4  614.22  18.514 0.16239  0.001 ***
-    ## Residuals 191    6336.5   33.18         0.83761           
-    ## Total     193    7564.9                 1.00000           
+    ## group$all   2    1583.5  791.74   13.03 0.12006  0.001 ***
+    ## Residuals 191   11606.0   60.76         0.87994           
+    ## Total     193   13189.5                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -366,9 +363,9 @@ adonis(mat$WY ~ group$WY)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$WY    1    424.25  424.25  74.969 0.39053  0.001 ***
-    ## Residuals 117    662.10    5.66         0.60947           
-    ## Total     118   1086.35                 1.00000           
+    ## group$WY    1    390.28  390.28  37.744 0.24391  0.001 ***
+    ## Residuals 117   1209.78   10.34         0.75609           
+    ## Total     118   1600.06                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -390,12 +387,10 @@ adonis(mat$WF ~ group$WF)
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
-    ## group$WF    1     115.9 115.897  2.2454 0.01932  0.095 .
-    ## Residuals 114    5884.3  51.617         0.98068         
-    ## Total     115    6000.2                 1.00000         
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+    ## group$WF    1       256 256.033  2.6981 0.02312  0.109
+    ## Residuals 114     10818  94.894         0.97688       
+    ## Total     115     11074                 1.00000
 
 ``` r
 # Yellow morph-vs-flowers
@@ -412,9 +407,9 @@ adonis(mat$YF ~ group$YF)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$YF    1    1143.5 1143.53  28.007 0.15734  0.001 ***
-    ## Residuals 150    6124.4   40.83         0.84266           
-    ## Total     151    7268.0                 1.00000           
+    ## group$YF    1    1519.1 1519.14  20.383 0.11963  0.001 ***
+    ## Residuals 150   11179.7   74.53         0.88037           
+    ## Total     151   12698.8                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -424,13 +419,13 @@ White = distinct, yellow = indistinct. Really? That's....unexpected.
 
 ``` r
 models$group <- substring(rownames(models), 1, 1)
-bootcentroidDS(models[,1:3], models$group, vis = 'tri')
+bootcentroidDS(models[,1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.4090420 0.1731691 0.7018014
-    ## F-Y   0.8856988 0.6588614 1.1344064
-    ## W-Y   0.5391760 0.4786755 0.6014757
+    ## F-W   0.6307334 0.2154213 1.1062694
+    ## F-Y   1.0915541 0.7529778 1.5295851
+    ## W-Y   0.5420380 0.4643210 0.6477248
 
 So white-vs-flowers are statistically distinct but below threshold.
 
@@ -516,15 +511,16 @@ ggplot(deltaS_plot, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 
 ``` r
 # Set up distance matrices & groupings for focal comparisons 
-mat <- list(all = distmat(deltaS))
-group <- list(all = substring(rownames(mat$all), 1, 1))
-  
-adonis(mat$all ~ group$all)
+mat <- distmat(deltaS)
+patch <- substring(rownames(mat), 1, 1)  # body part
+sex <- substring(rownames(mat), nchar(rownames(mat)))  # sex (Male, Female, None (bkg))  
+
+adonis(mat ~ patch * sex)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = mat$all ~ group$all) 
+    ## adonis(formula = mat ~ patch * sex) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
@@ -532,9 +528,11 @@ adonis(mat$all ~ group$all)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$all   7    858.38 122.626  60.156 0.67473  0.001 ***
-    ## Residuals 203    413.80   2.038         0.32527           
-    ## Total     210   1272.18                 1.00000           
+    ## patch       5    543.19 108.637  39.672 0.42482  0.001 ***
+    ## sex         1     35.47  35.471  12.953 0.02774  0.001 ***
+    ## patch:sex   4    130.37  32.593  11.902 0.10196  0.001 ***
+    ## Residuals 208    569.59   2.738         0.44547           
+    ## Total     218   1278.62                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -543,21 +541,49 @@ Yep, differences exist...
 **Step 2:** Effect sizes
 
 ``` r
-models$group <- substring(rownames(models), 1, 1)
-cents <- bootcentroidDS(models[,1:4], models$group)
-cents[grep("B", rownames(cents)), ]  # Mantid-background comparisons
+# Splitting up by sex. Need to tidy this up.
+models$patch <- substring(rownames(models), 1, 1)
+models$sex <- substring(rownames(models), nchar(rownames(models)))
+
+models_m <- subset(models, sex != 'F')
+models_f <- subset(models, sex != 'M')
+
+cents_m <- bootcentroidDS(models_m[,1:4], models_m$patch)
+cents_f <- bootcentroidDS(models_f[,1:4], models_f$patch)
+
+cents_m <- as.data.frame(cents_m[grep("B", rownames(cents_m)), ])  # Mantid-background contrasts only
+cents_f <- as.data.frame(cents_f[grep("B", rownames(cents_f)), ])
+
+cents_m$sex <- 'M'
+cents_f$sex <- 'F'
+cents_m$comp <- rownames(cents_m)
+cents_f$comp <- rownames(cents_f)
+
+cents <- rbind(cents_m, cents_f)
 ```
 
-    ##     measured.dS    CI.lwr    CI.upr
-    ## A-B   0.5224247 0.4767164 0.5747650
-    ## B-F   0.7419853 0.7255917 0.7581719
-    ## B-H   0.5468573 0.4967462 0.5945283
-    ## B-L   0.5346704 0.4745654 0.5968056
-    ## B-P   0.5646888 0.5113209 0.6173403
-    ## B-R   0.4502396 0.3991810 0.5115921
-    ## B-W   0.4415552 0.4012396 0.4861967
+Plot (patch \* sex)-vs-bkg
 
-....but they're probably imperceptable.
+``` r
+  pd <- position_dodge(.5)
+  ggplot(cents, aes(x = sex, y = measured.dS, colour = comp, group = comp)) + 
+    geom_errorbar(aes(ymin = CI.lwr, ymax = CI.upr), colour = "black", width = .2, position = pd) +
+    geom_point(aes(fill = comp), position = pd, size = 3, shape = 21, colour = 'black') + 
+    geom_hline(yintercept = 1, linetype = 2) +
+    scale_y_continuous(limits = c(0, 1.2)) +
+    ylab("dS") +
+    theme(axis.line = element_line(colour = 'black'),
+          axis.text = element_text(colour = 'black'),
+          text = element_text(size = 18),
+          axis.title.x = element_text(vjust = -0.5),
+          axis.title.y = element_text(vjust = 1.2),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(),
+          legend.position = 'none')  
+```
+
+![](../output/figures/examples/examples_figcrypsis_effectplot-1.png)
 
 ``` r
 sessionInfo()
