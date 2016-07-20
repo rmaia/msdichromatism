@@ -168,7 +168,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.538
+    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.515
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -208,7 +208,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.209
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.196
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -230,15 +230,15 @@ bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3172097 0.6317713
+    ## F-M   0.4650257 0.3193003 0.6241576
 
 ``` r
 # throat
 bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 ```
 
-    ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.5703535 0.3705315 0.8139843
+    ##     measured.dS    CI.lwr   CI.upr
+    ## F-M   0.5703535 0.3690525 0.842059
 
 So lab's & throats are statistically distinct, but fall below threshold on average.
 
@@ -266,12 +266,6 @@ specs <- as.rspec(read.csv('data/mimicry/flowers_spiders.csv'), interp = FALSE)
     ## wavelengths found in column 1
 
 ``` r
-back <- as.rspec(read.csv('data/mimicry/bkg.csv'), interp = FALSE)
-```
-
-    ## wavelengths found in column 1
-
-``` r
 # Honeybee
 bee_vis <- sensmodel(c(344, 436, 556), beta = FALSE) 
 names(bee_vis) <- c('wl','s', 'm', 'l')
@@ -280,7 +274,7 @@ names(bee_vis) <- c('wl','s', 'm', 'l')
 models <- vismodel(specs, visual = bee_vis, relative = FALSE,
                                                  qcatch = "fi", scale = 10000)  # rn
 models_rel <- vismodel(specs, visual = bee_vis, relative = TRUE,
-                                                 qcatch = "Qi", scale = 10000)  # for plotting
+                                                 qcatch = "fi", scale = 10000)  # for plotting
 models_tri <- trispace(models_rel)
 
 deltaS <- coldist(models, achro = FALSE, n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
@@ -290,9 +284,9 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4506722 1.4450443
-    ## F-Y   1.3789736 1.0175498 1.8509820
-    ## W-Y   0.7111240 0.6441988 0.8069741
+    ## F-W   0.9156266 0.4318828 1.4442582
+    ## F-Y   1.3789736 0.9827118 1.8698232
+    ## W-Y   0.7111240 0.6461248 0.8076403
 
 ``` r
 # Contrast labels
@@ -308,9 +302,9 @@ Visualise.
 
 ``` r
 # Max triangle
-triplot(models_tri[grepl("F_", rownames(models_tri)), ], col = 'forestgreen')
-points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgoldenrod1')
-points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgrey')
+triplot(models_tri[grepl("F_", rownames(models_tri)), ], col = 'forestgreen', cex = 0.8)
+points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgoldenrod1', cex = 0.8)
+points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgrey', cex = 0.8)
 ```
 
 ![](../output/figures/examples/examples_figmimic_triplot-1.png)
@@ -404,7 +398,7 @@ adonis(mat$WF ~ group$WF)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
-    ## group$WF    1     449.8  449.83  3.6675 0.03504  0.042 *
+    ## group$WF    1     449.8  449.83  3.6675 0.03504  0.044 *
     ## Residuals 101   12387.8  122.65         0.96496         
     ## Total     102   12837.7                 1.00000         
     ## ---
@@ -441,11 +435,11 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4456402 1.4709104
-    ## F-Y   1.3789736 1.0005199 1.8486615
-    ## W-Y   0.7111240 0.6418956 0.8066762
+    ## F-W   0.9156266 0.4332925 1.4354513
+    ## F-Y   1.3789736 1.0011060 1.8564505
+    ## W-Y   0.7111240 0.6463866 0.8155021
 
-So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but being near-threshold it may be influenced by learning etc.
+So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but probably tough (depending on experience etc.).
 
 ``` r
 rm(deltaS, models, specs, mat, group)

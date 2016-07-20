@@ -23,7 +23,7 @@ trispace <- function(vismodeldata){
   res
 }
 
-triplot <- function(tridata, labels = TRUE, achro = TRUE, achrocol = 'grey', achrosize = 0.8, 
+triplot <- function(tridata, labels = TRUE, achro = TRUE, achrocol = 'black', achrosize = 0.8, 
                     cex.labels = 1, out.lwd = 1, out.lcol = 'black', out.lty = 1, ...){ 
   
   arg <- list(...)

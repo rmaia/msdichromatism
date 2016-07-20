@@ -207,7 +207,6 @@ Calculate deltaS (JNDs) according to a honeybee
 ```{r}
 
 specs <- as.rspec(read.csv('data/mimicry/flowers_spiders.csv'), interp = FALSE)
-back <- as.rspec(read.csv('data/mimicry/bkg.csv'), interp = FALSE)
 
 # Honeybee
 bee_vis <- sensmodel(c(344, 436, 556), beta = FALSE) 
@@ -217,7 +216,7 @@ names(bee_vis) <- c('wl','s', 'm', 'l')
 models <- vismodel(specs, visual = bee_vis, relative = FALSE,
                                                  qcatch = "fi", scale = 10000)  # rn
 models_rel <- vismodel(specs, visual = bee_vis, relative = TRUE,
-                                                 qcatch = "Qi", scale = 10000)  # for plotting
+                                                 qcatch = "fi", scale = 10000)  # for plotting
 models_tri <- trispace(models_rel)
 
 deltaS <- coldist(models, achro = FALSE, n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
@@ -240,9 +239,9 @@ Visualise.
 ```{r mimic_triplot, fig.width=6, fig.height=6}
 
 # Max triangle
-triplot(models_tri[grepl("F_", rownames(models_tri)), ], col = 'forestgreen')
-points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgoldenrod1')
-points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgrey')
+triplot(models_tri[grepl("F_", rownames(models_tri)), ], col = 'forestgreen', cex = 0.8)
+points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgoldenrod1', cex = 0.8)
+points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgrey', cex = 0.8)
 
 ```
 
@@ -312,7 +311,7 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 
 ```
 
-So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but being near-threshold it may be influenced by learning etc.  
+So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but probably tough (depending on experience etc.).  
 
 ```{r}
 
