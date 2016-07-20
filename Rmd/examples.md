@@ -168,7 +168,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.515
+    ## group$roof  1      3.22  3.2242 0.49025 0.009    0.5
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -208,7 +208,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.196
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.185
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -230,15 +230,15 @@ bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3193003 0.6241576
+    ## F-M   0.4650257 0.3079922 0.6328555
 
 ``` r
 # throat
 bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 ```
 
-    ##     measured.dS    CI.lwr   CI.upr
-    ## F-M   0.5703535 0.3690525 0.842059
+    ##     measured.dS    CI.lwr    CI.upr
+    ## F-M   0.5703535 0.3820391 0.8160234
 
 So lab's & throats are statistically distinct, but fall below threshold on average.
 
@@ -284,9 +284,9 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4318828 1.4442582
-    ## F-Y   1.3789736 0.9827118 1.8698232
-    ## W-Y   0.7111240 0.6461248 0.8076403
+    ## F-W   0.9156266 0.4105240 1.4102874
+    ## F-Y   1.3789736 0.9980688 1.8350024
+    ## W-Y   0.7111240 0.6444915 0.8042551
 
 ``` r
 # Contrast labels
@@ -398,7 +398,7 @@ adonis(mat$WF ~ group$WF)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
-    ## group$WF    1     449.8  449.83  3.6675 0.03504  0.044 *
+    ## group$WF    1     449.8  449.83  3.6675 0.03504  0.038 *
     ## Residuals 101   12387.8  122.65         0.96496         
     ## Total     102   12837.7                 1.00000         
     ## ---
@@ -435,9 +435,9 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4332925 1.4354513
-    ## F-Y   1.3789736 1.0011060 1.8564505
-    ## W-Y   0.7111240 0.6463866 0.8155021
+    ## F-W   0.9156266 0.4436594 1.4395603
+    ## F-Y   1.3789736 0.9966871 1.8786553
+    ## W-Y   0.7111240 0.6485133 0.8124231
 
 So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but probably tough (depending on experience etc.).
 
@@ -448,7 +448,7 @@ rm(deltaS, models, specs, mat, group)
 Example 3: Crypsis.
 -------------------
 
-Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female and 7 male mantids *Pseudomantis albofimbriata* and 50 background samples (*Lomandra longifolia*, which they pretty much exclusively hang on).
+Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing) of 27 female and 7 male mantids *Pseudomantis albofimbriata* and 50 background samples (*Lomandra longifolia*, which they pretty much exclusively hang on).
 
 So six groups, a couple of **Q's:** Are mantids cryptic? i.e. are all body regions chromaticically indistinguishable from their background? And are they any sex differences ('hidden' UV sexual signals perhaps)?
 
@@ -572,7 +572,7 @@ cents_f$comp <- rownames(cents_f)
 cents <- rbind(cents_m, cents_f)
 ```
 
-Plot (patch \* sex)-versus-bkg
+Plot (patch \* sex)-versus-bkg bootstrapped centroid distances
 
 ``` r
   pd <- position_dodge(.5)

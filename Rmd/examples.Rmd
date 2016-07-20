@@ -321,7 +321,7 @@ rm(deltaS, models, specs, mat, group)
 
 ## Example 3: Crypsis. 
 
-Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female and 7 male mantids _Pseudomantis albofimbriata_ and 50 background samples (_Lomandra longifolia_, which they pretty much exclusively hang on).
+Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing) of 27 female and 7 male mantids _Pseudomantis albofimbriata_ and 50 background samples (_Lomandra longifolia_, which they pretty much exclusively hang on).
 
 So six groups, a couple of **Q's:** Are mantids cryptic? i.e. are all body regions chromaticically 
 indistinguishable from their background? And are they any sex differences ('hidden' UV sexual signals perhaps)?
@@ -431,7 +431,7 @@ cents <- rbind(cents_m, cents_f)
 
 ```
 
-Plot (patch * sex)-versus-bkg
+Plot (patch * sex)-versus-bkg bootstrapped centroid distances
 
 ```{r crypsis_effectplot, fig.width=8, fig.height=6}
 
