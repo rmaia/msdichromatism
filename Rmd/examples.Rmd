@@ -207,9 +207,10 @@ Calculate deltaS (JNDs) according to a honeybee
 ```{r}
 
 specs <- as.rspec(read.csv('data/mimicry/flowers_spiders.csv'), interp = FALSE)
+back <- as.rspec(read.csv('data/mimicry/bkg.csv'), interp = FALSE)
 
 # Honeybee
-bee_vis <- sensmodel(c(350, 440, 540)) 
+bee_vis <- sensmodel(c(344, 436, 556), beta = FALSE) 
 names(bee_vis) <- c('wl','s', 'm', 'l')
 
 # Receptor-noise
@@ -220,6 +221,9 @@ models_rel <- vismodel(specs, visual = bee_vis, relative = TRUE,
 models_tri <- trispace(models_rel)
 
 deltaS <- coldist(models, achro = FALSE, n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
+
+models$group <- substring(rownames(models), 1, 1)
+bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
 
 # Contrast labels
 deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('W_', deltaS$patch2)] <- 'intra.W'
@@ -298,19 +302,17 @@ adonis(mat$YF ~ group$YF)
 
 ```
 
-White = distinct, yellow = indistinct. Really? That's....unexpected.
+All distinct.
 
 **Effect sizes**
 ```{r}
 
 models$group <- substring(rownames(models), 1, 1)
-bootcentroidDS(models[,1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
+bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
 
 ```
 
-So white-vs-flowers are statistically distinct but below threshold. 
-
-And white-versus-yellow are imperceptable (i.e. not polymorphic)? I know, empirically, that that's bullshit, so maybe I messed up the modelling somewhere. 
+So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but being near-threshold it may be influenced by learning etc.  
 
 ```{r}
 

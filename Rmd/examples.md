@@ -168,7 +168,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.502
+    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.538
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -208,7 +208,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.208
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.209
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -230,7 +230,7 @@ bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3203307 0.6294769
+    ## F-M   0.4650257 0.3172097 0.6317713
 
 ``` r
 # throat
@@ -238,7 +238,7 @@ bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.5703535 0.3747763 0.8107785
+    ## F-M   0.5703535 0.3705315 0.8139843
 
 So lab's & throats are statistically distinct, but fall below threshold on average.
 
@@ -266,8 +266,14 @@ specs <- as.rspec(read.csv('data/mimicry/flowers_spiders.csv'), interp = FALSE)
     ## wavelengths found in column 1
 
 ``` r
+back <- as.rspec(read.csv('data/mimicry/bkg.csv'), interp = FALSE)
+```
+
+    ## wavelengths found in column 1
+
+``` r
 # Honeybee
-bee_vis <- sensmodel(c(350, 440, 540)) 
+bee_vis <- sensmodel(c(344, 436, 556), beta = FALSE) 
 names(bee_vis) <- c('wl','s', 'm', 'l')
 
 # Receptor-noise
@@ -279,6 +285,16 @@ models_tri <- trispace(models_rel)
 
 deltaS <- coldist(models, achro = FALSE, n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
 
+models$group <- substring(rownames(models), 1, 1)
+bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
+```
+
+    ##     measured.dS    CI.lwr    CI.upr
+    ## F-W   0.9156266 0.4506722 1.4450443
+    ## F-Y   1.3789736 1.0175498 1.8509820
+    ## W-Y   0.7111240 0.6441988 0.8069741
+
+``` r
 # Contrast labels
 deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('W_', deltaS$patch2)] <- 'intra.W'
 deltaS$comparison[grepl('Y_', deltaS$patch1) & grepl('Y_', deltaS$patch2)] <- 'intra.Y'
@@ -338,9 +354,9 @@ adonis(mat$all ~ group$all)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$all   2    1583.5  791.74   13.03 0.12006  0.001 ***
-    ## Residuals 191   11606.0   60.76         0.87994           
-    ## Total     193   13189.5                 1.00000           
+    ## group$all   2    1701.3  850.66  8.8707 0.11769  0.001 ***
+    ## Residuals 133   12754.1   95.90         0.88231           
+    ## Total     135   14455.5                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -362,10 +378,10 @@ adonis(mat$WY ~ group$WY)
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$WY    1    390.28  390.28  37.744 0.24391  0.001 ***
-    ## Residuals 117   1209.78   10.34         0.75609           
-    ## Total     118   1600.06                 1.00000           
+    ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+    ## group$WY   1    383.68  383.68  36.505 0.38223  0.001 ***
+    ## Residuals 59    620.10   10.51         0.61777           
+    ## Total     60   1003.77                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -388,9 +404,9 @@ adonis(mat$WF ~ group$WF)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
-    ## group$WF    1       256 256.033  2.6981 0.02312  0.088 .
-    ## Residuals 114     10818  94.894         0.97688         
-    ## Total     115     11074                 1.00000         
+    ## group$WF    1     449.8  449.83  3.6675 0.03504  0.042 *
+    ## Residuals 101   12387.8  122.65         0.96496         
+    ## Total     102   12837.7                 1.00000         
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -409,29 +425,27 @@ adonis(mat$YF ~ group$YF)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$YF    1    1519.1 1519.14  20.383 0.11963  0.001 ***
-    ## Residuals 150   11179.7   74.53         0.88037           
-    ## Total     151   12698.8                 1.00000           
+    ## group$YF    1    1508.1 1508.08  12.678 0.10774  0.001 ***
+    ## Residuals 105   12489.8  118.95         0.89226           
+    ## Total     106   13997.9                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-White = distinct, yellow = indistinct. Really? That's....unexpected.
+All distinct.
 
 **Effect sizes**
 
 ``` r
 models$group <- substring(rownames(models), 1, 1)
-bootcentroidDS(models[,1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
+bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.6307334 0.2468819 1.0877537
-    ## F-Y   1.0915541 0.7626628 1.4859664
-    ## W-Y   0.5420380 0.4626907 0.6569736
+    ## F-W   0.9156266 0.4456402 1.4709104
+    ## F-Y   1.3789736 1.0005199 1.8486615
+    ## W-Y   0.7111240 0.6418956 0.8066762
 
-So white-vs-flowers are statistically distinct but below threshold.
-
-And white-versus-yellow are imperceptable (i.e. not polymorphic)? I know, empirically, that that's bullshit, so maybe I messed up the modelling somewhere.
+So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but being near-threshold it may be influenced by learning etc.
 
 ``` r
 rm(deltaS, models, specs, mat, group)
@@ -587,7 +601,7 @@ sessionInfo()
 
     ## R version 3.3.1 (2016-06-21)
     ## Platform: x86_64-apple-darwin13.4.0 (64-bit)
-    ## Running under: OS X 10.11.5 (El Capitan)
+    ## Running under: OS X 10.11.6 (El Capitan)
     ## 
     ## locale:
     ## [1] en_AU.UTF-8/en_AU.UTF-8/en_AU.UTF-8/C/en_AU.UTF-8/en_AU.UTF-8
