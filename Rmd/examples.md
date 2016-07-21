@@ -168,7 +168,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009    0.5
+    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.514
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -208,7 +208,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.185
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.204
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -230,7 +230,7 @@ bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3079922 0.6328555
+    ## F-M   0.4650257 0.3103186 0.6288158
 
 ``` r
 # throat
@@ -238,7 +238,7 @@ bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.5703535 0.3820391 0.8160234
+    ## F-M   0.5703535 0.3650851 0.8176844
 
 So lab's & throats are statistically distinct, but fall below threshold on average.
 
@@ -284,9 +284,9 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4105240 1.4102874
-    ## F-Y   1.3789736 0.9980688 1.8350024
-    ## W-Y   0.7111240 0.6444915 0.8042551
+    ## F-W   0.9156266 0.4564889 1.4514817
+    ## F-Y   1.3789736 0.9657627 1.8906444
+    ## W-Y   0.7111240 0.6447087 0.8065855
 
 ``` r
 # Contrast labels
@@ -398,7 +398,7 @@ adonis(mat$WF ~ group$WF)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
-    ## group$WF    1     449.8  449.83  3.6675 0.03504  0.038 *
+    ## group$WF    1     449.8  449.83  3.6675 0.03504  0.034 *
     ## Residuals 101   12387.8  122.65         0.96496         
     ## Total     102   12837.7                 1.00000         
     ## ---
@@ -427,6 +427,44 @@ adonis(mat$YF ~ group$YF)
 
 All distinct.
 
+**ALTERNATIVE:** use customized contrasts to test a priori hypotheses together:
+
+``` r
+cgroups <- factor(group$all)
+
+# create the contrasts we want
+
+contrasts(cgroups) <- cbind(
+  c(-1, 0.5, 0.5), # compare F vs. W&Y, will be named "cgroups1"
+  c(0, -0.5, 0.5)  # compare W vs Y, will be named "cgroups2"
+)
+
+# create design matrix, without intercept
+
+cgmmat <- model.matrix(~cgroups)[,-1]
+
+# run the model testing only specified contrasts
+
+adonis2(mat$all ~ cgmmat[,'cgroups1'] + cgmmat[,'cgroups2'], by='margin')
+```
+
+    ## Permutation test for adonis under reduced model
+    ## Marginal effects of terms
+    ## Permutation: free
+    ## Number of permutations: 999
+    ## 
+    ## adonis2(formula = mat$all ~ cgmmat[, "cgroups1"] + cgmmat[, "cgroups2"], by = "margin")
+    ##                       Df SumOfSqs       F Pr(>F)   
+    ## cgmmat[, "cgroups1"]   1   1267.2 13.2141  0.002 **
+    ## cgmmat[, "cgroups2"]   1    382.0  3.9833  0.032 * 
+    ## Residual             133  12754.1                  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Note that the degrees of freedom, sums of squares, and R2 are the same between the two "full" models, but the specified contrasts let us test both hypotheses together. They would also be the same if you did adonis(mat$all ~ cgroups) (but you'd only get one P value and R2 representing the combined effects of both sets of contrasts)
+
+****RM** Does this make sense, biologically? Based on that plot I would expect crypsis...**
+
 **Effect sizes**
 
 ``` r
@@ -435,9 +473,9 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4436594 1.4395603
-    ## F-Y   1.3789736 0.9966871 1.8786553
-    ## W-Y   0.7111240 0.6485133 0.8124231
+    ## F-W   0.9156266 0.4624532 1.4242691
+    ## F-Y   1.3789736 0.9922673 1.8509966
+    ## W-Y   0.7111240 0.6436729 0.8067489
 
 So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but probably tough (depending on experience etc.).
 
@@ -548,6 +586,77 @@ adonis(mat ~ patch * sex)
 
 Large patch effect, minor sex \* patch interaction.
 
+**Alternatively:** This formula definition might be problematic though - what if there is no sex difference but there's "None" x (both sexes) differences and these are enough to render that comparison significant? let's specify contrasts based on the questions:
+
+``` r
+# contrasts for patch
+cpatch <- factor(patch)
+contrasts(cpatch) <- cbind(c(-1, 0.2, 0.2, 0.2, 0.2, 0.2), # B vs HLPRW
+                           rep(0, 6), rep(0,6), rep(0,6), rep(0,6))
+
+# we don't really care about HxLxPxRxW right? so that should do it
+
+csex <- factor(sex)
+contrasts(csex) <- cbind(
+                        c(-1,1,0), # M vs F
+                        rep(0,3) # we don't care about comparisons with N
+                        )
+
+# without interaction
+adonis2(mat~cpatch+csex, by='margin')
+```
+
+    ## Permutation test for adonis under reduced model
+    ## Marginal effects of terms
+    ## Permutation: free
+    ## Number of permutations: 999
+    ## 
+    ## adonis2(formula = mat ~ cpatch + csex, by = "margin")
+    ##           Df SumOfSqs       F Pr(>F)    
+    ## cpatch     1   226.74 49.9730  0.001 ***
+    ## csex       1    35.47  7.8178  0.001 ***
+    ## Residual 216   980.03                   
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+**note reduced degrees of freedom**
+
+also note that in this scenario, the "interaction" becomes nonsingular and unidentifiable - since all patches are treated as one group and the background as another, and the background is ignored in the sex variable, then the interaction and the sex align perfectly:
+
+(HLPRW):F == F (HLPRW):M == M (HLPRW):B == 0
+
+We can show that there are no degrees of freedom for this comparison:
+
+``` r
+# get model matrix 
+modmat <- model.matrix(~cpatch*csex)
+
+# only columns that interest us:
+# cpatch1: B vs HLPRW
+# csex1: M vs F, ignore N
+# cpatch1:csex1: their interaction
+
+modmat <- modmat[,c("cpatch1", "csex1", "cpatch1:csex1")]
+
+adonis2(mat~modmat, by='margin')
+```
+
+    ## Permutation test for adonis under NA model
+    ## Marginal effects of terms
+    ## Permutation: free
+    ## Number of permutations: 999
+    ## 
+    ## adonis2(formula = mat ~ modmat, by = "margin")
+    ##           Df SumOfSqs      F Pr(>F)    
+    ## modmat     2   298.59 32.905  0.001 ***
+    ## Residual 216   980.03                  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+We can change the contrasts to show an interaction in the form of a sex-by-patch effect, but since we are ignoring the patch differences when testing for crypsis, maybe we shouldn't?
+
+ALSO, note that the contrasts I designed are testing the hypothesis: "are males different from females?" We could also change the contrasts to test MxB x FxB (that is, do the sexes contrast with the background differently) - but given the threshold results that might not even be worth it!
+
 **Step 2:** Effect sizes
 
 ``` r
@@ -593,29 +702,30 @@ So all patches are below threshold (i.e. cryptic), and there are some very minor
 sessionInfo()
 ```
 
-    ## R version 3.3.1 (2016-06-21)
+    ## R version 3.3.0 (2016-05-03)
     ## Platform: x86_64-apple-darwin13.4.0 (64-bit)
     ## Running under: OS X 10.11.6 (El Capitan)
     ## 
     ## locale:
-    ## [1] en_AU.UTF-8/en_AU.UTF-8/en_AU.UTF-8/C/en_AU.UTF-8/en_AU.UTF-8
+    ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
     ## 
     ## attached base packages:
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## other attached packages:
-    ##  [1] lme4_1.1-12          Matrix_1.2-6         vegan_2.4-0         
-    ##  [4] lattice_0.20-33      permute_0.9-0        gridExtra_2.2.1     
-    ##  [7] ggplot2_2.1.0        scatterplot3d_0.3-37 pavo_0.5-5          
-    ## [10] rgl_0.95.1441       
+    ## [1] vegan_2.4-0          lattice_0.20-33      permute_0.9-0       
+    ## [4] gridExtra_2.2.1      ggplot2_2.1.0        scatterplot3d_0.3-37
+    ## [7] pavo_0.5-5           rgl_0.95.1441       
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.5      nloptr_1.0.4     formatR_1.4      plyr_1.8.4      
-    ##  [5] tools_3.3.1      magic_1.5-6      digest_0.6.9     evaluate_0.9    
-    ##  [9] gtable_0.2.0     nlme_3.1-128     mgcv_1.8-12      mapproj_1.2-4   
-    ## [13] yaml_2.1.13      parallel_3.3.1   stringr_1.0.0    knitr_1.13      
-    ## [17] cluster_2.0.4    maps_3.1.0       rcdd_1.1-10      grid_3.3.1      
-    ## [21] rmarkdown_0.9.6  minqa_1.2.4      reshape2_1.4.1   magrittr_1.5    
-    ## [25] scales_0.4.0     htmltools_0.3.5  MASS_7.3-45      splines_3.3.1   
-    ## [29] colorspace_1.2-6 labeling_0.3     stringi_1.1.1    geometry_0.3-6  
-    ## [33] munsell_0.4.3
+    ##  [1] Rcpp_0.12.5        cluster_2.0.4      knitr_1.13        
+    ##  [4] magrittr_1.5       MASS_7.3-45        maps_3.1.0        
+    ##  [7] magic_1.5-6        munsell_0.4.3      colorspace_1.2-6  
+    ## [10] geometry_0.3-6     plyr_1.8.3         stringr_1.0.0     
+    ## [13] tools_3.3.0        parallel_3.3.0     grid_3.3.0        
+    ## [16] nlme_3.1-127       gtable_0.2.0       mgcv_1.8-12       
+    ## [19] htmltools_0.3.5    yaml_2.1.13        digest_0.6.9      
+    ## [22] Matrix_1.2-6       reshape2_1.4.1     mapproj_1.2-4     
+    ## [25] formatR_1.4        rcdd_1.1-10        evaluate_0.9      
+    ## [28] rmarkdown_0.9.6.10 labeling_0.3       stringi_1.0-1     
+    ## [31] scales_0.4.0

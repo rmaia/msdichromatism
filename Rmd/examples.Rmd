@@ -12,7 +12,7 @@ require(scatterplot3d)
 require(ggplot2)
 require(gridExtra)
 require(vegan)
-require(lme4)
+# require(lme4)
 
 knitr::opts_chunk$set(echo = TRUE, 
                       fig.path='../output/figures/examples/examples_fig')
@@ -303,6 +303,31 @@ adonis(mat$YF ~ group$YF)
 
 All distinct.
 
+**ALTERNATIVE:** use customized contrasts to test a priori hypotheses together:
+
+```{r}
+cgroups <- factor(group$all)
+
+# create the contrasts we want
+
+contrasts(cgroups) <- cbind(
+  c(-1, 0.5, 0.5), # compare F vs. W&Y, will be named "cgroups1"
+  c(0, -0.5, 0.5)  # compare W vs Y, will be named "cgroups2"
+)
+
+# create design matrix, without intercept
+
+cgmmat <- model.matrix(~cgroups)[,-1]
+
+# run the model testing only specified contrasts
+
+adonis2(mat$all ~ cgmmat[,'cgroups1'] + cgmmat[,'cgroups2'], by='margin')
+```
+
+Note that the degrees of freedom, sums of squares, and R2 are the same between the two "full" models, but the specified contrasts let us test both hypotheses together. They would also be the same if you did adonis(mat$all ~ cgroups) (but you'd only get one P value and R2 representing the combined effects of both sets of contrasts)
+
+__**RM** Does this make sense, biologically? Based on that plot I would expect crypsis...__
+
 **Effect sizes**
 ```{r}
 
@@ -405,6 +430,56 @@ adonis(mat ~ patch * sex)
 ```
 
 Large patch effect, minor sex * patch interaction.
+
+
+**Alternatively:** This formula definition might be problematic though - what if there is no sex difference but there's "None" x (both sexes) differences and these are enough to render that comparison significant? let's specify contrasts based on the questions:
+
+```{r}
+# contrasts for patch
+cpatch <- factor(patch)
+contrasts(cpatch) <- cbind(c(-1, 0.2, 0.2, 0.2, 0.2, 0.2), # B vs HLPRW
+                           rep(0, 6), rep(0,6), rep(0,6), rep(0,6))
+
+# we don't really care about HxLxPxRxW right? so that should do it
+
+csex <- factor(sex)
+contrasts(csex) <- cbind(
+                        c(-1,1,0), # M vs F
+                        rep(0,3) # we don't care about comparisons with N
+                        )
+
+# without interaction
+adonis2(mat~cpatch+csex, by='margin')
+```
+
+**note reduced degrees of freedom**
+
+also note that in this scenario, the "interaction" becomes nonsingular and unidentifiable - since all patches are treated as one group and the background as another, and the background is ignored in the sex variable, then the interaction and the sex align perfectly:
+
+(HLPRW):F == F
+(HLPRW):M == M
+(HLPRW):B == 0
+
+ We can show that there are no degrees of freedom for this comparison:
+ 
+```{r}
+# get model matrix 
+modmat <- model.matrix(~cpatch*csex)
+
+# only columns that interest us:
+# cpatch1: B vs HLPRW
+# csex1: M vs F, ignore N
+# cpatch1:csex1: their interaction
+
+modmat <- modmat[,c("cpatch1", "csex1", "cpatch1:csex1")]
+
+adonis2(mat~modmat, by='margin')
+```
+
+
+We can change the contrasts to show an interaction in the form of a sex-by-patch effect, but since we are ignoring the patch differences when testing for crypsis, maybe we shouldn't? 
+
+ALSO, note that the contrasts I designed are testing the hypothesis: "are males different from females?" We could also change the contrasts to test MxB x FxB (that is, do the sexes contrast with the background differently) - but given the threshold results that might not even be worth it!
 
 **Step 2:** Effect sizes
 ```{r}

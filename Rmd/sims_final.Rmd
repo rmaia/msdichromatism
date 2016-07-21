@@ -208,9 +208,9 @@ abline(0,1, lty=3)
 #plot(intradist~centdist, ylab='mean between-group distance (JND)', xlab='centroid distance (JND)', pch=19, col=rgb(0,0,0,0.4), ylim=c(0,5.5), xlim=c(0,5.5))
 #abline(0,1, lty=3)
 
-plot(adonisR2~interdist, ylab='Rsquared from PERMANOVA (%)', xlab='mean between-group distance (JND)', log='xy', pch=19, col=sigpal)
+plot(adonisR2~interdist, ylab='Rsquared from PERMANOVA (%)', xlab='mean between-group distance (JND)', pch=19, col=sigpal)
 
-plot(adonisR2~intradist, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group  distance (JND)', log='xy', pch=19, col=sigpal)
+plot(adonisR2~intradist, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group  distance (JND)', pch=19, col=sigpal)
 
 #plot(interdist~centdist, ylab='mean between-group distance (JND)', xlab='centroid distance (JND)', pch=19, col=sigpal, ylim=range(c(interdist,centdist))*1.1, xlim=range(c(interdist,centdist))*1.1)
 #abline(0,1, lty=3)
@@ -219,7 +219,7 @@ plot(intradist~centdist, ylab='mean within-group distance (JND)', xlab='centroid
 abline(0,1, lty=3)
 
 
-plot(adonisR2~centdist, ylab='Rsquared from PERMANOVA (%)', xlab='centroid distance (JND)', log='xy', pch=19, col=sigpal)
+plot(adonisR2~centdist, ylab='Rsquared from PERMANOVA (%)', xlab='centroid distance (JND)', pch=19, col=sigpal)
 
 plot(adonisR2~overlap, ylab='Rsquared from PERMANOVA (%)', xlab='color volume overlap',  pch=19, col=sigpal)
 
