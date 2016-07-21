@@ -20,26 +20,10 @@ trispace <- function(vismodeldata){
   
   res <- res.p
   
-  # Descriptive attributes (largely preserved from vismodel)
-  # attr(res, 'clrsp') <- 'trispace'
-  # attr(res, 'conenumb') <- 3
-  # attr(res, 'qcatch') <- attr(vismodeldata, 'qcatch')
-  # attr(res,'visualsystem.chromatic') <- attr(vismodeldata,'visualsystem.chromatic')
-  # attr(res,'visualsystem.achromatic') <- attr(vismodeldata,'visualsystem.achromatic')
-  # attr(res,'illuminant') <- attr(vismodeldata,'illuminant')
-  # attr(res,'background') <- attr(vismodeldata,'background')
-  # attr(res,'relative') <- attr(vismodeldata,'relative')
-  # attr(res, 'vonkries') <- attr(vismodeldata, 'vonkries')
-  # 
-  # # Data attributes
-  # attr(res, 'data.visualsystem.chromatic') <- attr(vismodeldata, 'data.visualsystem.chromatic')
-  # attr(res, 'data.visualsystem.achromatic') <- attr(vismodeldata, 'data.visualsystem.achromatic')
-  # attr(res, 'data.background') <- attr(vismodeldata, 'data.background')
-  
   res
 }
 
-triplot <- function(tridata, labels = TRUE, achro = TRUE, achrocol = 'grey', achrosize = 0.8, 
+triplot <- function(tridata, labels = TRUE, achro = TRUE, achrocol = 'black', achrosize = 0.8, 
                     cex.labels = 1, out.lwd = 1, out.lcol = 'black', out.lty = 1, ...){ 
   
   arg <- list(...)

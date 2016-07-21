@@ -1,12 +1,11 @@
-Possible examples w/ real data
-==============================
+Worked examples
+===============
 
 ``` r
 source('R/bootstrapcentroiddS.R')
 source('R/trispace.R')
 
-# Pared down to just provide the distance matrix (just so I can trace what's going
-# on a bit more easily).
+# Distance matrix generator
 distmat <- function(x){
   dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
   rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
@@ -15,12 +14,9 @@ distmat <- function(x){
     for(j in colnames(dmat))
       if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
       dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
-
-  #grouping <- substring(rownames(dmat), 1, 1)
   
   dmat
   
-  #adonis(dmat~grouping)
 }
 ```
 
@@ -100,7 +96,7 @@ sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_
                                [, c('x','y','z')]), col='red',pch=19)
 ```
 
-![](output/figures/examples/examples_figliz_tcs-1.png)
+![](../output/figures/examples/examples_figliz_tcs-1.png)
 
 ``` r
 p1 <- ggplot(deltaS$lab, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
@@ -122,7 +118,7 @@ p4 <- ggplot(deltaS$tongue, aes(x=dS, fill=comparison)) + geom_histogram(bins=50
 grid.arrange(p1, p2, p3, p4, ncol=2)
 ```
 
-![](output/figures/examples/examples_figliz_deltaplot-1.png)
+![](../output/figures/examples/examples_figliz_deltaplot-1.png)
 
 **Step 1:** PERMANOVAs
 
@@ -172,7 +168,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.515
+    ## group$roof  1      3.22  3.2242 0.49025 0.009    0.5
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -212,7 +208,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.197
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.185
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -234,7 +230,7 @@ bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3188262 0.6328443
+    ## F-M   0.4650257 0.3079922 0.6328555
 
 ``` r
 # throat
@@ -242,7 +238,7 @@ bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.5703535 0.3759861 0.8470593
+    ## F-M   0.5703535 0.3820391 0.8160234
 
 So lab's & throats are statistically distinct, but fall below threshold on average.
 
@@ -271,17 +267,28 @@ specs <- as.rspec(read.csv('data/mimicry/flowers_spiders.csv'), interp = FALSE)
 
 ``` r
 # Honeybee
-bee_vis <- sensmodel(c(350, 440, 540)) 
+bee_vis <- sensmodel(c(344, 436, 556), beta = FALSE) 
 names(bee_vis) <- c('wl','s', 'm', 'l')
 
+# Receptor-noise
 models <- vismodel(specs, visual = bee_vis, relative = FALSE,
                                                  qcatch = "fi", scale = 10000)  # rn
 models_rel <- vismodel(specs, visual = bee_vis, relative = TRUE,
-                                                 qcatch = "Qi", scale = 10000)  # for plotting
+                                                 qcatch = "fi", scale = 10000)  # for plotting
 models_tri <- trispace(models_rel)
 
-deltaS <- coldist(models, achro = FALSE)
+deltaS <- coldist(models, achro = FALSE, n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
 
+models$group <- substring(rownames(models), 1, 1)
+bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
+```
+
+    ##     measured.dS    CI.lwr    CI.upr
+    ## F-W   0.9156266 0.4105240 1.4102874
+    ## F-Y   1.3789736 0.9980688 1.8350024
+    ## W-Y   0.7111240 0.6444915 0.8042551
+
+``` r
 # Contrast labels
 deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('W_', deltaS$patch2)] <- 'intra.W'
 deltaS$comparison[grepl('Y_', deltaS$patch1) & grepl('Y_', deltaS$patch2)] <- 'intra.Y'
@@ -295,12 +302,12 @@ Visualise.
 
 ``` r
 # Max triangle
-triplot(models_tri[grepl("F_", rownames(models_tri)), ], col = 'forestgreen')
-points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgoldenrod1')
-points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgrey')
+triplot(models_tri[grepl("F_", rownames(models_tri)), ], col = 'forestgreen', cex = 0.8)
+points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgoldenrod1', cex = 0.8)
+points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgrey', cex = 0.8)
 ```
 
-![](output/figures/examples/examples_figmimic_triplot-1.png)
+![](../output/figures/examples/examples_figmimic_triplot-1.png)
 
 ``` r
 ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
@@ -308,7 +315,7 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
         theme(legend.position="none")
 ```
 
-![](output/figures/examples/examples_figmimic_deltaplot-1.png)
+![](../output/figures/examples/examples_figmimic_deltaplot-1.png)
 
 **Step 1:** PERMANOVA
 
@@ -341,9 +348,9 @@ adonis(mat$all ~ group$all)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$all   2    1228.4  614.22  18.514 0.16239  0.001 ***
-    ## Residuals 191    6336.5   33.18         0.83761           
-    ## Total     193    7564.9                 1.00000           
+    ## group$all   2    1701.3  850.66  8.8707 0.11769  0.001 ***
+    ## Residuals 133   12754.1   95.90         0.88231           
+    ## Total     135   14455.5                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -365,10 +372,10 @@ adonis(mat$WY ~ group$WY)
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$WY    1    424.25  424.25  74.969 0.39053  0.001 ***
-    ## Residuals 117    662.10    5.66         0.60947           
-    ## Total     118   1086.35                 1.00000           
+    ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+    ## group$WY   1    383.68  383.68  36.505 0.38223  0.001 ***
+    ## Residuals 59    620.10   10.51         0.61777           
+    ## Total     60   1003.77                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -390,10 +397,12 @@ adonis(mat$WF ~ group$WF)
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$WF    1     115.9 115.897  2.2454 0.01932  0.121
-    ## Residuals 114    5884.3  51.617         0.98068       
-    ## Total     115    6000.2                 1.00000
+    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
+    ## group$WF    1     449.8  449.83  3.6675 0.03504  0.038 *
+    ## Residuals 101   12387.8  122.65         0.96496         
+    ## Total     102   12837.7                 1.00000         
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
 # Yellow morph-vs-flowers
@@ -410,20 +419,27 @@ adonis(mat$YF ~ group$YF)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$YF    1    1143.5 1143.53  28.007 0.15734  0.001 ***
-    ## Residuals 150    6124.4   40.83         0.84266           
-    ## Total     151    7268.0                 1.00000           
+    ## group$YF    1    1508.1 1508.08  12.678 0.10774  0.001 ***
+    ## Residuals 105   12489.8  118.95         0.89226           
+    ## Total     106   13997.9                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-White = distinct, yellow = indistinct. Really? That's....unexpected.
+All distinct.
 
 **Effect sizes**
 
 ``` r
 models$group <- substring(rownames(models), 1, 1)
-#bootcentroidDS(models[,1:3], models$group, vis = 'tri')
+bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
 ```
+
+    ##     measured.dS    CI.lwr    CI.upr
+    ## F-W   0.9156266 0.4436594 1.4395603
+    ## F-Y   1.3789736 0.9966871 1.8786553
+    ## W-Y   0.7111240 0.6485133 0.8124231
+
+So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but probably tough (depending on experience etc.).
 
 ``` r
 rm(deltaS, models, specs, mat, group)
@@ -432,9 +448,9 @@ rm(deltaS, models, specs, mat, group)
 Example 3: Crypsis.
 -------------------
 
-Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing, A = abdomen) of 27 female mantids *Pseudomantis albofimbriata* and 50 background samples (*Lomandra longifolia*, which they pretty much exclusively hang on).
+Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing) of 27 female and 7 male mantids *Pseudomantis albofimbriata* and 50 background samples (*Lomandra longifolia*, which they pretty much exclusively hang on).
 
-So six groups, one **Q:** Are mantids cryptic? i.e. are all body regions chromaticically indistinguishable from their background?
+So six groups, a couple of **Q's:** Are mantids cryptic? i.e. are all body regions chromaticically indistinguishable from their background? And are they any sex differences ('hidden' UV sexual signals perhaps)?
 
 Calculate deltaS according to blue tits
 
@@ -491,7 +507,7 @@ sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("A_", rownames(models_rel)),
                                [, c('x','y','z')]), col='gold1',pch=19)
 ```
 
-![](output/figures/examples/examples_figcrypsis_tcs-1.png)
+![](../output/figures/examples/examples_figcrypsis_tcs-1.png)
 
 ``` r
 ggplot(deltaS_plot, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
@@ -499,23 +515,22 @@ ggplot(deltaS_plot, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
         theme(legend.position="none")
 ```
 
-![](output/figures/examples/examples_figcrypsis_deltaplot-1.png)
+![](../output/figures/examples/examples_figcrypsis_deltaplot-1.png)
 
 **Step 1:** PERMANOVA all the things
 
 ``` r
 # Set up distance matrices & groupings for focal comparisons 
-mat <- list(all = distmat(deltaS)
-            #WY = distmat(subset(deltaS, !(comparison %in% c('intra.F', 'inter.WF', 'inter.YF')))),
-            )
-group <- list(all = substring(rownames(mat$all), 1, 1))
-  
-adonis(mat$all ~ group$all)
+mat <- distmat(deltaS)
+patch <- substring(rownames(mat), 1, 1)  # body part
+sex <- substring(rownames(mat), nchar(rownames(mat)))  # sex (Male, Female, None (bkg))  
+
+adonis(mat ~ patch * sex)
 ```
 
     ## 
     ## Call:
-    ## adonis(formula = mat$all ~ group$all) 
+    ## adonis(formula = mat ~ patch * sex) 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
@@ -523,18 +538,56 @@ adonis(mat$all ~ group$all)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$all   7    858.38 122.626  60.156 0.67473  0.001 ***
-    ## Residuals 203    413.80   2.038         0.32527           
-    ## Total     210   1272.18                 1.00000           
+    ## patch       5    543.19 108.637  39.672 0.42482  0.001 ***
+    ## sex         1     35.47  35.471  12.953 0.02774  0.001 ***
+    ## patch:sex   4    130.37  32.593  11.902 0.10196  0.001 ***
+    ## Residuals 208    569.59   2.738         0.44547           
+    ## Total     218   1278.62                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Large patch effect, minor sex \* patch interaction.
 
 **Step 2:** Effect sizes
 
 ``` r
-models$group <- substring(rownames(models), 1, 1)
-#bootcentroidDS(models[,1:4], models$group)  # Not workin'
+# Splitting up by sex. Need to tidy this up.
+models$patch <- substring(rownames(models), 1, 1)
+models$sex <- substring(rownames(models), nchar(rownames(models)))
+
+models_m <- subset(models, sex != 'F')
+models_f <- subset(models, sex != 'M')
+
+cents_m <- bootcentroidDS(models_m[,1:4], models_m$patch)
+cents_f <- bootcentroidDS(models_f[,1:4], models_f$patch)
+
+cents_m <- as.data.frame(cents_m[grep("B", rownames(cents_m)), ])  # Mantid-background contrasts only
+cents_f <- as.data.frame(cents_f[grep("B", rownames(cents_f)), ])
+
+cents_m$sex <- 'M'
+cents_f$sex <- 'F'
+cents_m$comp <- rownames(cents_m)
+cents_f$comp <- rownames(cents_f)
+
+cents <- rbind(cents_m, cents_f)
 ```
+
+Plot (patch \* sex)-versus-bkg bootstrapped centroid distances
+
+``` r
+  pd <- position_dodge(.5)
+  ggplot(cents, aes(x = sex, y = measured.dS, colour = comp, group = comp)) + 
+    geom_errorbar(aes(ymin = CI.lwr, ymax = CI.upr), colour = "black", width = .2, position = pd) +
+    geom_point(aes(fill = comp), position = pd, size = 3, shape = 21, colour = 'black') + 
+    geom_hline(yintercept = 1, linetype = 2) +
+    scale_y_continuous(limits = c(0, 1.2)) +
+    ylab("dS") +
+    theme(legend.position = 'none')  
+```
+
+![](../output/figures/examples/examples_figcrypsis_effectplot-1.png)
+
+So all patches are below threshold (i.e. cryptic), and there are some very minor, imperceptible differences between sexes. There's a ton of variance in males due to relatively low sample size.
 
 ``` r
 sessionInfo()
@@ -542,7 +595,7 @@ sessionInfo()
 
     ## R version 3.3.1 (2016-06-21)
     ## Platform: x86_64-apple-darwin13.4.0 (64-bit)
-    ## Running under: OS X 10.11.5 (El Capitan)
+    ## Running under: OS X 10.11.6 (El Capitan)
     ## 
     ## locale:
     ## [1] en_AU.UTF-8/en_AU.UTF-8/en_AU.UTF-8/C/en_AU.UTF-8/en_AU.UTF-8
