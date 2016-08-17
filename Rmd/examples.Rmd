@@ -87,6 +87,86 @@ deltaS$tongue <- liz_lab(deltaS$tongue)
 ```
 
 Visualise
+```{r liz_specs, fig.width=8, fig.height=8}
+png('lizspecs.png', width = 5, height = 11, unit = 'in', res = 300)
+layout(matrix(c(1, 2, 3, 4, 5, 6, 7, 8), 4, 2, byrow = TRUE))
+
+#par(pty="s", mfrow = c(4, 1))
+
+aggplot(as.rspec(cbind(specs$lab$wl, specs$lab[grepl("M", colnames(specs$lab))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
+par(new = TRUE)
+aggplot(as.rspec(cbind(specs$lab$wl, specs$lab[grepl("F", colnames(specs$lab))])), ylim = c(0, 50), lcol = 'red', shadecol = 'red')
+
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$lab[grepl("M", rownames(models_rel$lab)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'labium', label.tick.marks = FALSE)
+sp3d$points3d(suppressWarnings(tcs(models_rel$lab[grepl("F", rownames(models_rel$lab)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
+
+aggplot(as.rspec(cbind(specs$throat$wl, specs$throat[grepl("M", colnames(specs$throat))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
+par(new = TRUE)
+aggplot(as.rspec(cbind(specs$throat$wl, specs$throat[grepl("F", colnames(specs$throat))])), ylim = c(0, 50), lcol = 'red', shadecol = 'red')
+
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$throat[grepl("M", rownames(models_rel$throat)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'throat', label.tick.marks = FALSE)
+sp3d$points3d(suppressWarnings(tcs(models_rel$throat[grepl("F", rownames(models_rel$throat)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
+
+aggplot(as.rspec(cbind(specs$roof$wl, specs$roof[grepl("M", colnames(specs$roof))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
+par(new = TRUE)
+aggplot(as.rspec(cbind(specs$roof$wl, specs$roof[grepl("F", colnames(specs$roof))])), ylim = c(0, 50), lcol = 'red', shadecol = 'red')
+
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$roof[grepl("M", rownames(models_rel$roof)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'roof', label.tick.marks = FALSE)
+sp3d$points3d(suppressWarnings(tcs(models_rel$roof[grepl("F", rownames(models_rel$roof)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
+
+aggplot(as.rspec(cbind(specs$tongue$wl, specs$tongue[grepl("M", colnames(specs$tongue))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
+par(new = TRUE)
+aggplot(as.rspec(cbind(specs$tongue$wl, specs$tongue[grepl("F", colnames(specs$tongue))])), ylim = c(0, 50), lcol = 'red', shadecol = 'red')
+
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$tongue[grepl("M", rownames(models_rel$tongue)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'tongue', label.tick.marks = FALSE)
+sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_rel$tongue)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
+
+
+    # Draw coordinates
+    arrow1 <- 
+      sp3d$xyz.convert(
+        matrix(c(
+          0.4, 0.5, 0.4,
+          0.5, 0.5, 0.4
+        ), ncol=3, byrow=TRUE
+        )
+      )
+    
+    arrow2 <- 
+      sp3d$xyz.convert(
+        matrix(c(
+          0.4, 0.5, 0.4,
+          0.4, 0.6, 0.4
+        ), ncol=3, byrow=TRUE
+        )
+      )
+    
+    arrow3 <- 
+      sp3d$xyz.convert(
+        matrix(c(
+          0.4, 0.5, 0.4,
+          0.4, 0.5, 0.5
+        ), ncol=3, byrow=TRUE
+        )
+      )
+    
+    arrows(arrow1$x[1], arrow1$y[1], arrow1$x[2], arrow1$y[2], lwd=2, length=0.03)
+    text(arrow1$x[2]*1.07,arrow1$y[2],"x")
+    arrows(arrow2$x[1], arrow2$y[1], arrow2$x[2], arrow2$y[2], lwd=2, length=0.03)
+    text(arrow2$x[2]*1.07,arrow2$y[2]*1.07,"y")
+    arrows(arrow3$x[1], arrow3$y[1], arrow3$x[2], arrow3$y[2], lwd=2, length=0.03)
+    text(arrow3$x[2],arrow3$y[2]*1.07,"z")
+
+dev.off()
+```
 
 ```{r liz_tcs, fig.width=8, fig.height=8}
 
