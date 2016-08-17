@@ -239,10 +239,9 @@ Visualise.
 ```{r mimic_triplot, fig.width=6, fig.height=6}
 
 # Max triangle
-triplot(models_tri[grepl("F_", rownames(models_tri)), ], col = 'forestgreen', cex = 0.8)
-points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgoldenrod1', cex = 0.8)
-points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgrey', cex = 0.8)
-
+triplot(models_tri[grepl("F_", rownames(models_tri)), ], col = 'black', bg = 'forestgreen', cex = 1.3, pch = 21, achro = FALSE)
+points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 21, col = 'black', bg = 'darkgoldenrod1', cex = 1.3)
+points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 21, col = 'black', bg = 'darkgrey', cex = 1.3)
 ```
 
 ```{r mimic_deltaplot, fig.width=6, fig.height=6}
@@ -253,7 +252,7 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 
 ```
 
-**Step 1:** PERMANOVA
+**PERMANOVA**
 ```{r}
 
 # Set up distance matrices & groupings for focal comparisons 
@@ -267,66 +266,24 @@ group <- list(all = substring(rownames(mat$all), 1, 1),
               WF = substring(rownames(mat$WF), 1, 1),
               YF = substring(rownames(mat$YF), 1, 1))
 
-```
-
-Everything combined. Not really required in this situation since we have _a priori_ planned tests.
-```{r}
-
-adonis(mat$all ~ group$all)
-
-```
-
-So differences exist.
-
-**Q1:** Are spiders polymorphic?
-
-```{r}
-
-# Spiders only
-adonis(mat$WY ~ group$WY)
-
-```
-
-Yep
-
-**Q2:** Are they distinguishable from sympatric flowers?
-
-```{r}
-
-# White morph-vs-flowers
-adonis(mat$WF ~ group$WF)
-
-# Yellow morph-vs-flowers
-adonis(mat$YF ~ group$YF)
-
-```
-
-All distinct.
-
-**ALTERNATIVE:** use customized contrasts to test a priori hypotheses together:
-
-```{r}
+# Use customized contrasts to test a priori hypotheses together
 cgroups <- factor(group$all)
 
-# create the contrasts we want
-
+# Create the contrasts we want
 contrasts(cgroups) <- cbind(
   c(-1, 0.5, 0.5), # compare F vs. W&Y, will be named "cgroups1"
   c(0, -0.5, 0.5)  # compare W vs Y, will be named "cgroups2"
 )
 
-# create design matrix, without intercept
+# Create design matrix, without intercept
 
 cgmmat <- model.matrix(~cgroups)[,-1]
 
-# run the model testing only specified contrasts
-
+# Run the model testing only specified contrasts
 adonis2(mat$all ~ cgmmat[,'cgroups1'] + cgmmat[,'cgroups2'], by='margin')
 ```
 
 Note that the degrees of freedom, sums of squares, and R2 are the same between the two "full" models, but the specified contrasts let us test both hypotheses together. They would also be the same if you did adonis(mat$all ~ cgroups) (but you'd only get one P value and R2 representing the combined effects of both sets of contrasts)
-
-__**RM** Does this make sense, biologically? Based on that plot I would expect crypsis...__
 
 **Effect sizes**
 ```{r}
@@ -475,7 +432,6 @@ modmat <- modmat[,c("cpatch1", "csex1", "cpatch1:csex1")]
 
 adonis2(mat~modmat, by='margin')
 ```
-
 
 We can change the contrasts to show an interaction in the form of a sex-by-patch effect, but since we are ignoring the patch differences when testing for crypsis, maybe we shouldn't? 
 

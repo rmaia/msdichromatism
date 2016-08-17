@@ -168,7 +168,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.514
+    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.508
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -208,7 +208,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.204
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.179
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -230,7 +230,7 @@ bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3103186 0.6288158
+    ## F-M   0.4650257 0.3195551 0.6301293
 
 ``` r
 # throat
@@ -238,7 +238,7 @@ bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.5703535 0.3650851 0.8176844
+    ## F-M   0.5703535 0.3765972 0.8306497
 
 So lab's & throats are statistically distinct, but fall below threshold on average.
 
@@ -284,9 +284,9 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4564889 1.4514817
-    ## F-Y   1.3789736 0.9657627 1.8906444
-    ## W-Y   0.7111240 0.6447087 0.8065855
+    ## F-W   0.9156266 0.4498891 1.4362217
+    ## F-Y   1.3789736 0.9959598 1.8377950
+    ## W-Y   0.7111240 0.6464101 0.8036617
 
 ``` r
 # Contrast labels
@@ -302,9 +302,9 @@ Visualise.
 
 ``` r
 # Max triangle
-triplot(models_tri[grepl("F_", rownames(models_tri)), ], col = 'forestgreen', cex = 0.8)
-points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgoldenrod1', cex = 0.8)
-points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 19, col = 'darkgrey', cex = 0.8)
+triplot(models_tri[grepl("F_", rownames(models_tri)), ], col = 'black', bg = 'forestgreen', cex = 1.3, pch = 21, achro = FALSE)
+points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 21, col = 'black', bg = 'darkgoldenrod1', cex = 1.3)
+points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 21, col = 'black', bg = 'darkgrey', cex = 1.3)
 ```
 
 ![](../output/figures/examples/examples_figmimic_triplot-1.png)
@@ -317,7 +317,7 @@ ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 
 ![](../output/figures/examples/examples_figmimic_deltaplot-1.png)
 
-**Step 1:** PERMANOVA
+**PERMANOVA**
 
 ``` r
 # Set up distance matrices & groupings for focal comparisons 
@@ -330,121 +330,21 @@ group <- list(all = substring(rownames(mat$all), 1, 1),
               WY = substring(rownames(mat$WY), 1, 1),
               WF = substring(rownames(mat$WF), 1, 1),
               YF = substring(rownames(mat$YF), 1, 1))
-```
 
-Everything combined. Not really required in this situation since we have *a priori* planned tests.
-
-``` r
-adonis(mat$all ~ group$all)
-```
-
-    ## 
-    ## Call:
-    ## adonis(formula = mat$all ~ group$all) 
-    ## 
-    ## Permutation: free
-    ## Number of permutations: 999
-    ## 
-    ## Terms added sequentially (first to last)
-    ## 
-    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$all   2    1701.3  850.66  8.8707 0.11769  0.001 ***
-    ## Residuals 133   12754.1   95.90         0.88231           
-    ## Total     135   14455.5                 1.00000           
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-So differences exist.
-
-**Q1:** Are spiders polymorphic?
-
-``` r
-# Spiders only
-adonis(mat$WY ~ group$WY)
-```
-
-    ## 
-    ## Call:
-    ## adonis(formula = mat$WY ~ group$WY) 
-    ## 
-    ## Permutation: free
-    ## Number of permutations: 999
-    ## 
-    ## Terms added sequentially (first to last)
-    ## 
-    ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$WY   1    383.68  383.68  36.505 0.38223  0.001 ***
-    ## Residuals 59    620.10   10.51         0.61777           
-    ## Total     60   1003.77                 1.00000           
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Yep
-
-**Q2:** Are they distinguishable from sympatric flowers?
-
-``` r
-# White morph-vs-flowers
-adonis(mat$WF ~ group$WF)
-```
-
-    ## 
-    ## Call:
-    ## adonis(formula = mat$WF ~ group$WF) 
-    ## 
-    ## Permutation: free
-    ## Number of permutations: 999
-    ## 
-    ## Terms added sequentially (first to last)
-    ## 
-    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
-    ## group$WF    1     449.8  449.83  3.6675 0.03504  0.034 *
-    ## Residuals 101   12387.8  122.65         0.96496         
-    ## Total     102   12837.7                 1.00000         
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-# Yellow morph-vs-flowers
-adonis(mat$YF ~ group$YF)
-```
-
-    ## 
-    ## Call:
-    ## adonis(formula = mat$YF ~ group$YF) 
-    ## 
-    ## Permutation: free
-    ## Number of permutations: 999
-    ## 
-    ## Terms added sequentially (first to last)
-    ## 
-    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$YF    1    1508.1 1508.08  12.678 0.10774  0.001 ***
-    ## Residuals 105   12489.8  118.95         0.89226           
-    ## Total     106   13997.9                 1.00000           
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-All distinct.
-
-**ALTERNATIVE:** use customized contrasts to test a priori hypotheses together:
-
-``` r
+# Use customized contrasts to test a priori hypotheses together
 cgroups <- factor(group$all)
 
-# create the contrasts we want
-
+# Create the contrasts we want
 contrasts(cgroups) <- cbind(
   c(-1, 0.5, 0.5), # compare F vs. W&Y, will be named "cgroups1"
   c(0, -0.5, 0.5)  # compare W vs Y, will be named "cgroups2"
 )
 
-# create design matrix, without intercept
+# Create design matrix, without intercept
 
 cgmmat <- model.matrix(~cgroups)[,-1]
 
-# run the model testing only specified contrasts
-
+# Run the model testing only specified contrasts
 adonis2(mat$all ~ cgmmat[,'cgroups1'] + cgmmat[,'cgroups2'], by='margin')
 ```
 
@@ -454,16 +354,14 @@ adonis2(mat$all ~ cgmmat[,'cgroups1'] + cgmmat[,'cgroups2'], by='margin')
     ## Number of permutations: 999
     ## 
     ## adonis2(formula = mat$all ~ cgmmat[, "cgroups1"] + cgmmat[, "cgroups2"], by = "margin")
-    ##                       Df SumOfSqs       F Pr(>F)   
-    ## cgmmat[, "cgroups1"]   1   1267.2 13.2141  0.002 **
-    ## cgmmat[, "cgroups2"]   1    382.0  3.9833  0.032 * 
-    ## Residual             133  12754.1                  
+    ##                       Df SumOfSqs       F Pr(>F)    
+    ## cgmmat[, "cgroups1"]   1   1267.2 13.2141  0.001 ***
+    ## cgmmat[, "cgroups2"]   1    382.0  3.9833  0.029 *  
+    ## Residual             133  12754.1                   
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Note that the degrees of freedom, sums of squares, and R2 are the same between the two "full" models, but the specified contrasts let us test both hypotheses together. They would also be the same if you did adonis(mat$all ~ cgroups) (but you'd only get one P value and R2 representing the combined effects of both sets of contrasts)
-
-****RM** Does this make sense, biologically? Based on that plot I would expect crypsis...**
 
 **Effect sizes**
 
@@ -473,9 +371,9 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4624532 1.4242691
-    ## F-Y   1.3789736 0.9922673 1.8509966
-    ## W-Y   0.7111240 0.6436729 0.8067489
+    ## F-W   0.9156266 0.4628825 1.4525596
+    ## F-Y   1.3789736 0.9995888 1.8538618
+    ## W-Y   0.7111240 0.6448887 0.8073744
 
 So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but probably tough (depending on experience etc.).
 
@@ -614,7 +512,7 @@ adonis2(mat~cpatch+csex, by='margin')
     ## adonis2(formula = mat ~ cpatch + csex, by = "margin")
     ##           Df SumOfSqs       F Pr(>F)    
     ## cpatch     1   226.74 49.9730  0.001 ***
-    ## csex       1    35.47  7.8178  0.001 ***
+    ## csex       1    35.47  7.8178  0.002 ** 
     ## Residual 216   980.03                   
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -702,12 +600,12 @@ So all patches are below threshold (i.e. cryptic), and there are some very minor
 sessionInfo()
 ```
 
-    ## R version 3.3.0 (2016-05-03)
+    ## R version 3.3.1 (2016-06-21)
     ## Platform: x86_64-apple-darwin13.4.0 (64-bit)
     ## Running under: OS X 10.11.6 (El Capitan)
     ## 
     ## locale:
-    ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+    ## [1] en_AU.UTF-8/en_AU.UTF-8/en_AU.UTF-8/C/en_AU.UTF-8/en_AU.UTF-8
     ## 
     ## attached base packages:
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
@@ -718,14 +616,11 @@ sessionInfo()
     ## [7] pavo_0.5-5           rgl_0.95.1441       
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.5        cluster_2.0.4      knitr_1.13        
-    ##  [4] magrittr_1.5       MASS_7.3-45        maps_3.1.0        
-    ##  [7] magic_1.5-6        munsell_0.4.3      colorspace_1.2-6  
-    ## [10] geometry_0.3-6     plyr_1.8.3         stringr_1.0.0     
-    ## [13] tools_3.3.0        parallel_3.3.0     grid_3.3.0        
-    ## [16] nlme_3.1-127       gtable_0.2.0       mgcv_1.8-12       
-    ## [19] htmltools_0.3.5    yaml_2.1.13        digest_0.6.9      
-    ## [22] Matrix_1.2-6       reshape2_1.4.1     mapproj_1.2-4     
-    ## [25] formatR_1.4        rcdd_1.1-10        evaluate_0.9      
-    ## [28] rmarkdown_0.9.6.10 labeling_0.3       stringi_1.0-1     
-    ## [31] scales_0.4.0
+    ##  [1] Rcpp_0.12.5      cluster_2.0.4    knitr_1.13       magrittr_1.5    
+    ##  [5] MASS_7.3-45      maps_3.1.0       magic_1.5-6      munsell_0.4.3   
+    ##  [9] colorspace_1.2-6 geometry_0.3-6   plyr_1.8.4       stringr_1.0.0   
+    ## [13] tools_3.3.1      parallel_3.3.1   grid_3.3.1       nlme_3.1-128    
+    ## [17] gtable_0.2.0     mgcv_1.8-12      htmltools_0.3.5  yaml_2.1.13     
+    ## [21] digest_0.6.9     Matrix_1.2-6     reshape2_1.4.1   mapproj_1.2-4   
+    ## [25] formatR_1.4      rcdd_1.1-10      evaluate_0.9     rmarkdown_0.9.6 
+    ## [29] labeling_0.3     stringi_1.1.1    scales_0.4.0
