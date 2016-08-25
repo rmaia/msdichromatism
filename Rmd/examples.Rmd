@@ -90,7 +90,7 @@ deltaS$tongue <- liz_lab(deltaS$tongue)
 ```
 
 Visualise
-```{r liz_specs, fig.width=8, fig.height=8}
+```{r liz_spectcs, fig.width=5, fig.height=8}
 layout(matrix(c(1, 2, 3, 4, 5, 6, 7, 8), 4, 2, byrow = TRUE))
 
 aggplot(as.rspec(cbind(specs$lab$wl, specs$lab[grepl("M", colnames(specs$lab))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
@@ -130,31 +130,6 @@ sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_
                                [, c('x','y','z')]), col='red',pch=19)
 ```
 
-```{r liz_tcs, fig.width=8, fig.height=8}
-
-par(pty="s", mfrow = c(2, 2))
-
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$lab[grepl("M", rownames(models_rel$lab)), ])
-                                       [, c('x','y','z')]), pch=19, box=F, main = 'labium')
-sp3d$points3d(suppressWarnings(tcs(models_rel$lab[grepl("F", rownames(models_rel$lab)), ])
-                               [, c('x','y','z')]), col='red',pch=19)
-
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$throat[grepl("M", rownames(models_rel$throat)), ])
-                                       [, c('x','y','z')]), pch=19, box=F, main = 'throat')
-sp3d$points3d(suppressWarnings(tcs(models_rel$throat[grepl("F", rownames(models_rel$throat)), ])
-                               [, c('x','y','z')]), col='red',pch=19)
-
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$roof[grepl("M", rownames(models_rel$roof)), ])
-                                       [, c('x','y','z')]), pch=19, box=F, main = 'roof')
-sp3d$points3d(suppressWarnings(tcs(models_rel$roof[grepl("F", rownames(models_rel$roof)), ])
-                               [, c('x','y','z')]), col='red',pch=19)
-
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$tongue[grepl("M", rownames(models_rel$tongue)), ])
-                                       [, c('x','y','z')]), pch=19, box=F, main = 'tongue')
-sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_rel$tongue)), ])
-                               [, c('x','y','z')]), col='red',pch=19)
-```
-
 ```{r liz_deltaplot, fig.width=8, fig.height=8}
 
 p1 <- ggplot(deltaS$lab, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
@@ -188,10 +163,10 @@ mat <- list(all = distmat(deltaS$all),
             roof = distmat(deltaS$roof),
             tongue = distmat(deltaS$tongue))
 group <- list(all = paste0(substring(rownames(mat$all), nchar(rownames(mat$all))), substring(rownames(mat$all), 1, 1)),
-             lab = substring(rownames(mat$lab), 1, 1),
-             throat = substring(rownames(mat$throat), 1, 1),
-             roof = substring(rownames(mat$roof), 1, 1),
-             tongue = substring(rownames(mat$tongue), 1, 1))
+              lab = substring(rownames(mat$lab), 1, 1),
+              throat = substring(rownames(mat$throat), 1, 1),
+              roof = substring(rownames(mat$roof), 1, 1),
+              tongue = substring(rownames(mat$tongue), 1, 1))
 
 # Labium
 adonis(mat$lab ~ group$lab)
@@ -216,37 +191,34 @@ Combine all tests into one using sliding contrasts
 # Planned contrasts
 cpatch <- factor(group$all)
 
-levels(cpatch)  # First letter indicates body region, second indicates sex
+levels(cpatch)  # First letter indicates body region, second indicates sex (see below for key)
 
 contrasts(cpatch) <- contr.sdif(8)  # Sliding contrasts
 
 # Design matrix without intercept
 cgmmat <- model.matrix(~cpatch)[,-1]
 
-# Run the model testing contrasts of interest (m vs f body regions) i.e:
+# Run the model testing only contrasts of interest (m vs f body regions) i.e:
 # HF vs HM (2-1), throat
 # LM vs LF (4-3), labium
 # RF vs RM (6-5), mouth-roof
 # TF vs TM (8-7), tongue
-adonis2(mat$all ~ cgmmat[,'cpatch2-1'] + cgmmat[,'cpatch4-3'] + cgmmat[,'cpatch6-5'] + cgmmat[,'cpatch8-7'] , by = 'margin')
+adonis2(mat$all ~ cgmmat[,'cpatch2-1'] + cgmmat[,'cpatch4-3'] + 
+          cgmmat[,'cpatch6-5'] + cgmmat[,'cpatch8-7'] , by = 'margin')
 
 ```
 
-TW: Yeah that's not right - see individual tests above. Hmmm.
-
-**Conclusion**: labium = distinct, throat = distinct, mouth = nope, tongue = nope.
+TW: Yeah that's not right - see individual tests above. Should be labium (4-3) = distinct, throat (2-1) = distinct, mouth (6-5) = nope, tongue (8-7) = nope.
 
 **Step 2:** Effect sizes.
 
-Add grouping variable to raw models, then bootstrap centroids for different patches, as identified in step 1 (labium & throat).
+Add grouping variable to raw models, then bootstrap centroids for statistically distinct patches, as identified in step 1 (labium & throat).
 
 ```{r}
 
 # Groups
 models$lab$group <- substring(rownames(models$lab), 1, 1)
 models$throat$group <- substring(rownames(models$throat), 1, 1)
-models$roof$group <- substring(rownames(models$roof), 1, 1)
-models$tongue$group <- substring(rownames(models$tongue), 1, 1)
 
 # labium
 bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
@@ -256,11 +228,11 @@ bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.
 
 ```
 
-So lab's & throats are statistically distinct, but fall below threshold on average.
+So lab's & throats are statistically distinct, but fall below threshold.
 
 ```{r}
 
-rm(deltaS, models, models_rel, specs, liz_vis, liz_lab, mat, group)
+rm(list = setdiff(ls(), lsf.str()))
 
 ```
 
@@ -368,7 +340,7 @@ So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neume
 
 ```{r}
 
-rm(deltaS, models, specs, mat, group)
+rm(list = setdiff(ls(), lsf.str()))
 
 ```
 

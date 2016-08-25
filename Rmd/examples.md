@@ -151,33 +151,7 @@ sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_
                                [, c('x','y','z')]), col='red',pch=19)
 ```
 
-![](../output/figures/examples/examples_figliz_specs-1.png)
-
-``` r
-par(pty="s", mfrow = c(2, 2))
-
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$lab[grepl("M", rownames(models_rel$lab)), ])
-                                       [, c('x','y','z')]), pch=19, box=F, main = 'labium')
-sp3d$points3d(suppressWarnings(tcs(models_rel$lab[grepl("F", rownames(models_rel$lab)), ])
-                               [, c('x','y','z')]), col='red',pch=19)
-
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$throat[grepl("M", rownames(models_rel$throat)), ])
-                                       [, c('x','y','z')]), pch=19, box=F, main = 'throat')
-sp3d$points3d(suppressWarnings(tcs(models_rel$throat[grepl("F", rownames(models_rel$throat)), ])
-                               [, c('x','y','z')]), col='red',pch=19)
-
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$roof[grepl("M", rownames(models_rel$roof)), ])
-                                       [, c('x','y','z')]), pch=19, box=F, main = 'roof')
-sp3d$points3d(suppressWarnings(tcs(models_rel$roof[grepl("F", rownames(models_rel$roof)), ])
-                               [, c('x','y','z')]), col='red',pch=19)
-
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$tongue[grepl("M", rownames(models_rel$tongue)), ])
-                                       [, c('x','y','z')]), pch=19, box=F, main = 'tongue')
-sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_rel$tongue)), ])
-                               [, c('x','y','z')]), col='red',pch=19)
-```
-
-![](../output/figures/examples/examples_figliz_tcs-1.png)
+![](../output/figures/examples/examples_figliz_spectcs-1.png)
 
 ``` r
 p1 <- ggplot(deltaS$lab, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
@@ -211,10 +185,10 @@ mat <- list(all = distmat(deltaS$all),
             roof = distmat(deltaS$roof),
             tongue = distmat(deltaS$tongue))
 group <- list(all = paste0(substring(rownames(mat$all), nchar(rownames(mat$all))), substring(rownames(mat$all), 1, 1)),
-             lab = substring(rownames(mat$lab), 1, 1),
-             throat = substring(rownames(mat$throat), 1, 1),
-             roof = substring(rownames(mat$roof), 1, 1),
-             tongue = substring(rownames(mat$tongue), 1, 1))
+              lab = substring(rownames(mat$lab), 1, 1),
+              throat = substring(rownames(mat$throat), 1, 1),
+              roof = substring(rownames(mat$roof), 1, 1),
+              tongue = substring(rownames(mat$tongue), 1, 1))
 
 # Labium
 adonis(mat$lab ~ group$lab)
@@ -251,7 +225,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.499
+    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.477
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -291,7 +265,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.184
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.199
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -303,7 +277,7 @@ Combine all tests into one using sliding contrasts
 # Planned contrasts
 cpatch <- factor(group$all)
 
-levels(cpatch)  # First letter indicates body region, second indicates sex
+levels(cpatch)  # First letter indicates body region, second indicates sex (see below for key)
 ```
 
     ## [1] "HF" "HM" "LF" "LM" "RF" "RM" "TF" "TM"
@@ -314,12 +288,13 @@ contrasts(cpatch) <- contr.sdif(8)  # Sliding contrasts
 # Design matrix without intercept
 cgmmat <- model.matrix(~cpatch)[,-1]
 
-# Run the model testing contrasts of interest (m vs f body regions) i.e:
+# Run the model testing only contrasts of interest (m vs f body regions) i.e:
 # HF vs HM (2-1), throat
 # LM vs LF (4-3), labium
 # RF vs RM (6-5), mouth-roof
 # TF vs TM (8-7), tongue
-adonis2(mat$all ~ cgmmat[,'cpatch2-1'] + cgmmat[,'cpatch4-3'] + cgmmat[,'cpatch6-5'] + cgmmat[,'cpatch8-7'] , by = 'margin')
+adonis2(mat$all ~ cgmmat[,'cpatch2-1'] + cgmmat[,'cpatch4-3'] + 
+          cgmmat[,'cpatch6-5'] + cgmmat[,'cpatch8-7'] , by = 'margin')
 ```
 
     ## Permutation test for adonis under reduced model
@@ -332,32 +307,28 @@ adonis2(mat$all ~ cgmmat[,'cpatch2-1'] + cgmmat[,'cpatch4-3'] + cgmmat[,'cpatch6
     ## cgmmat[, "cpatch2-1"]   1     19.8   0.4802  0.528    
     ## cgmmat[, "cpatch4-3"]   1   5394.6 130.6531  0.001 ***
     ## cgmmat[, "cpatch6-5"]   1   2481.6  60.1032  0.001 ***
-    ## cgmmat[, "cpatch8-7"]   1    114.9   2.7832  0.075 .  
+    ## cgmmat[, "cpatch8-7"]   1    114.9   2.7832  0.098 .  
     ## Residual              230   9496.7                    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-TW: Yeah that's not right - see individual tests above. Hmmm.
-
-**Conclusion**: labium = distinct, throat = distinct, mouth = nope, tongue = nope.
+TW: Yeah that's not right - see individual tests above. Should be labium (4-3) = distinct, throat (2-1) = distinct, mouth (6-5) = nope, tongue (8-7) = nope.
 
 **Step 2:** Effect sizes.
 
-Add grouping variable to raw models, then bootstrap centroids for different patches, as identified in step 1 (labium & throat).
+Add grouping variable to raw models, then bootstrap centroids for statistically distinct patches, as identified in step 1 (labium & throat).
 
 ``` r
 # Groups
 models$lab$group <- substring(rownames(models$lab), 1, 1)
 models$throat$group <- substring(rownames(models$throat), 1, 1)
-models$roof$group <- substring(rownames(models$roof), 1, 1)
-models$tongue$group <- substring(rownames(models$tongue), 1, 1)
 
 # labium
 bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3147169 0.6345321
+    ## F-M   0.4650257 0.3226078 0.6210183
 
 ``` r
 # throat
@@ -365,12 +336,12 @@ bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.5703535 0.3712913 0.8365348
+    ## F-M   0.5703535 0.3582032 0.8545805
 
-So lab's & throats are statistically distinct, but fall below threshold on average.
+So lab's & throats are statistically distinct, but fall below threshold.
 
 ``` r
-rm(deltaS, models, models_rel, specs, liz_vis, liz_lab, mat, group)
+rm(list = setdiff(ls(), lsf.str()))
 ```
 
 Example 2: Mimicry.
@@ -411,9 +382,9 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4274088 1.4129604
-    ## F-Y   1.3789736 0.9811823 1.8332478
-    ## W-Y   0.7111240 0.6446884 0.8022745
+    ## F-W   0.9156266 0.4453148 1.4327545
+    ## F-Y   1.3789736 0.9846338 1.8300857
+    ## W-Y   0.7111240 0.6493600 0.8088297
 
 ``` r
 # Contrast labels
@@ -480,10 +451,10 @@ adonis2(mat$all ~ cgmmat[, 'cgroups1'] + cgmmat[, 'cgroups2'], by='margin')
     ## Number of permutations: 999
     ## 
     ## adonis2(formula = mat$all ~ cgmmat[, "cgroups1"] + cgmmat[, "cgroups2"], by = "margin")
-    ##                       Df SumOfSqs       F Pr(>F)   
-    ## cgmmat[, "cgroups1"]   1   1267.2 13.2141  0.002 **
-    ## cgmmat[, "cgroups2"]   1    382.0  3.9833  0.029 * 
-    ## Residual             133  12754.1                  
+    ##                       Df SumOfSqs       F Pr(>F)    
+    ## cgmmat[, "cgroups1"]   1   1267.2 13.2141  0.001 ***
+    ## cgmmat[, "cgroups2"]   1    382.0  3.9833  0.028 *  
+    ## Residual             133  12754.1                   
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -497,14 +468,14 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4312846 1.4929224
-    ## F-Y   1.3789736 0.9852407 1.8711142
-    ## W-Y   0.7111240 0.6407755 0.8080122
+    ## F-W   0.9156266 0.4660120 1.4409984
+    ## F-Y   1.3789736 1.0105452 1.8356093
+    ## W-Y   0.7111240 0.6410475 0.8119342
 
 So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but probably tough (depending on experience etc.).
 
 ``` r
-rm(deltaS, models, specs, mat, group)
+rm(list = setdiff(ls(), lsf.str()))
 ```
 
 Example 3: Crypsis.
