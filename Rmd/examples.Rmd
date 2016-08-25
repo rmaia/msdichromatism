@@ -12,6 +12,7 @@ require(scatterplot3d)
 require(ggplot2)
 require(gridExtra)
 require(vegan)
+require(MASS)
 # require(lme4)
 
 knitr::opts_chunk$set(echo = TRUE, 
@@ -52,7 +53,8 @@ Calculate deltaS according to conspecific (tetrachromatic) visual system
 
 ```{r message=FALSE, warning=FALSE}
 
-specs <- list(lab = as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE),
+specs <- list(all = as.rspec(read.csv('data/dichromatism/combined.csv'), interp = FALSE),
+              lab = as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE),
               throat = as.rspec(read.csv('data/dichromatism/throat.csv'), interp = FALSE),
               roof = as.rspec(read.csv('data/dichromatism/roof.csv'), interp = FALSE),
               tongue = as.rspec(read.csv('data/dichromatism/tongue.csv'), interp = FALSE))
@@ -79,6 +81,7 @@ liz_lab <- function(x){
 }
 
 # ew
+deltaS$all <- liz_lab(deltaS$all)
 deltaS$lab <- liz_lab(deltaS$lab)
 deltaS$throat <- liz_lab(deltaS$throat)
 deltaS$roof <- liz_lab(deltaS$roof)
@@ -88,10 +91,7 @@ deltaS$tongue <- liz_lab(deltaS$tongue)
 
 Visualise
 ```{r liz_specs, fig.width=8, fig.height=8}
-png('lizspecs.png', width = 5, height = 11, unit = 'in', res = 300)
 layout(matrix(c(1, 2, 3, 4, 5, 6, 7, 8), 4, 2, byrow = TRUE))
-
-#par(pty="s", mfrow = c(4, 1))
 
 aggplot(as.rspec(cbind(specs$lab$wl, specs$lab[grepl("M", colnames(specs$lab))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
 par(new = TRUE)
@@ -128,44 +128,6 @@ sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$tongue[grepl("M", rownames
                                        [, c('x','y','z')]), pch=19, box=F, main = 'tongue', label.tick.marks = FALSE)
 sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_rel$tongue)), ])
                                [, c('x','y','z')]), col='red',pch=19)
-
-
-    # Draw coordinates
-    arrow1 <- 
-      sp3d$xyz.convert(
-        matrix(c(
-          0.4, 0.5, 0.4,
-          0.5, 0.5, 0.4
-        ), ncol=3, byrow=TRUE
-        )
-      )
-    
-    arrow2 <- 
-      sp3d$xyz.convert(
-        matrix(c(
-          0.4, 0.5, 0.4,
-          0.4, 0.6, 0.4
-        ), ncol=3, byrow=TRUE
-        )
-      )
-    
-    arrow3 <- 
-      sp3d$xyz.convert(
-        matrix(c(
-          0.4, 0.5, 0.4,
-          0.4, 0.5, 0.5
-        ), ncol=3, byrow=TRUE
-        )
-      )
-    
-    arrows(arrow1$x[1], arrow1$y[1], arrow1$x[2], arrow1$y[2], lwd=2, length=0.03)
-    text(arrow1$x[2]*1.07,arrow1$y[2],"x")
-    arrows(arrow2$x[1], arrow2$y[1], arrow2$x[2], arrow2$y[2], lwd=2, length=0.03)
-    text(arrow2$x[2]*1.07,arrow2$y[2]*1.07,"y")
-    arrows(arrow3$x[1], arrow3$y[1], arrow3$x[2], arrow3$y[2], lwd=2, length=0.03)
-    text(arrow3$x[2],arrow3$y[2]*1.07,"z")
-
-dev.off()
 ```
 
 ```{r liz_tcs, fig.width=8, fig.height=8}
@@ -220,11 +182,13 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
 ```{r}
 
 # Setup distance matrices & groupings for each body part
-mat <- list(lab = distmat(deltaS$lab),
-             throat = distmat(deltaS$throat),
-             roof = distmat(deltaS$roof),
-             tongue = distmat(deltaS$tongue))
-group <- list(lab = substring(rownames(mat$lab), 1, 1),
+mat <- list(all = distmat(deltaS$all),
+            lab = distmat(deltaS$lab),
+            throat = distmat(deltaS$throat),
+            roof = distmat(deltaS$roof),
+            tongue = distmat(deltaS$tongue))
+group <- list(all = paste0(substring(rownames(mat$all), nchar(rownames(mat$all))), substring(rownames(mat$all), 1, 1)),
+             lab = substring(rownames(mat$lab), 1, 1),
              throat = substring(rownames(mat$throat), 1, 1),
              roof = substring(rownames(mat$roof), 1, 1),
              tongue = substring(rownames(mat$tongue), 1, 1))
@@ -243,6 +207,33 @@ adonis(mat$tongue ~ group$tongue)
 
 ```
 
+**LESS SHITTY ALTERNATIVE?**
+
+Combine all tests into one using sliding contrasts
+
+```{r}
+
+# Planned contrasts
+cpatch <- factor(group$all)
+
+levels(cpatch)  # First letter indicates body region, second indicates sex
+
+contrasts(cpatch) <- contr.sdif(8)  # Sliding contrasts
+
+# Design matrix without intercept
+cgmmat <- model.matrix(~cpatch)[,-1]
+
+# Run the model testing contrasts of interest (m vs f body regions) i.e:
+# HF vs HM (2-1), throat
+# LM vs LF (4-3), labium
+# RF vs RM (6-5), mouth-roof
+# TF vs TM (8-7), tongue
+adonis2(mat$all ~ cgmmat[,'cpatch2-1'] + cgmmat[,'cpatch4-3'] + cgmmat[,'cpatch6-5'] + cgmmat[,'cpatch8-7'] , by = 'margin')
+
+```
+
+TW: Yeah that's not right - see individual tests above. Hmmm.
+
 **Conclusion**: labium = distinct, throat = distinct, mouth = nope, tongue = nope.
 
 **Step 2:** Effect sizes.
@@ -259,6 +250,7 @@ models$tongue$group <- substring(rownames(models$tongue), 1, 1)
 
 # labium
 bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
+
 # throat
 bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 
@@ -353,14 +345,13 @@ cgroups <- factor(group$all)
 contrasts(cgroups) <- cbind(
   c(-1, 0.5, 0.5), # compare F vs. W&Y, will be named "cgroups1"
   c(0, -0.5, 0.5)  # compare W vs Y, will be named "cgroups2"
-)
+  )
 
 # Create design matrix, without intercept
-
 cgmmat <- model.matrix(~cgroups)[,-1]
 
 # Run the model testing only specified contrasts
-adonis2(mat$all ~ cgmmat[,'cgroups1'] + cgmmat[,'cgroups2'], by='margin')
+adonis2(mat$all ~ cgmmat[, 'cgroups1'] + cgmmat[, 'cgroups2'], by='margin')
 ```
 
 Note that the degrees of freedom, sums of squares, and R2 are the same between the two "full" models, but the specified contrasts let us test both hypotheses together. They would also be the same if you did adonis(mat$all ~ cgroups) (but you'd only get one P value and R2 representing the combined effects of both sets of contrasts)
@@ -478,7 +469,6 @@ contrasts(cpatch) <- cbind(c(-1, 0.2, 0.2, 0.2, 0.2, 0.2), # B vs HLPRW
                            rep(0, 6), rep(0,6), rep(0,6), rep(0,6))
 
 # we don't really care about HxLxPxRxW right? so that should do it
-
 csex <- factor(sex)
 contrasts(csex) <- cbind(
                         c(-1,1,0), # M vs F

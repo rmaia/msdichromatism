@@ -30,12 +30,14 @@ Reflectance data from four body regions of male and female *Ctenophorus ornatus*
 Calculate deltaS according to conspecific (tetrachromatic) visual system
 
 ``` r
-specs <- list(lab = as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE),
+specs <- list(all = as.rspec(read.csv('data/dichromatism/combined.csv'), interp = FALSE),
+              lab = as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE),
               throat = as.rspec(read.csv('data/dichromatism/throat.csv'), interp = FALSE),
               roof = as.rspec(read.csv('data/dichromatism/roof.csv'), interp = FALSE),
               tongue = as.rspec(read.csv('data/dichromatism/tongue.csv'), interp = FALSE))
 ```
 
+    ## wavelengths found in column 1 
     ## wavelengths found in column 1 
     ## wavelengths found in column 1 
     ## wavelengths found in column 1 
@@ -64,6 +66,7 @@ liz_lab <- function(x){
 }
 
 # ew
+deltaS$all <- liz_lab(deltaS$all)
 deltaS$lab <- liz_lab(deltaS$lab)
 deltaS$throat <- liz_lab(deltaS$throat)
 deltaS$roof <- liz_lab(deltaS$roof)
@@ -71,6 +74,84 @@ deltaS$tongue <- liz_lab(deltaS$tongue)
 ```
 
 Visualise
+
+``` r
+layout(matrix(c(1, 2, 3, 4, 5, 6, 7, 8), 4, 2, byrow = TRUE))
+
+aggplot(as.rspec(cbind(specs$lab$wl, specs$lab[grepl("M", colnames(specs$lab))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
+```
+
+    ## wavelengths found in column 1
+
+``` r
+par(new = TRUE)
+aggplot(as.rspec(cbind(specs$lab$wl, specs$lab[grepl("F", colnames(specs$lab))])), ylim = c(0, 50), lcol = 'red', shadecol = 'red')
+```
+
+    ## wavelengths found in column 1
+
+``` r
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$lab[grepl("M", rownames(models_rel$lab)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'labium', label.tick.marks = FALSE)
+sp3d$points3d(suppressWarnings(tcs(models_rel$lab[grepl("F", rownames(models_rel$lab)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
+
+aggplot(as.rspec(cbind(specs$throat$wl, specs$throat[grepl("M", colnames(specs$throat))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
+```
+
+    ## wavelengths found in column 1
+
+``` r
+par(new = TRUE)
+aggplot(as.rspec(cbind(specs$throat$wl, specs$throat[grepl("F", colnames(specs$throat))])), ylim = c(0, 50), lcol = 'red', shadecol = 'red')
+```
+
+    ## wavelengths found in column 1
+
+``` r
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$throat[grepl("M", rownames(models_rel$throat)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'throat', label.tick.marks = FALSE)
+sp3d$points3d(suppressWarnings(tcs(models_rel$throat[grepl("F", rownames(models_rel$throat)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
+
+aggplot(as.rspec(cbind(specs$roof$wl, specs$roof[grepl("M", colnames(specs$roof))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
+```
+
+    ## wavelengths found in column 1
+
+``` r
+par(new = TRUE)
+aggplot(as.rspec(cbind(specs$roof$wl, specs$roof[grepl("F", colnames(specs$roof))])), ylim = c(0, 50), lcol = 'red', shadecol = 'red')
+```
+
+    ## wavelengths found in column 1
+
+``` r
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$roof[grepl("M", rownames(models_rel$roof)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'roof', label.tick.marks = FALSE)
+sp3d$points3d(suppressWarnings(tcs(models_rel$roof[grepl("F", rownames(models_rel$roof)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
+
+aggplot(as.rspec(cbind(specs$tongue$wl, specs$tongue[grepl("M", colnames(specs$tongue))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
+```
+
+    ## wavelengths found in column 1
+
+``` r
+par(new = TRUE)
+aggplot(as.rspec(cbind(specs$tongue$wl, specs$tongue[grepl("F", colnames(specs$tongue))])), ylim = c(0, 50), lcol = 'red', shadecol = 'red')
+```
+
+    ## wavelengths found in column 1
+
+``` r
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$tongue[grepl("M", rownames(models_rel$tongue)), ])
+                                       [, c('x','y','z')]), pch=19, box=F, main = 'tongue', label.tick.marks = FALSE)
+sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_rel$tongue)), ])
+                               [, c('x','y','z')]), col='red',pch=19)
+```
+
+![](../output/figures/examples/examples_figliz_specs-1.png)
 
 ``` r
 par(pty="s", mfrow = c(2, 2))
@@ -124,11 +205,13 @@ grid.arrange(p1, p2, p3, p4, ncol=2)
 
 ``` r
 # Setup distance matrices & groupings for each body part
-mat <- list(lab = distmat(deltaS$lab),
-             throat = distmat(deltaS$throat),
-             roof = distmat(deltaS$roof),
-             tongue = distmat(deltaS$tongue))
-group <- list(lab = substring(rownames(mat$lab), 1, 1),
+mat <- list(all = distmat(deltaS$all),
+            lab = distmat(deltaS$lab),
+            throat = distmat(deltaS$throat),
+            roof = distmat(deltaS$roof),
+            tongue = distmat(deltaS$tongue))
+group <- list(all = paste0(substring(rownames(mat$all), nchar(rownames(mat$all))), substring(rownames(mat$all), 1, 1)),
+             lab = substring(rownames(mat$lab), 1, 1),
              throat = substring(rownames(mat$throat), 1, 1),
              roof = substring(rownames(mat$roof), 1, 1),
              tongue = substring(rownames(mat$tongue), 1, 1))
@@ -168,7 +251,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.508
+    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.499
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -208,9 +291,53 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.179
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.184
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
+
+**LESS SHITTY ALTERNATIVE?**
+
+Combine all tests into one using sliding contrasts
+
+``` r
+# Planned contrasts
+cpatch <- factor(group$all)
+
+levels(cpatch)  # First letter indicates body region, second indicates sex
+```
+
+    ## [1] "HF" "HM" "LF" "LM" "RF" "RM" "TF" "TM"
+
+``` r
+contrasts(cpatch) <- contr.sdif(8)  # Sliding contrasts
+
+# Design matrix without intercept
+cgmmat <- model.matrix(~cpatch)[,-1]
+
+# Run the model testing contrasts of interest (m vs f body regions) i.e:
+# HF vs HM (2-1), throat
+# LM vs LF (4-3), labium
+# RF vs RM (6-5), mouth-roof
+# TF vs TM (8-7), tongue
+adonis2(mat$all ~ cgmmat[,'cpatch2-1'] + cgmmat[,'cpatch4-3'] + cgmmat[,'cpatch6-5'] + cgmmat[,'cpatch8-7'] , by = 'margin')
+```
+
+    ## Permutation test for adonis under reduced model
+    ## Marginal effects of terms
+    ## Permutation: free
+    ## Number of permutations: 999
+    ## 
+    ## adonis2(formula = mat$all ~ cgmmat[, "cpatch2-1"] + cgmmat[, "cpatch4-3"] + cgmmat[, "cpatch6-5"] + cgmmat[, "cpatch8-7"], by = "margin")
+    ##                        Df SumOfSqs        F Pr(>F)    
+    ## cgmmat[, "cpatch2-1"]   1     19.8   0.4802  0.528    
+    ## cgmmat[, "cpatch4-3"]   1   5394.6 130.6531  0.001 ***
+    ## cgmmat[, "cpatch6-5"]   1   2481.6  60.1032  0.001 ***
+    ## cgmmat[, "cpatch8-7"]   1    114.9   2.7832  0.075 .  
+    ## Residual              230   9496.7                    
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+TW: Yeah that's not right - see individual tests above. Hmmm.
 
 **Conclusion**: labium = distinct, throat = distinct, mouth = nope, tongue = nope.
 
@@ -230,7 +357,7 @@ bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3195551 0.6301293
+    ## F-M   0.4650257 0.3147169 0.6345321
 
 ``` r
 # throat
@@ -238,7 +365,7 @@ bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.5703535 0.3765972 0.8306497
+    ## F-M   0.5703535 0.3712913 0.8365348
 
 So lab's & throats are statistically distinct, but fall below threshold on average.
 
@@ -284,9 +411,9 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4498891 1.4362217
-    ## F-Y   1.3789736 0.9959598 1.8377950
-    ## W-Y   0.7111240 0.6464101 0.8036617
+    ## F-W   0.9156266 0.4274088 1.4129604
+    ## F-Y   1.3789736 0.9811823 1.8332478
+    ## W-Y   0.7111240 0.6446884 0.8022745
 
 ``` r
 # Contrast labels
@@ -338,14 +465,13 @@ cgroups <- factor(group$all)
 contrasts(cgroups) <- cbind(
   c(-1, 0.5, 0.5), # compare F vs. W&Y, will be named "cgroups1"
   c(0, -0.5, 0.5)  # compare W vs Y, will be named "cgroups2"
-)
+  )
 
 # Create design matrix, without intercept
-
 cgmmat <- model.matrix(~cgroups)[,-1]
 
 # Run the model testing only specified contrasts
-adonis2(mat$all ~ cgmmat[,'cgroups1'] + cgmmat[,'cgroups2'], by='margin')
+adonis2(mat$all ~ cgmmat[, 'cgroups1'] + cgmmat[, 'cgroups2'], by='margin')
 ```
 
     ## Permutation test for adonis under reduced model
@@ -354,10 +480,10 @@ adonis2(mat$all ~ cgmmat[,'cgroups1'] + cgmmat[,'cgroups2'], by='margin')
     ## Number of permutations: 999
     ## 
     ## adonis2(formula = mat$all ~ cgmmat[, "cgroups1"] + cgmmat[, "cgroups2"], by = "margin")
-    ##                       Df SumOfSqs       F Pr(>F)    
-    ## cgmmat[, "cgroups1"]   1   1267.2 13.2141  0.001 ***
-    ## cgmmat[, "cgroups2"]   1    382.0  3.9833  0.029 *  
-    ## Residual             133  12754.1                   
+    ##                       Df SumOfSqs       F Pr(>F)   
+    ## cgmmat[, "cgroups1"]   1   1267.2 13.2141  0.002 **
+    ## cgmmat[, "cgroups2"]   1    382.0  3.9833  0.029 * 
+    ## Residual             133  12754.1                  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -371,9 +497,9 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4628825 1.4525596
-    ## F-Y   1.3789736 0.9995888 1.8538618
-    ## W-Y   0.7111240 0.6448887 0.8073744
+    ## F-W   0.9156266 0.4312846 1.4929224
+    ## F-Y   1.3789736 0.9852407 1.8711142
+    ## W-Y   0.7111240 0.6407755 0.8080122
 
 So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but probably tough (depending on experience etc.).
 
@@ -493,7 +619,6 @@ contrasts(cpatch) <- cbind(c(-1, 0.2, 0.2, 0.2, 0.2, 0.2), # B vs HLPRW
                            rep(0, 6), rep(0,6), rep(0,6), rep(0,6))
 
 # we don't really care about HxLxPxRxW right? so that should do it
-
 csex <- factor(sex)
 contrasts(csex) <- cbind(
                         c(-1,1,0), # M vs F
@@ -512,7 +637,7 @@ adonis2(mat~cpatch+csex, by='margin')
     ## adonis2(formula = mat ~ cpatch + csex, by = "margin")
     ##           Df SumOfSqs       F Pr(>F)    
     ## cpatch     1   226.74 49.9730  0.001 ***
-    ## csex       1    35.47  7.8178  0.002 ** 
+    ## csex       1    35.47  7.8178  0.001 ***
     ## Residual 216   980.03                   
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -611,16 +736,16 @@ sessionInfo()
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## other attached packages:
-    ## [1] vegan_2.4-0          lattice_0.20-33      permute_0.9-0       
-    ## [4] gridExtra_2.2.1      ggplot2_2.1.0        scatterplot3d_0.3-37
-    ## [7] pavo_0.5-5           rgl_0.95.1441       
+    ## [1] MASS_7.3-45          vegan_2.4-0          lattice_0.20-33     
+    ## [4] permute_0.9-0        gridExtra_2.2.1      ggplot2_2.1.0       
+    ## [7] scatterplot3d_0.3-37 pavo_0.5-5           rgl_0.95.1441       
     ## 
     ## loaded via a namespace (and not attached):
     ##  [1] Rcpp_0.12.5      cluster_2.0.4    knitr_1.13       magrittr_1.5    
-    ##  [5] MASS_7.3-45      maps_3.1.0       magic_1.5-6      munsell_0.4.3   
-    ##  [9] colorspace_1.2-6 geometry_0.3-6   plyr_1.8.4       stringr_1.0.0   
-    ## [13] tools_3.3.1      parallel_3.3.1   grid_3.3.1       nlme_3.1-128    
-    ## [17] gtable_0.2.0     mgcv_1.8-12      htmltools_0.3.5  yaml_2.1.13     
-    ## [21] digest_0.6.9     Matrix_1.2-6     reshape2_1.4.1   mapproj_1.2-4   
-    ## [25] formatR_1.4      rcdd_1.1-10      evaluate_0.9     rmarkdown_0.9.6 
-    ## [29] labeling_0.3     stringi_1.1.1    scales_0.4.0
+    ##  [5] maps_3.1.0       magic_1.5-6      munsell_0.4.3    colorspace_1.2-6
+    ##  [9] geometry_0.3-6   plyr_1.8.4       stringr_1.0.0    tools_3.3.1     
+    ## [13] parallel_3.3.1   grid_3.3.1       nlme_3.1-128     gtable_0.2.0    
+    ## [17] mgcv_1.8-12      htmltools_0.3.5  yaml_2.1.13      digest_0.6.9    
+    ## [21] Matrix_1.2-6     reshape2_1.4.1   mapproj_1.2-4    formatR_1.4     
+    ## [25] rcdd_1.1-10      evaluate_0.9     rmarkdown_0.9.6  labeling_0.3    
+    ## [29] stringi_1.1.1    scales_0.4.0
