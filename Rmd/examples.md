@@ -225,7 +225,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.523
+    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.495
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -265,7 +265,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.192
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.197
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -304,10 +304,10 @@ adonis2(mat$all ~ cgmmat[,'cpatch2-1'] + cgmmat[,'cpatch4-3'] +
     ## 
     ## adonis2(formula = mat$all ~ cgmmat[, "cpatch2-1"] + cgmmat[, "cpatch4-3"] + cgmmat[, "cpatch6-5"] + cgmmat[, "cpatch8-7"], by = "margin")
     ##                        Df SumOfSqs        F Pr(>F)    
-    ## cgmmat[, "cpatch2-1"]   1     19.8   0.4802  0.544    
+    ## cgmmat[, "cpatch2-1"]   1     19.8   0.4802  0.515    
     ## cgmmat[, "cpatch4-3"]   1   5394.6 130.6531  0.001 ***
     ## cgmmat[, "cpatch6-5"]   1   2481.6  60.1032  0.001 ***
-    ## cgmmat[, "cpatch8-7"]   1    114.9   2.7832  0.074 .  
+    ## cgmmat[, "cpatch8-7"]   1    114.9   2.7832  0.092 .  
     ## Residual              230   9496.7                    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -328,7 +328,7 @@ bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3093125 0.6228576
+    ## F-M   0.4650257 0.3224537 0.6404479
 
 ``` r
 # throat
@@ -336,7 +336,7 @@ bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.5703535 0.3593375 0.8294854
+    ## F-M   0.5703535 0.3657647 0.8220122
 
 So lab's & throats are statistically distinct, but fall below threshold.
 
@@ -381,10 +381,10 @@ models$group <- substring(rownames(models), 1, 1)
 bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
 ```
 
-    ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4254627 1.4372245
-    ## F-Y   1.3789736 0.9869471 1.8690435
-    ## W-Y   0.7111240 0.6436319 0.8001431
+    ##     measured.dS    CI.lwr   CI.upr
+    ## F-W   0.9156266 0.4522794 1.455866
+    ## F-Y   1.3789736 0.9759303 1.870583
+    ## W-Y   0.7111240 0.6474917 0.807102
 
 ``` r
 # Contrast labels
@@ -453,7 +453,7 @@ adonis2(mat$all ~ cgmmat[, 'cgroups1'] + cgmmat[, 'cgroups2'], by='margin')
     ## adonis2(formula = mat$all ~ cgmmat[, "cgroups1"] + cgmmat[, "cgroups2"], by = "margin")
     ##                       Df SumOfSqs       F Pr(>F)   
     ## cgmmat[, "cgroups1"]   1   1267.2 13.2141  0.002 **
-    ## cgmmat[, "cgroups2"]   1    382.0  3.9833  0.044 * 
+    ## cgmmat[, "cgroups2"]   1    382.0  3.9833  0.027 * 
     ## Residual             133  12754.1                  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -468,9 +468,9 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4278922 1.3759204
-    ## F-Y   1.3789736 0.9720929 1.8152371
-    ## W-Y   0.7111240 0.6411402 0.8064705
+    ## F-W   0.9156266 0.4199445 1.4323922
+    ## F-Y   1.3789736 0.9840243 1.8313279
+    ## W-Y   0.7111240 0.6430537 0.8035635
 
 So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but probably tough (depending on experience etc.).
 
@@ -536,6 +536,8 @@ Visualise
 ``` r
 cols <- c('darkgoldenrod', 'darkgoldenrod1', 'darkgoldenrod2', 'darkgoldenrod3', 'darkgoldenrod4')
 
+layout(matrix(c(1, 2, 3, 4), 2, 2, byrow = TRUE))
+
 # Female specs
 aggplot(as.rspec(cbind(specs$wl, specs[grepl("_F", colnames(specs))])), 
         by =  substring(names(specs[grepl("_F", colnames(specs))]), 1, 1), 
@@ -545,8 +547,6 @@ aggplot(as.rspec(cbind(specs$wl, specs[grepl("_F", colnames(specs))])),
 ```
 
     ## wavelengths found in column 1
-
-![](../output/figures/examples/examples_figcrypsis_tcs-1.png)
 
 ``` r
 # Female tcs
@@ -563,11 +563,7 @@ sp3d$points3d(suppressWarnings(tcs(models_rel$female[grepl("P_", rownames(models
                                [, c('x','y','z')]), col='darkgoldenrod3',pch=19)
 sp3d$points3d(suppressWarnings(tcs(models_rel$female[grepl("W_", rownames(models_rel$female)), ])
                                [, c('x','y','z')]), col='darkgoldenrod4',pch=19)
-```
 
-![](../output/figures/examples/examples_figcrypsis_tcs-2.png)
-
-``` r
 # Male specs
 aggplot(as.rspec(cbind(specs$wl, specs[grepl("_M", colnames(specs))])), 
         by =  substring(names(specs[grepl("_M", colnames(specs))]), 1, 1), 
@@ -577,8 +573,6 @@ aggplot(as.rspec(cbind(specs$wl, specs[grepl("_M", colnames(specs))])),
 ```
 
     ## wavelengths found in column 1
-
-![](../output/figures/examples/examples_figcrypsis_tcs-3.png)
 
 ``` r
 # Male tcs
@@ -597,7 +591,7 @@ sp3d$points3d(suppressWarnings(tcs(models_rel$male[grepl("W_", rownames(models_r
                                [, c('x','y','z')]), col='darkgoldenrod4',pch=19)
 ```
 
-![](../output/figures/examples/examples_figcrypsis_tcs-4.png)
+![](../output/figures/examples/examples_figcrypsis_tcs-1.png)
 
 ``` r
 ggplot(deltaS_plot, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
@@ -640,7 +634,7 @@ adonis2(mat ~ cpatch + csex, by = 'margin')
     ## adonis2(formula = mat ~ cpatch + csex, by = "margin")
     ##           Df SumOfSqs       F Pr(>F)    
     ## cpatch     1   226.74 49.9730  0.001 ***
-    ## csex       1    35.47  7.8178  0.001 ***
+    ## csex       1    35.47  7.8178  0.003 ** 
     ## Residual 216   980.03                   
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1

@@ -90,7 +90,7 @@ deltaS$tongue <- liz_lab(deltaS$tongue)
 ```
 
 Visualise
-```{r liz_spectcs, fig.width=5, fig.height=8}
+```{r liz_spectcs, fig.width=6, fig.height=9, message=FALSE, warning=FALSE}
 layout(matrix(c(1, 2, 3, 4, 5, 6, 7, 8), 4, 2, byrow = TRUE))
 
 aggplot(as.rspec(cbind(specs$lab$wl, specs$lab[grepl("M", colnames(specs$lab))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
@@ -394,9 +394,11 @@ deltaS_plot <- deltaS[complete.cases(deltaS),]  # comparisons of interest (for p
 
 Visualise
 
-```{r crypsis_tcs, fig.width=6, fig.height=6}
+```{r crypsis_tcs, fig.width=7, fig.height=7}
 
 cols <- c('darkgoldenrod', 'darkgoldenrod1', 'darkgoldenrod2', 'darkgoldenrod3', 'darkgoldenrod4')
+
+layout(matrix(c(1, 2, 3, 4), 2, 2, byrow = TRUE))
 
 # Female specs
 aggplot(as.rspec(cbind(specs$wl, specs[grepl("_F", colnames(specs))])), 
