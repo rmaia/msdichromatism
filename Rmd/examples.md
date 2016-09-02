@@ -55,22 +55,6 @@ models_rel <- lapply(specs, function(x) vismodel(x, visual = liz_vis, relative =
 
 deltaS <- lapply(models, function(x) coldist(x, achro = FALSE, n1 = 1, n2 = 1, 
                                              n3 = 3.5, n4 = 6, v = 0.10, noise = 'neural'))
-
-# Add group labels
-liz_lab <- function(x){
-  x$comparison[grepl('F', x$patch1) & grepl('F', x$patch2)] <- 'intra.F'
-  x$comparison[grepl('M', x$patch1) & grepl('M', x$patch2)] <- 'intra.M'
-  x$comparison[grepl('M', x$patch1) & grepl('F', x$patch2)] <- 'inter'
-  x$comparison[grepl('F', x$patch1) & grepl('M', x$patch2)] <- 'inter'
-  x
-}
-
-# ew
-deltaS$all <- liz_lab(deltaS$all)
-deltaS$lab <- liz_lab(deltaS$lab)
-deltaS$throat <- liz_lab(deltaS$throat)
-deltaS$roof <- liz_lab(deltaS$roof)
-deltaS$tongue <- liz_lab(deltaS$tongue)
 ```
 
 Visualise
@@ -153,28 +137,6 @@ sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_
 
 ![](../output/figures/examples/examples_figliz_spectcs-1.png)
 
-``` r
-p1 <- ggplot(deltaS$lab, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
-        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
-        ggtitle('labial') + theme(legend.position="none")
-
-p2 <- ggplot(deltaS$throat, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
-        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
-        ggtitle('throat') + theme(legend.position="none")
-
-p3 <- ggplot(deltaS$roof, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
-        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
-        ggtitle('roof') + theme(legend.position="none")
-
-p4 <- ggplot(deltaS$tongue, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
-        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
-        ggtitle('tongue') + theme(legend.position="none")
-
-grid.arrange(p1, p2, p3, p4, ncol=2)
-```
-
-![](../output/figures/examples/examples_figliz_deltaplot-1.png)
-
 **Step 1:** PERMANOVAs
 
 ``` r
@@ -225,7 +187,7 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.495
+    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.528
     ## Residuals  54    355.14  6.5766         0.991       
     ## Total      55    358.36                 1.000
 
@@ -265,7 +227,7 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.197
+    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.199
     ## Residuals    57    413.82  7.2601         0.97143       
     ## Total        58    426.00                 1.00000
 
@@ -304,10 +266,10 @@ adonis2(mat$all ~ cgmmat[,'cpatch2-1'] + cgmmat[,'cpatch4-3'] +
     ## 
     ## adonis2(formula = mat$all ~ cgmmat[, "cpatch2-1"] + cgmmat[, "cpatch4-3"] + cgmmat[, "cpatch6-5"] + cgmmat[, "cpatch8-7"], by = "margin")
     ##                        Df SumOfSqs        F Pr(>F)    
-    ## cgmmat[, "cpatch2-1"]   1     19.8   0.4802  0.515    
+    ## cgmmat[, "cpatch2-1"]   1     19.8   0.4802  0.520    
     ## cgmmat[, "cpatch4-3"]   1   5394.6 130.6531  0.001 ***
     ## cgmmat[, "cpatch6-5"]   1   2481.6  60.1032  0.001 ***
-    ## cgmmat[, "cpatch8-7"]   1    114.9   2.7832  0.092 .  
+    ## cgmmat[, "cpatch8-7"]   1    114.9   2.7832  0.080 .  
     ## Residual              230   9496.7                    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -327,8 +289,8 @@ models$throat$group <- substring(rownames(models$throat), 1, 1)
 bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
 ```
 
-    ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.4650257 0.3224537 0.6404479
+    ##     measured.dS    CI.lwr   CI.upr
+    ## F-M   0.4650257 0.3096813 0.640355
 
 ``` r
 # throat
@@ -336,7 +298,7 @@ bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.5703535 0.3657647 0.8220122
+    ## F-M   0.5703535 0.3685354 0.8249836
 
 So lab's & throats are statistically distinct, but fall below threshold.
 
@@ -381,10 +343,10 @@ models$group <- substring(rownames(models), 1, 1)
 bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
 ```
 
-    ##     measured.dS    CI.lwr   CI.upr
-    ## F-W   0.9156266 0.4522794 1.455866
-    ## F-Y   1.3789736 0.9759303 1.870583
-    ## W-Y   0.7111240 0.6474917 0.807102
+    ##     measured.dS    CI.lwr    CI.upr
+    ## F-W   0.9156266 0.4216446 1.4333632
+    ## F-Y   1.3789736 0.9974827 1.8532475
+    ## W-Y   0.7111240 0.6407573 0.8038745
 
 ``` r
 # Contrast labels
@@ -406,14 +368,6 @@ points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 21, c
 ```
 
 ![](../output/figures/examples/examples_figmimic_triplot-1.png)
-
-``` r
-ggplot(deltaS, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
-        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
-        theme(legend.position="none")
-```
-
-![](../output/figures/examples/examples_figmimic_deltaplot-1.png)
 
 **PERMANOVA**
 
@@ -451,10 +405,10 @@ adonis2(mat$all ~ cgmmat[, 'cgroups1'] + cgmmat[, 'cgroups2'], by='margin')
     ## Number of permutations: 999
     ## 
     ## adonis2(formula = mat$all ~ cgmmat[, "cgroups1"] + cgmmat[, "cgroups2"], by = "margin")
-    ##                       Df SumOfSqs       F Pr(>F)   
-    ## cgmmat[, "cgroups1"]   1   1267.2 13.2141  0.002 **
-    ## cgmmat[, "cgroups2"]   1    382.0  3.9833  0.027 * 
-    ## Residual             133  12754.1                  
+    ##                       Df SumOfSqs       F Pr(>F)    
+    ## cgmmat[, "cgroups1"]   1   1267.2 13.2141  0.001 ***
+    ## cgmmat[, "cgroups2"]   1    382.0  3.9833  0.045 *  
+    ## Residual             133  12754.1                   
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -468,9 +422,9 @@ bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 
 ```
 
     ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4199445 1.4323922
-    ## F-Y   1.3789736 0.9840243 1.8313279
-    ## W-Y   0.7111240 0.6430537 0.8035635
+    ## F-W   0.9156266 0.4353753 1.4198322
+    ## F-Y   1.3789736 1.0005900 1.8328855
+    ## W-Y   0.7111240 0.6461624 0.8112797
 
 So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but probably tough (depending on experience etc.).
 
@@ -509,26 +463,6 @@ models_rel <- list(female = vismodel(as.rspec(cbind(specs$wl, specs[grepl("_F", 
 
 ``` r
 deltaS <- coldist(models, achro = FALSE)
-
-# Contrast labels. 
-
-# Intragroup
-deltaS$comparison[grepl('H_', deltaS$patch1) & grepl('H_', deltaS$patch2)] <- 'intra.H'
-deltaS$comparison[grepl('L_', deltaS$patch1) & grepl('L_', deltaS$patch2)] <- 'intra.L'
-deltaS$comparison[grepl('R_', deltaS$patch1) & grepl('R_', deltaS$patch2)] <- 'intra.R'
-deltaS$comparison[grepl('P_', deltaS$patch1) & grepl('P_', deltaS$patch2)] <- 'intra.P'
-deltaS$comparison[grepl('A_', deltaS$patch1) & grepl('A_', deltaS$patch2)] <- 'intra.A'
-deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('W_', deltaS$patch2)] <- 'intra.W'
-
-# Intergroup
-deltaS$comparison[grepl('H_', deltaS$patch1) & grepl('B_', deltaS$patch2)] <- 'inter.HB'
-deltaS$comparison[grepl('L_', deltaS$patch1) & grepl('B_', deltaS$patch2)] <- 'inter.LB'
-deltaS$comparison[grepl('R_', deltaS$patch1) & grepl('B_', deltaS$patch2)] <- 'inter.RB'
-deltaS$comparison[grepl('P_', deltaS$patch1) & grepl('B_', deltaS$patch2)] <- 'inter.PB'
-deltaS$comparison[grepl('A_', deltaS$patch1) & grepl('B_', deltaS$patch2)] <- 'inter.AB'
-deltaS$comparison[grepl('W_', deltaS$patch1) & grepl('B_', deltaS$patch2)] <- 'inter.WB'
-
-deltaS_plot <- deltaS[complete.cases(deltaS),]  # comparisons of interest (for plotting only you fool of a Took)
 ```
 
 Visualise
@@ -593,14 +527,6 @@ sp3d$points3d(suppressWarnings(tcs(models_rel$male[grepl("W_", rownames(models_r
 
 ![](../output/figures/examples/examples_figcrypsis_tcs-1.png)
 
-``` r
-ggplot(deltaS_plot, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) + 
-        facet_grid(comparison~., scales='free_y') + geom_vline(xintercept=1) +
-        theme(legend.position="none")
-```
-
-![](../output/figures/examples/examples_figcrypsis_deltaplot-1.png)
-
 **Step 1:** PERMANOVA
 
 ``` r
@@ -634,7 +560,7 @@ adonis2(mat ~ cpatch + csex, by = 'margin')
     ## adonis2(formula = mat ~ cpatch + csex, by = "margin")
     ##           Df SumOfSqs       F Pr(>F)    
     ## cpatch     1   226.74 49.9730  0.001 ***
-    ## csex       1    35.47  7.8178  0.003 ** 
+    ## csex       1    35.47  7.8178  0.001 ***
     ## Residual 216   980.03                   
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -743,6 +669,6 @@ sessionInfo()
     ##  [9] geometry_0.3-6   plyr_1.8.4       stringr_1.0.0    tools_3.3.1     
     ## [13] parallel_3.3.1   grid_3.3.1       nlme_3.1-128     gtable_0.2.0    
     ## [17] mgcv_1.8-12      htmltools_0.3.5  yaml_2.1.13      digest_0.6.9    
-    ## [21] Matrix_1.2-6     reshape2_1.4.1   mapproj_1.2-4    formatR_1.4     
-    ## [25] rcdd_1.1-10      evaluate_0.9     rmarkdown_0.9.6  labeling_0.3    
-    ## [29] stringi_1.1.1    scales_0.4.0
+    ## [21] Matrix_1.2-6     mapproj_1.2-4    formatR_1.4      rcdd_1.1-10     
+    ## [25] evaluate_0.9     rmarkdown_0.9.6  labeling_0.3     stringi_1.1.1   
+    ## [29] scales_0.4.0
