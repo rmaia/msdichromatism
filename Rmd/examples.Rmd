@@ -208,7 +208,7 @@ adonis2(mat$all ~ cgmmat[,'cpatch2-1'] + cgmmat[,'cpatch4-3'] +
 
 ```
 
-TW: Yeah that's not right - see individual tests above. Should be labium (4-3) = distinct, throat (2-1) = distinct, mouth (6-5) = nope, tongue (8-7) = nope.
+TW: Yeah that's not right - see individual tests above. Should be labium (4-3) = distinct, throat (2-1) = distinct, mouth (6-5) = nope, tongue (8-7) = nope. Should 'sex' be split off as a factor? ...
 
 **Step 2:** Effect sizes.
 
@@ -362,7 +362,12 @@ specs <- as.rspec(read.csv('data/crypsis/mantids_bkgs.csv'), lim = c(300, 700))
 ```{r}
 
 models <- vismodel(specs, visual = 'bluetit', relative = FALSE, qcatch = "fi", scale = 10000)  # deltaS
-models_rel <- vismodel(specs, visual = 'bluetit', relative = TRUE, qcatch = "fi", scale = 10000)  # tcs
+models_rel <- list(female = vismodel(as.rspec(cbind(specs$wl, specs[grepl("_F", colnames(specs))])), 
+                                     visual = 'bluetit', relative = TRUE, qcatch = "fi", scale = 10000),
+                   male = vismodel(as.rspec(cbind(specs$wl, specs[grepl("_M", colnames(specs))])), 
+                                     visual = 'bluetit', relative = TRUE, qcatch = "fi", scale = 10000),
+                   bkg = vismodel(as.rspec(cbind(specs$wl, specs[grepl("B_", colnames(specs))])), 
+                                     visual = 'bluetit', relative = TRUE, qcatch = "fi", scale = 10000))
 
 deltaS <- coldist(models, achro = FALSE)
 
@@ -391,21 +396,51 @@ Visualise
 
 ```{r crypsis_tcs, fig.width=6, fig.height=6}
 
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel[grepl("B_", rownames(models_rel)), ])
-                                       [, c('x','y','z')]), xlim=c(-0.02,0.02), ylim=c(-0.01,0.028), zlim=c(-0.06,0.01), 
-                                        pch=19, box=F, color = 'forestgreen')
-sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("H_", rownames(models_rel)), ])
+cols <- c('darkgoldenrod', 'darkgoldenrod1', 'darkgoldenrod2', 'darkgoldenrod3', 'darkgoldenrod4')
+
+# Female specs
+aggplot(as.rspec(cbind(specs$wl, specs[grepl("_F", colnames(specs))])), 
+        by =  substring(names(specs[grepl("_F", colnames(specs))]), 1, 1), 
+        ylim = c(0, 100),
+        lcol = 'black',
+        shadecol = cols)
+
+# Female tcs
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$bkg)[, c('x','y','z')]), 
+                                       xlim=c(-0.02,0.03), ylim=c(-0.01,0.028), zlim=c(-0.06,0.01), 
+                                       pch=19, box=F, color = 'forestgreen', label.tick.marks = FALSE)
+sp3d$points3d(suppressWarnings(tcs(models_rel$female[grepl("H_", rownames(models_rel$female)), ])
                                [, c('x','y','z')]), col='darkgoldenrod',pch=19)
-sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("L_", rownames(models_rel)), ])
+sp3d$points3d(suppressWarnings(tcs(models_rel$female[grepl("L_", rownames(models_rel$female)), ])
                                [, c('x','y','z')]), col='darkgoldenrod1',pch=19)
-sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("R_", rownames(models_rel)), ])
+sp3d$points3d(suppressWarnings(tcs(models_rel$female[grepl("R_", rownames(models_rel$female)), ])
                                [, c('x','y','z')]), col='darkgoldenrod2',pch=19)
-sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("P_", rownames(models_rel)), ])
+sp3d$points3d(suppressWarnings(tcs(models_rel$female[grepl("P_", rownames(models_rel$female)), ])
                                [, c('x','y','z')]), col='darkgoldenrod3',pch=19)
-sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("W_", rownames(models_rel)), ])
+sp3d$points3d(suppressWarnings(tcs(models_rel$female[grepl("W_", rownames(models_rel$female)), ])
                                [, c('x','y','z')]), col='darkgoldenrod4',pch=19)
-sp3d$points3d(suppressWarnings(tcs(models_rel[grepl("A_", rownames(models_rel)), ])
-                               [, c('x','y','z')]), col='gold1',pch=19)
+
+# Male specs
+aggplot(as.rspec(cbind(specs$wl, specs[grepl("_M", colnames(specs))])), 
+        by =  substring(names(specs[grepl("_M", colnames(specs))]), 1, 1), 
+        ylim = c(0, 100),
+        lcol = 'black',
+        shadecol = cols)
+
+# Male tcs
+sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$bkg)[, c('x','y','z')]), 
+                                       xlim=c(-0.02,0.03), ylim=c(-0.01,0.028), zlim=c(-0.06,0.01), 
+                                       pch=19, box=F, color = 'forestgreen', label.tick.marks = FALSE)
+sp3d$points3d(suppressWarnings(tcs(models_rel$male[grepl("H_", rownames(models_rel$male)), ])
+                               [, c('x','y','z')]), col='darkgoldenrod',pch=19)
+sp3d$points3d(suppressWarnings(tcs(models_rel$male[grepl("L_", rownames(models_rel$male)), ])
+                               [, c('x','y','z')]), col='darkgoldenrod1',pch=19)
+sp3d$points3d(suppressWarnings(tcs(models_rel$male[grepl("R_", rownames(models_rel$male)), ])
+                               [, c('x','y','z')]), col='darkgoldenrod2',pch=19)
+sp3d$points3d(suppressWarnings(tcs(models_rel$male[grepl("P_", rownames(models_rel$male)), ])
+                               [, c('x','y','z')]), col='darkgoldenrod3',pch=19)
+sp3d$points3d(suppressWarnings(tcs(models_rel$male[grepl("W_", rownames(models_rel$male)), ])
+                               [, c('x','y','z')]), col='darkgoldenrod4',pch=19)
 ```
 
 ```{r crypsis_deltaplot, fig.width=6, fig.height=9}
@@ -416,7 +451,7 @@ ggplot(deltaS_plot, aes(x=dS, fill=comparison)) + geom_histogram(bins=50) +
 
 ```
 
-**Step 1:** PERMANOVA all the things
+**Step 1:** PERMANOVA
 
 ```{r}
 
@@ -425,16 +460,7 @@ mat <- distmat(deltaS)
 patch <- substring(rownames(mat), 1, 1)  # body part
 sex <- substring(rownames(mat), nchar(rownames(mat)))  # sex (Male, Female, None (bkg))  
 
-adonis(mat ~ patch * sex)
-
-```
-
-Large patch effect, minor sex * patch interaction.
-
-
-**Alternatively:** This formula definition might be problematic though - what if there is no sex difference but there's "None" x (both sexes) differences and these are enough to render that comparison significant? let's specify contrasts based on the questions:
-
-```{r}
+# Specify contrasts based on the questions:
 # contrasts for patch
 cpatch <- factor(patch)
 contrasts(cpatch) <- cbind(c(-1, 0.2, 0.2, 0.2, 0.2, 0.2), # B vs HLPRW
@@ -448,7 +474,8 @@ contrasts(csex) <- cbind(
                         )
 
 # without interaction
-adonis2(mat~cpatch+csex, by='margin')
+adonis2(mat ~ cpatch + csex, by = 'margin')
+
 ```
 
 **note reduced degrees of freedom**
@@ -463,16 +490,16 @@ also note that in this scenario, the "interaction" becomes nonsingular and unide
  
 ```{r}
 # get model matrix 
-modmat <- model.matrix(~cpatch*csex)
+modmat <- model.matrix(~cpatch * csex)
 
 # only columns that interest us:
 # cpatch1: B vs HLPRW
 # csex1: M vs F, ignore N
 # cpatch1:csex1: their interaction
 
-modmat <- modmat[,c("cpatch1", "csex1", "cpatch1:csex1")]
+modmat <- modmat[, c("cpatch1", "csex1", "cpatch1:csex1")]
 
-adonis2(mat~modmat, by='margin')
+adonis2(mat ~ modmat, by='margin')
 ```
 
 We can change the contrasts to show an interaction in the form of a sex-by-patch effect, but since we are ignoring the patch differences when testing for crypsis, maybe we shouldn't? 
@@ -519,7 +546,7 @@ Plot (patch * sex)-versus-bkg bootstrapped centroid distances
 
 ```
 
-So all patches are below threshold (i.e. cryptic), and there are some very minor, imperceptible differences between sexes. There's a ton of variance in males due to relatively low sample size. 
+So all patches are below threshold (i.e. cryptic), and there are some very minor, imperceptible differences between sexes.
 
 ```{r}
 sessionInfo()
