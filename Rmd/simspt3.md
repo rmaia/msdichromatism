@@ -132,7 +132,7 @@ gc()
     ## Ncells  1370906  73.3    2164898 115.7  1770749  94.6
     ## Vcells 23027519 175.7   34507917 263.3 34507605 263.3
 
-![](output/figures/simspt3/simspt3_figunnamed-chunk-2-1.png)
+![](../output/figures/simspt3/simspt3_figunnamed-chunk-2-1.png)
 
 color legend:
 
@@ -144,7 +144,7 @@ color legend:
 -   dark red: adonis non-significant, centroid distance &gt; 1 (BAD)
 -   light red: adonis and centroid distance &lt; 1 (GOOD)
 
-![](output/figures/simspt3/simspt3_figunnamed-chunk-3-1.png)
+![](../output/figures/simspt3/simspt3_figunnamed-chunk-3-1.png)
 
 Scenario 2
 ----------
@@ -179,7 +179,7 @@ gc()
     ## Ncells   1621182   86.6    2637877  140.9   2164898  115.7
     ## Vcells 149746490 1142.5  248821452 1898.4 199124499 1519.2
 
-![](output/figures/simspt3/simspt3_figunnamed-chunk-4-1.png)
+![](../output/figures/simspt3/simspt3_figunnamed-chunk-4-1.png)
 
 color legend:
 
@@ -189,7 +189,7 @@ color legend:
 -   light blue: adonis and centroid distance &gt; 1 (GOOD)
 -   dark blue: adonis significant, centroid distance &lt; 1 (BAD)
 -   dark red: adonis non-significant, centroid distance &gt; 1 (BAD)
--   light red: adonis and centroid distance &lt; 1 (GOOD) ![](output/figures/simspt3/simspt3_figunnamed-chunk-5-1.png)
+-   light red: adonis and centroid distance &lt; 1 (GOOD) ![](../output/figures/simspt3/simspt3_figunnamed-chunk-5-1.png)
 
 Scenario 3
 ----------
@@ -224,7 +224,7 @@ gc()
     ## Ncells   1821514   97.3    3205452  171.2   2637877  140.9
     ## Vcells 275922689 2105.2  469417708 3581.4 325861837 2486.2
 
-![](output/figures/simspt3/simspt3_figunnamed-chunk-6-1.png)
+![](../output/figures/simspt3/simspt3_figunnamed-chunk-6-1.png)
 
 color legend:
 
@@ -234,7 +234,7 @@ color legend:
 -   light blue: adonis and centroid distance &gt; 1 (GOOD)
 -   dark blue: adonis significant, centroid distance &lt; 1 (BAD)
 -   dark red: adonis non-significant, centroid distance &gt; 1 (BAD)
--   light red: adonis and centroid distance &lt; 1 (GOOD) ![](output/figures/simspt3/simspt3_figunnamed-chunk-7-1.png)
+-   light red: adonis and centroid distance &lt; 1 (GOOD) ![](../output/figures/simspt3/simspt3_figunnamed-chunk-7-1.png)
 
 ``` r
 sessionInfo()

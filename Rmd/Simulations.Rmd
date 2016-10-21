@@ -18,8 +18,11 @@ require(ggplot2)
 require(lme4)
 
 knitr::opts_chunk$set(echo = TRUE, 
-                      fig.path='../output/simspt1/simspt1_fig')
+                      fig.path='../output/figures/simspt1/simspt1_fig', 
+                      #fig.height = 10,
+                      cache.path = '../output/cache/simspt1/simspt1_fig')
 knitr::opts_knit$set(root.dir=normalizePath(".."))
+
 
 ```
 

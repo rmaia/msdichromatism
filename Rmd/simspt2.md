@@ -123,7 +123,7 @@ simulatecoldist <- parallel::mclapply(simulatedata, function(x) {
 
 Let's see what some of these simulations look like. We can see how similar groups are. This really is a threshold situation. We can also see that simulations do a pretty good job of covering the entire colorspace, as well as a wide range of correlations and variances.
 
-![](output/figures/simspt2/simspt2_figunnamed-chunk-2-1.png)
+![](../output/figures/simspt2/simspt2_figunnamed-chunk-2-1.png)
 
 **Step 1:** Run permuational ANOVA (PERMANOVA) on simulated data to ask if group A is different than group B
 
@@ -153,7 +153,7 @@ centdist <- unlist(parallel::mclapply(simulatedata, centroidist, mc.cores=6))
 
 Let's see what our results look like
 
-![](output/figures/simspt2/simspt2_figunnamed-chunk-3-1.png)
+![](../output/figures/simspt2/simspt2_figunnamed-chunk-3-1.png)
 
 -   There is no association between how well groups can be told apart (PERMANOVA R-squared) and the mean between-group distances
 -   Between-group JND distance fails to predict if the groups can be told apart (i.e. if the PERMANOVA is significant)
@@ -164,7 +164,7 @@ This is annoying, wasn't really what I was trying to simulate. But gets the poin
 
 **For what it's worth**: There is a near-perfect correlation between estimates obtained from mixed-models and just taking the means within each group. Probably because the design is perfectly balanced. There is no correlation between this distance and the centroid distance, though, which I think is more appropriate. Getting the means is *ridiculously faster* than taking the linear models, so I'm gonna change the codes for the following simulations to do just that instead.
 
-![](output/figures/simspt2/simspt2_figunnamed-chunk-4-1.png)
+![](../output/figures/simspt2/simspt2_figunnamed-chunk-4-1.png)
 
 Let's try some other simulations.
 
@@ -198,7 +198,7 @@ par(mfrow=c(3,3))
 for(i in 1:9) dichtcp(simulatedata.t1[[i]])
 ```
 
-![](output/figures/simspt2/simspt2_figunnamed-chunk-5-1.png)
+![](../output/figures/simspt2/simspt2_figunnamed-chunk-5-1.png)
 
 **Step 1:** Run permuational ANOVA (PERMANOVA) on simulated data to ask if group A is different than group B
 
@@ -230,7 +230,7 @@ centdist.t1 <- unlist(parallel::mclapply(simulatedata.t1, centroidist, mc.cores=
 
 What do the results look like in this case?
 
-![](output/figures/simspt2/simspt2_figunnamed-chunk-6-1.png)
+![](../output/figures/simspt2/simspt2_figunnamed-chunk-6-1.png)
 
 We see the same results. Note that the between-group distance also increased tenfold, but that's just because of the within-group increase (they're essentially sampled from the same population!).
 
@@ -264,7 +264,7 @@ par(mfrow=c(3,3))
 for(i in 1:9) dichtcp(simulatedata.t2[[i]])
 ```
 
-![](output/figures/simspt2/simspt2_figunnamed-chunk-7-1.png)
+![](../output/figures/simspt2/simspt2_figunnamed-chunk-7-1.png)
 
 **Step 1:** Run permuational ANOVA (PERMANOVA) on simulated data to ask if group A is different than group B
 
@@ -296,7 +296,7 @@ centdist.t2 <- unlist(parallel::mclapply(simulatedata.t2, centroidist, mc.cores=
 
 What do the results look like in this case?
 
-![](output/figures/simspt2/simspt2_figunnamed-chunk-8-1.png)
+![](../output/figures/simspt2/simspt2_figunnamed-chunk-8-1.png)
 
 Test 3: comparable within-group and centroid distance
 -----------------------------------------------------
@@ -326,7 +326,7 @@ par(mfrow=c(3,3))
 for(i in 1:9) dichtcp(simulatedata.t3[[i]])
 ```
 
-![](output/figures/simspt2/simspt2_figunnamed-chunk-9-1.png)
+![](../output/figures/simspt2/simspt2_figunnamed-chunk-9-1.png)
 
 **Step 1:** Run permuational ANOVA (PERMANOVA) on simulated data to ask if group A is different than group B
 
@@ -359,7 +359,7 @@ centdist.t3 <- unlist(parallel::mclapply(simulatedata.t3, centroidist, mc.cores=
 
 What do the results look like in this case?
 
-![](output/figures/simspt2/simspt2_figunnamed-chunk-10-1.png)
+![](../output/figures/simspt2/simspt2_figunnamed-chunk-10-1.png)
 
 ``` r
 sessionInfo()
