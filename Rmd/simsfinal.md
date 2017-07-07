@@ -214,13 +214,19 @@ sigpal <- as.character(factor(paste(adonisP, centroidP), labels=rcbalpha(0.8, 6,
 Some Results
 ------------
 
-![](../output/figures/final/final_figunnamed-chunk-3-1.png) The simulation was successful...ish... in producing samples that had the desired mahalanobis distance. Not sure why there's so much variation though. Small samples? the Log scale? (line is 1:1)
+![](../output/figures/final/final_figunnamed-chunk-3-1.png)
 
-![](../output/figures/final/final_figunnamed-chunk-4-1.png) Both tests had similar power. For very low effect sizes, Type-I Error rate is close to the desired 0.05 (dashed line).
+The simulation was successful...ish... in producing samples that had the desired mahalanobis distance. Not sure why there's so much variation though. Small samples? the Log scale? (line is 1:1)
+
+![](../output/figures/final/final_figunnamed-chunk-4-1.png)
+
+Both tests had similar power. For very low effect sizes, Type-I Error rate is close to the desired 0.05 (dashed line).
 
 Both tests are quite sensitive too, with signifcant results when the distance between centroids is of about the same magnitude as the pooled standard deviations. I don't know if that's a good thing.
 
-![](../output/figures/final/final_figunnamed-chunk-5-1.png) However, there is some discrepancy in test results. There doesn't seem to be a bias - results are somewhat centered around the 1:1 line, difference in P-values from the tests is centered and mostly symmetric around 0. But if you look at results that are significant for one test but not the other (the space between the dashed lines in the first plot) it seems that there are a lot of tests that wouldn't be significant using the MANOVA but would be significant using adonis.
+![](../output/figures/final/final_figunnamed-chunk-5-1.png)
+
+However, there is some discrepancy in test results. There doesn't seem to be a bias - results are somewhat centered around the 1:1 line, difference in P-values from the tests is centered and mostly symmetric around 0. But if you look at results that are significant for one test but not the other (the space between the dashed lines in the first plot) it seems that there are a lot of tests that wouldn't be significant using the MANOVA but would be significant using adonis.
 
 So tests have similar power but disagree as to the outcome in terms of what is significant:
 
@@ -229,13 +235,23 @@ So tests have similar power but disagree as to the outcome in terms of what is s
 | FALSE |  0.438|  0.076|
 | TRUE  |  0.026|  0.460|
 
+(columns are MANOVA, rows are adonis).
+
 So about 10% divergence total, maybe not worth worrying?
 
 There is disagreement particularly when the effect size is marginal: ![](../output/figures/final/final_figunnamed-chunk-6-1.png)
 
-![](../output/figures/final/final_figunnamed-chunk-7-1.png) R2 increases with increasing effect size, which is good.
+![](../output/figures/final/final_figunnamed-chunk-7-1.png)
 
-![](../output/figures/final/final_figunnamed-chunk-8-1.png) Even though centroid distance increases with effect size, there's a lot of spread, which is the core of the problem we're trying to address - you can have a huge centroid distance with a small Mahalanobis distance (small separation bewtwen the groups). Note centroid is in log scale.
+R2 increases with increasing effect size, which is good.
+
+![](../output/figures/final/final_figunnamed-chunk-8-1.png)
+
+Even though centroid distance increases with effect size, there's a lot of spread, which is the core of the problem we're trying to address - you can have a huge centroid distance with a small Mahalanobis distance (small separation bewtwen the groups). Note centroid is in log scale.
+
+![](../output/figures/final/final_figunnamed-chunk-9-1.png)
+
+This just shows the Pyke transformation is working and that the Euclidean distance between the centroids calculated in this transformed space is identical to the distance between the centroids in JNDs.
 
 ``` r
 sessionInfo()

@@ -239,6 +239,7 @@ mahd <- unlist(lapply(simulatedata, function(x) sqrt(mahalanobis(colMeans(x[1:50
 plot(effsims, mahd, pch=20, ylab="Mahalanobis Distance", xlab="effect size parameter in simulation")
 abline(0,1)
 ``` 
+
 The simulation was successful...ish... in producing samples that had the desired mahalanobis distance. Not sure why there's so much variation though. Small samples? the Log scale? (line is 1:1)
 
 ```{r, echo=FALSE, fig.width=7, fig.height=7, dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
@@ -249,6 +250,7 @@ points(pvsimsmanova~ unique(effsims), pch=20, type='b', col='red')
 abline(h=0.05, lty=2)
 legend('topleft', legend=c("adonis","Pyke & MANOVA"), pch=20, lty=1, col=c(1,2))
 ``` 
+
 Both tests had similar power. For very low effect sizes, Type-I Error rate is close to the desired 0.05 (dashed line).
 
 Both tests are quite sensitive too, with signifcant results when the distance between centroids is of about the same magnitude as the pooled standard deviations. I don't know if that's a good thing.
@@ -261,10 +263,13 @@ abline(h=0.05, lty=2)
 abline(v=0.05, lty=2)
 hist(adonisPval - manovaPval, breaks=30, main='difference in P values \nbetween the two approaches')
 ``` 
+
 However, there is some discrepancy in test results. There doesn't seem to be a bias - results are somewhat centered around the 1:1 line, difference in P-values from the tests is centered and mostly symmetric around 0. But if you look at results that are significant for one test but not the other (the space between the dashed lines in the first plot) it seems that there are a lot of tests that wouldn't be significant using the MANOVA but would be significant using adonis.
 
 So tests have similar power but disagree as to the outcome in terms of what is significant:
 `r knitr::kable(table(adonisP, manovaP)/1000, caption='is the test significant? (rows=adonis, columns=pyke manova)') `  
+
+(columns are MANOVA, rows are adonis).
 
 So about 10% divergence total, maybe not worth worrying?
 
@@ -278,6 +283,7 @@ plot(tapply(adonisP != manovaP, effsims, mean)~unique(effsims), type='b',pch=20,
 plot(tapply(adonisR2, effsims, mean)~unique(effsims), pch=20, type='b', ylab='R2 from adonis', xlab="Effect size (Mahalanobis' Distance)", ylim=c(0,40))
 segments(unique(effsims), tapply(adonisR2, effsims, quantile, 0.025), unique(effsims), tapply(adonisR2, effsims, quantile, 0.975))
 ``` 
+
 R2 increases with increasing effect size, which is good.
 
 ```{r, echo=FALSE, fig.width=7, fig.height=4, dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
@@ -289,11 +295,18 @@ segments(unique(effsims), tapply(centdist, effsims, quantile, 0.025), unique(eff
 plot(centdist~mahd, pch=20, col='grey', ylab='Centroid distance', xlab="Effect size (Mahalanobis' Distance)", log='y', ylim=c(1e-1,60))
 abline(h=1, lty=2)
 ``` 
+
 Even though centroid distance increases with effect size, there's a lot of spread, which is the core of the problem we're trying to address - you can have a huge centroid distance with a small Mahalanobis distance (small separation bewtwen the groups). Note centroid is in log scale.
 
 
-```{r, echo=FALSE, fig.width=7, fig.height=7, dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
+```{r, echo=FALSE, fig.width=4, fig.height=4, dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
+pykeeucdist <- unlist(lapply(pykesim, function(x) dist(rbind(colMeans(x[1:50,]), colMeans(x[51:100,])))))
+
+plot(pykeeucdist~centdist, pch=20, col='grey', ylab='Pyke Euclidean distance between centroids', xlab='JND between centroids', log='xy')
+abline(0,1)
 ``` 
+
+This just shows the Pyke transformation is working and that the Euclidean distance between the centroids calculated in this transformed space is identical to the distance between the centroids in JNDs.
 
 ```{r}
 sessionInfo()
