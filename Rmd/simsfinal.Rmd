@@ -27,7 +27,7 @@ set.seed(6210)
 ```
 
 
-```{r}
+```{r fxns, include=TRUE}
 source('R/jnd2xyz.R')
 
 # Make RColorBrewer colors transparent
@@ -63,11 +63,15 @@ actuallognorm <- function(N, amean, asd){
 }
 
 # simulate two groups of data
-simdich <- function(N=50, sgsqsrate=1, multiplier=c(0.95, 1.05), effsize=NULL){
+simdich <- function(N=50, sgsqsrate=1, sdmeanratio=TRUE, sdmeanratiovalues=c(0,0.5), multiplier=c(0.95, 1.05), effsize=NULL){
 
   musA <- runif(4, 1, 10) # vector of means for group A
-  #sgsqs <- rexp(4, sgsqsrate) # vector of standard deviations
-  sgsqs <- runif(4,0,0.5)*musA
+  
+  if(sdmeanratio){
+    sgsqs <- runif(4,sdmeanratiovalues[1],sdmeanratiovalues[2])*musA
+  }else{
+    sgsqs <- rexp(4, sgsqsrate) # vector of standard deviations
+  }
 
   groupA <- matrix(NA, nrow=N, ncol=4)
   groupA[,1] <- actuallognorm(N, amean=musA[1], asd=sgsqs[1])
@@ -129,8 +133,12 @@ adoniscoldist <- function(x, ...){
   }
 
 # split data and run volume overlap
-voloverlaptest <- function(dat){
-  tcsdat <- suppressWarnings(colspace(dat, space='tcs'))
+voloverlaptest <- function(dat, jnd2xyzres=FALSE){
+  if(jnd2xyzres){
+    tcsdat <- dat
+  }else{
+    tcsdat <- suppressWarnings(colspace(dat, space='tcs'))
+  }
   gA <- tcsdat[1:(dim(dat)[1]/2),]
   gB <- tcsdat[(dim(dat)[1]/2+1):(dim(dat)[1]),]
   
@@ -287,6 +295,9 @@ for(i in 1:length(scd2)){
 pykesim <- lapply(scd2, jnd2xyz)
 pykelm <- lapply(pykesim, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=50)))
 pykemanova <- lapply(pykelm, function(x) summary(manova(x)))
+
+vovpyke <- parallel::mclapply(pykesim, function(x)
+  voloverlap(x[1:simN,], x[(simN+1):(simN*2), ]), mc.cores=6)
 ```
 
 Calculate statistics of interest:
@@ -310,6 +321,8 @@ pvsimsmanova <- tapply(manovaP, effsims, mean)
 
 # Volume overlap
 overlap <- unlist(lapply(vovsim, '[','vboth')) * 100
+overlapyke <- unlist(lapply(vovpyke, '[','vboth')) * 100
+
 
 # Centroids: intra-group distances, inter-group distances, which centroid distances > 1
 gmeans <- lapply(simulatecoldist, function(x) tapply(x$dS, x$comparison, mean))
@@ -425,6 +438,393 @@ abline(0,1)
 
 This just shows the Pyke transformation is working and that the Euclidean distance between the centroids calculated in this transformed space is identical to the distance between the centroids in JNDs.
 
+
+<!--
+(run some cleanup before the next simulation)
+
+#```{r cleanup}
+#rm(list=ls())
+#gc()
+#```
+
+#```{r ref.label='setup'}
+#```
+#```{r ref.label='fxns'}
+#``` 
+-->
+
+# Threshold scenario: high within-group variability, centroid distance ~1JND
+
+Generate data
+```{r coldistcache3, cache=TRUE}
+simN <- 50
+
+simulatedata3a <- replicate(500, 
+# this gave some interesting results we might want to revisit.
+#                  simdich(N=simN, sgsqsrate=1, sdmeanratio=FALSE, multiplier=c(0.95, 1.05)), 
+                  simdich(N=simN, sgsqsrate=5, sdmeanratio=FALSE, multiplier=c(0.97, 1.03)),
+                  simplify=FALSE)
+
+simulatedata3b <- replicate(500, 
+                  simdich(N=simN, sgsqsrate=5, sdmeanratio=FALSE, multiplier=c(0.97, 1.03)),
+                  simplify=FALSE)
+
+simulatedata3 <- c(simulatedata3a, simulatedata3b)
+rm(simulatedata3a, simulatedata3b)
+# we need to add the reference points since we didn't run vismodel()
+#apply(do.call(rbind, lapply(simulatedata, function(x) apply(x, 2, max))), 2, max)
+#data(sicalis)
+#rfs <- attr(vismodel(sicalis, visual='star',relative=FALSE), 'resrefs')
+
+rfs <- 
+matrix(c(100,01,01,01,
+         01,100,01,01,
+         01,01,100,01,
+         01,01,01,100,
+         50,50,50,50
+         ), ncol=4, byrow=TRUE)
+rownames(rfs) <- c('refforjnd2xyz.u','refforjnd2xyz.s','refforjnd2xyz.m','refforjnd2xyz.l', 'refforjnd2xyz.acent')
+colnames(rfs) <- c('u','s','m','l')
+
+simulatedata3 <- lapply(simulatedata3, 'attr<-', which='resrefs', value=rfs)
+
+
+simulatecoldist3a <- parallel::mclapply(simulatedata3[1:500], function(x) {
+  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  }, mc.cores=4)
+
+simulatecoldist3b <- parallel::mclapply(simulatedata3[501:1000], function(x) {
+  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  }, mc.cores=4)
+
+simulatecoldist3 <- c(simulatecoldist3a, simulatecoldist3b)
+rm(simulatecoldist3a, simulatecoldist3b)
+```
+
+Validating simulations:
+
+```{r, echo=FALSE, dependson='coldistcache3'}
+par(mfrow=c(2,2))
+# GROUP A MEANS
+empmeans <- do.call(rbind, lapply(simulatedata3, function(x) colMeans(x[1:simN,])))
+simmeans <- do.call(rbind, lapply(simulatedata3, function(x) attr(x,'simpar')[1,]))
+
+plot(empmeans[,'u']~simmeans[,'u'], pch=19, 
+     col=rgb(data.frame(t(col2rgb('violet', alpha=F)))/255, alpha=0.2), 
+     ylab='empirical',xlab='simulated', 
+     xlim=range(rbind(empmeans,simmeans)), 
+     ylim=range(rbind(empmeans,simmeans)),
+     main='mean group A')
+points(empmeans[,'s']~simmeans[,'s'], pch=19, col=rgb(data.frame(t(col2rgb('blue', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'m']~simmeans[,'m'], pch=19, col=rgb(data.frame(t(col2rgb('darkgreen', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'l']~simmeans[,'l'], pch=19, col=rgb(data.frame(t(col2rgb('tomato', alpha=F)))/255, alpha=0.2))
+
+abline(0,1)
+
+# GROUP B MEANS
+empmeans <- do.call(rbind, lapply(simulatedata3, function(x) colMeans(x[(simN+1):(simN*2),])))
+simmeans <- do.call(rbind, lapply(simulatedata3, function(x) attr(x,'simpar')[2,]))
+
+plot(empmeans[,'u']~simmeans[,'u'], pch=19, 
+     col=rgb(data.frame(t(col2rgb('violet', alpha=F)))/255, alpha=0.2), 
+     ylab='empirical',xlab='simulated', 
+     xlim=range(rbind(empmeans,simmeans)), 
+     ylim=range(rbind(empmeans,simmeans)),
+     main = 'mean group B')
+points(empmeans[,'s']~simmeans[,'s'], pch=19, col=rgb(data.frame(t(col2rgb('blue', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'m']~simmeans[,'m'], pch=19, col=rgb(data.frame(t(col2rgb('darkgreen', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'l']~simmeans[,'l'], pch=19, col=rgb(data.frame(t(col2rgb('tomato', alpha=F)))/255, alpha=0.2))
+
+abline(0,1)
+# GROUP A SD
+empmeans <- do.call(rbind, lapply(simulatedata3, function(x) apply(x[1:simN,], 2, sd)))
+simmeans <- do.call(rbind, lapply(simulatedata3, function(x) attr(x,'simpar')[3,]))
+
+
+plot(empmeans[,'u']~simmeans[,'u'], pch=19, 
+     col=rgb(data.frame(t(col2rgb('violet', alpha=F)))/255, alpha=0.2), 
+     ylab='empirical',xlab='simulated', 
+     xlim=range(rbind(empmeans,simmeans)), 
+     ylim=range(rbind(empmeans,simmeans)),
+     main='SD group A')
+points(empmeans[,'s']~simmeans[,'s'], pch=19, col=rgb(data.frame(t(col2rgb('blue', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'m']~simmeans[,'m'], pch=19, col=rgb(data.frame(t(col2rgb('darkgreen', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'l']~simmeans[,'l'], pch=19, col=rgb(data.frame(t(col2rgb('tomato', alpha=F)))/255, alpha=0.2))
+
+abline(0,1)
+# GROUP B SD
+empmeans <- do.call(rbind, lapply(simulatedata3, function(x) apply(x[(simN+1):(simN*2),], 2, sd)))
+simmeans <- do.call(rbind, lapply(simulatedata3, function(x) attr(x,'simpar')[3,]))
+
+plot(empmeans[,'u']~simmeans[,'u'], pch=19, 
+     col=rgb(data.frame(t(col2rgb('violet', alpha=F)))/255, alpha=0.2), 
+     ylab='empirical',xlab='simulated', 
+     xlim=range(rbind(empmeans,simmeans)), 
+     ylim=range(rbind(empmeans,simmeans)),
+     main='SD group B')
+points(empmeans[,'s']~simmeans[,'s'], pch=19, col=rgb(data.frame(t(col2rgb('blue', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'m']~simmeans[,'m'], pch=19, col=rgb(data.frame(t(col2rgb('darkgreen', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'l']~simmeans[,'l'], pch=19, col=rgb(data.frame(t(col2rgb('tomato', alpha=F)))/255, alpha=0.2))
+
+abline(0,1)
+``` 
+
+Verifying that values obtained in the simulation (empirical) are close to what we wanted to simulate (simulated) for the four cones (violet, blue, green, red)
+
+```{r histograms, dependson='coldistcache3', echo=FALSE}
+gmeans <- lapply(simulatecoldist3, function(x) tapply(x$dS, x$comparison, mean))
+gmeans <- do.call(rbind, gmeans)
+
+# Get centroids and within/among mean distances; how manny above 1JND
+centdist <- unlist(parallel::mclapply(simulatedata3, centroidist, mc.cores=6))
+
+intradist <- rowMeans(gmeans[, -1])
+interdist <- gmeans[,"inter"]
+
+centroidP <- centdist > 1
+
+# Plot distributions
+palette <- rcbalpha(0.6, 3, 'Set1')
+
+h1 <- hist(interdist, breaks=seq(0, ceiling(max(interdist))+1,by=0.5), plot=F)
+h2 <- hist(intradist, breaks=seq(0, ceiling(max(intradist))+1,by=0.5), plot=F)
+h3 <- hist(centdist, breaks=seq(0, ceiling(max(centdist))+1,by=0.5), plot=F)
+
+par(mar=c(4,4.5,1.5,1.5))
+
+plot(c(0,h1$breaks), c(0,h1$counts,0), type='s',col=palette[1], lwd=5,
+     ylab='Frequency', xlab='mean distance (JND)',
+     ylim=range(c(h1$counts,h2$counts,h3$counts))* c(0,1.1))
+lines(c(0,h2$breaks), c(0,h2$counts,0), col=palette[2], type='s', lwd=5)
+lines(c(0,h3$breaks), c(0,h3$counts,0), col=palette[3], type='s', lwd=5)
+
+legend('topright', col=palette, c('between-group  ','within-group', 'centroid'), 
+       pch=15, pt.cex=2.5, bty='n')
+
+```
+
+mean centroid distance of `r mean(centdist)`, quantiles of `r quantile(centdist, c(0.025, 0.975))`
+
+## Running analyses
+
+```{r adoniscache3, results='hide', cache=TRUE, dependson='coldistcache3'}
+adonissim3a <- parallel::mclapply(simulatecoldist3[1:500], adoniscoldist, mc.cores=4)
+Sys.sleep(10)
+adonissim3b <- parallel::mclapply(simulatecoldist3[501:1000], adoniscoldist, mc.cores=4)
+adonissim3 <- c(adonissim3a, adonissim3b)
+vovsim3 <- parallel::mclapply(simulatedata3, voloverlaptest, mc.cores=4)
+
+scd23 <- lapply(simulatecoldist3,'[', ,1:3, drop=FALSE)
+for(i in 1:length(scd23)){
+  attr(scd23[[i]], 'resrefs') <- attr(simulatecoldist3[[i]],'resrefs')
+  attr(scd23[[i]], 'conenumb') <- attr(simulatecoldist3[[i]],'conenumb')
+  }
+```
+
+```{r pyke3cache, cache=TRUE, dependson='coldistcache3'}
+pykesim3 <- lapply(scd23, jnd2xyz)
+pykelm3 <- lapply(pykesim3, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=50)))
+pykemanova3 <- lapply(pykelm3, function(x) summary(manova(x)))
+vovpyke3 <- parallel::mclapply(pykesim3, function(x)
+  voloverlap(x[1:simN,], x[(simN+1):(simN*2), ]), mc.cores=6)
+
+gc(verbose=FALSE)
+```
+
+
+```{r, echo=FALSE, fig.width=7, fig.height=4.5, dependson=c('coldistcache3', 'adoniscache3', 'pyke3cache')}
+# Pyke MANOVA: P-values, which significant
+manovaPval <- unlist(lapply(pykemanova3, function(x) x$stats[1,'Pr(>F)']))
+manovaP <- manovaPval < 0.05
+
+# Adonis: P-values, which significant, R-squared
+adonisPval <- unlist(lapply(adonissim3, function(x) x$aov.tab$'Pr(>F)'[1]))
+adonisP <- adonisPval < 0.05
+adonisR2 <- unlist(lapply(adonissim3, function(x) x$aov.tab$'R2'[1])) * 100
+
+# Disagreement in significance between Pyke and Adonis
+disagreement <- !manovaP == adonisP
+
+# Volume overlap
+overlap <- unlist(lapply(vovsim3, '[','vboth')) * 100
+overlapyke <- unlist(lapply(vovpyke3, '[','vboth')) * 100
+
+# Mahalanobis distance between centroids
+mahd <- unlist(lapply(simulatedata3, function(x) sqrt(mahalanobis(colMeans(x[1:50,]), colMeans(x[51:100,]), cov(x[1:50,]) ))))
+
+
+sigpal <- as.character(factor(adonisP, labels=palette[1:2]))
+sigpal <- as.character(factor(paste(adonisP, centroidP), 
+          levels=c("FALSE FALSE", "FALSE TRUE", "TRUE FALSE", "TRUE TRUE"), 
+          labels=rcbalpha(0.8, 6, 'RdBu')[c(3,1,6,4)] ))
+#sigpal[sigpal=="#FDDBC7CC"] <- "#D1E5F0CC"
+```
+
+##Visualizing results
+  
+color legend:
+
+* dark colors: methods disagree (BAD)
+* light colors: methods agree (GOOD)
+  
+* light blue: adonis and centroid distance > 1 (GOOD)
+* dark blue: adonis significant, centroid distance < 1 (BAD)
+* dark red: adonis non-significant, centroid distance > 1 (BAD)
+* light red: adonis and centroid distance < 1 (GOOD)
+```{r, echo=FALSE, fig.width=7, fig.height=7, dependson=c('coldistcache3', 'adoniscache3', 'pyke3cache')}
+
+par(mfrow=c(3,3))
+
+plot(interdist~intradist, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', pch=19, col=sigpal, ylim=range(c(interdist,intradist))*1.1, xlim=range(c(interdist,intradist))*1.1)
+abline(0,1, lty=3)
+
+# Intradist plot is essentially identical (see histogram)
+#plot(intradist~centdist, ylab='mean between-group distance (JND)', xlab='centroid distance (JND)', pch=19, col=rgb(0,0,0,0.4), ylim=c(0,5.5), xlim=c(0,5.5))
+#abline(0,1, lty=3)
+
+plot(adonisR2~interdist, ylab='Rsquared from PERMANOVA (%)', xlab='mean between-group distance (JND)', log='xy', pch=19, col=sigpal)
+
+plot(adonisR2~intradist, ylab='Rsquared from PERMANOVA (%)', xlab='mean within-group  distance (JND)', log='xy', pch=19, col=sigpal)
+
+#plot(interdist~centdist, ylab='mean between-group distance (JND)', xlab='centroid distance (JND)', pch=19, col=sigpal, ylim=range(c(interdist,centdist))*1.1, xlim=range(c(interdist,centdist))*1.1)
+#abline(0,1, lty=3)
+
+plot(centdist~intradist, xlab='mean within-group distance (JND)', ylab='centroid distance (JND)', pch=19, col=sigpal, ylim=range(c(intradist,centdist))*1.1, xlim=range(c(intradist,centdist))*1.1, log='xy')
+abline(0,1, lty=3)
+abline(h=1, lty=2)
+abline(v=1, lty=2)
+abline(-0.5, 1, lty=3, col='grey', lwd=2)
+
+
+plot(adonisR2~centdist, ylab='Rsquared from PERMANOVA (%)', xlab='centroid distance (JND)', log='xy', pch=19, col=sigpal)
+
+plot(adonisR2~overlap, ylab='Rsquared from PERMANOVA (%)', xlab='color volume overlap',  pch=19, col=sigpal, log='y')
+
+plot(interdist,overlap,  pch=19, col=sigpal, 
+     xlab='mean between-group distance (JND)', ylab='color volume overlap')
+
+plot(intradist, overlap,  pch=19, col=sigpal, 
+     xlab='mean within-group distance (JND)', ylab='color volume overlap')
+
+plot(centdist, overlap,  pch=19, col=sigpal, 
+     xlab='centroid distance (JND)', ylab='color volume overlap')
+
+
+#yesnohist(interdist, xlab='mean between-group distance (JND)')
+#yesnohist(intradist, xlab='mean within-group distance (JND)')
+#yesnohist(centdist, xlab='centroid distance (JND)')
+
+
+# boxplot(intradistM~I(adonisP < 0.05), 
+#         xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
+#         boxwex=0.3, col=grey(0.7), pch=19, log='y')
+```
+
 ```{r}
 sessionInfo()
+```
+
+
+```{r plotsforpub}
+######################
+# RESULTS FROM SIM 2 #
+######################
+pdf(height=4*1.3, width=7*1.3, file='figures/simulation2.pdf')
+par(mfrow=c(2,3), mar=c(4,5,1,1))
+
+plotrange <- function(x, log=TRUE){
+  res <- range(x)
+  res[1] <- floor(res[1])
+  res[2] <- ceiling(res[2])
+  if(log && res[1] == 0)
+    res[1] <- range(x)[1]*0.8
+  
+  if(log && res[2] < 10)
+    res[2] <- 10
+  
+  res
+}
+
+plot(centdist~intradist, 
+     xlab='mean within-group distance (JND)\n ', ylab=' \ncentroid distance (JND)', 
+     ylim=plotrange(c(intradist,centdist)), xlim=plotrange(c(intradist,centdist)), 
+     pch=19, col=sigpal, log='xy', yaxt='n', xaxt='n')
+axis(1, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+axis(1, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+
+abline(0,1, lty=2)
+abline(h=1, lty=3)
+abline(v=1, lty=3)
+abline(-0.5, 1, lty=5, col='grey')
+
+#the grey line represents an intercept of 1/sqrt(4) so MahD = 1
+
+legend('topleft', pch=19, cex=0.9, bty='n', col=rcbalpha(1, 6, 'RdBu')[c(1,3,6,4)],
+       legend=c('p > 0.05, JND > 1',
+                'p > 0.05, JND < 1',
+                'p < 0.05, JND < 1',
+                'p < 0.05, JND > 1'))
+
+plot(adonisR2~centdist, 
+     ylab=expression(paste(R^2,' from PERMANOVA')), xlab='centroid distance (JND)\n ', 
+     ylim=plotrange(adonisR2), xlim=plotrange(centdist),
+     pch=19, col=sigpal, log='xy', yaxt='n', xaxt='n')
+#axis(2, at=c(0.05, 0.5, 5, 50), labels=c(0.05, 0.5, 5, 50))
+axis(2, at=c(0.01, 0.1, 1, 10,100), labels=c(0.01, 0.1, 1, 10,100))
+#axis(2, at=c(0.06,0.07,0.08,0.09, 0.2, 0.3, 0.4, 0.6, 0.7, 0.8, 0.9, 2, 3, 4, 6, 7, 8, 9, 20, 30, 40), tcl=par("tcl")*0.5, labels=FALSE)
+axis(2, at=c(seq(0.02,0.09,by=0.01), seq(0.2,0.9,by=0.1), seq(2,9,by=1), seq(20,90,by=10)), tcl=par("tcl")*0.5, labels=FALSE)
+#axis(2, at=c(0.1, 1, 10), tcl=par("tcl")*1, labels=FALSE)
+axis(1, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+axis(1, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+
+abline(v=1, lty=3)
+abline(h=3, lty=3)
+
+plot(adonisR2~overlap, 
+     ylab=expression(paste(R^2,' from PERMANOVA')), xlab='color volume overlap\n ',  
+     ylim=c(0.01, 100), xlim=plotrange(overlap, log=FALSE),
+     pch=19, col=sigpal, log='y', yaxt='n', xaxt='n')
+axis(1, at=c(0,20,40,60))
+#axis(2, at=c(0.05, 0.5, 5, 50), labels=c(0.05, 0.5, 5, 50))
+axis(2, at=c(0.01, 0.1, 1, 10,100), labels=c(0.01, 0.1, 1, 10,100))
+#axis(2, at=c(0.06,0.07,0.08,0.09, 0.2, 0.3, 0.4, 0.6, 0.7, 0.8, 0.9, 2, 3, 4, 6, 7, 8, 9, 20, 30, 40), tcl=par("tcl")*0.5, labels=FALSE)
+axis(2, at=c(seq(0.02,0.09,by=0.01), seq(0.2,0.9,by=0.1), seq(2,9,by=1), seq(20,90,by=10)), tcl=par("tcl")*0.5, labels=FALSE)
+#axis(2, at=c(0.1, 1, 10), tcl=par("tcl")*1, labels=FALSE)
+
+plot(overlapyke~overlap, 
+     ylab="color volume overlap \n(perceptually-corrected, %)", xlab="color volume overlap (%)\n ",
+     ylim=plotrange(c(overlapyke,overlap), log=FALSE), xlim=plotrange(c(overlapyke,overlap), log=FALSE), 
+     pch=19, col=sigpal)
+abline(0,1, lty=2)
+
+plot(centdist~overlap,
+     ylab=' \ncentroid distance (JND)', xlab='color volume overlap (%)\n ',
+     ylim=plotrange(centdist), xlim=plotrange(overlap, log=FALSE),
+     pch=19, col=sigpal, log='y', yaxt='n', xaxt='n')
+axis(1, at=c(0,20,40,60))
+axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+abline(h=1, lty=3)
+
+
+plot(centdist~overlapyke,
+     ylab='centroid distance (JND)', xlab='color volume overlap \n(perceptually-corrected, %)',
+     ylim=plotrange(centdist), xlim=plotrange(overlapyke, log=FALSE),
+     pch=19, col=sigpal, log='y', yaxt='n')
+axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+abline(h=1, lty=3)
+dev.off()
 ```
