@@ -12,11 +12,6 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-require(pavo)
-require(scatterplot3d)
-require(vegan)
-require(RColorBrewer)
-
 knitr::opts_chunk$set(echo = TRUE, 
                       fig.path='../output/figures/final/final_fig', 
                       #fig.height = 10,
@@ -28,132 +23,19 @@ set.seed(6210)
 
 
 ```{r fxns, include=TRUE}
+require(pavo)
+require(vegan)
+require(RColorBrewer)
+
+# load aesthetic functions (plot, make colors transparent)
+source('R/aesthetic.R')
+
+# load function to convert JND to cartesian coordinates
 source('R/jnd2xyz.R')
 
-# Make RColorBrewer colors transparent
-rcbalpha <- function(alpha=1, ...){
-  aa <- data.frame(t(col2rgb(brewer.pal(...), alpha=F)))/255
-  rgb(aa, alpha=alpha)
-}
-
-# significant/not significant histogram 
-yesnohist <- function(x, xlab=""){
-  bq <- 0.5  
-  while(length(seq(0, ceiling(max(x)),by=bq)) < 10) 
-    bq <- bq/2
-
-yes <- hist(x[adonisP], breaks=seq(0, ceiling(max(x)),by=bq), plot=F)
-no <- hist(x[!adonisP], breaks=seq(0, ceiling(max(x)),by=bq), plot=F)
-
-plot(c(0,yes$breaks), c(0,yes$counts,0), type='s',col=palette[1], lwd=5,
-     ylab='Frequency', xlab=xlab,
-     ylim=range(c(yes$counts,no$counts))* c(0,1.1),
-     xlim=c(0, max(c(yes$breaks, no$breaks)*1.1)))
-lines(c(0,no$breaks), c(0,no$counts,0), col=palette[2], type='s', lwd=5)
-
-legend('topright', col=palette[1:2], c('significant  ','not significant  '), 
-       pch=15, pt.cex=2.5, bty='n')
-}
-
-# simulate lognormal with realized mean and standard deviation on the log scale
-actuallognorm <- function(N, amean, asd){
-  location <- log(amean^2 / sqrt(asd^2 + amean^2))
-  shape <- sqrt(log(1 + (asd^2 / amean^2)))
-  rlnorm(n=N, meanlog=location, sdlog=shape)
-}
-
-# simulate two groups of data
-simdich <- function(N=50, sgsqsrate=1, sdmeanratio=TRUE, sdmeanratiovalues=c(0,0.5), multiplier=c(0.95, 1.05), effsize=NULL){
-
-  musA <- runif(4, 1, 10) # vector of means for group A
-  
-  if(sdmeanratio){
-    sgsqs <- runif(4,sdmeanratiovalues[1],sdmeanratiovalues[2])*musA
-  }else{
-    sgsqs <- rexp(4, sgsqsrate) # vector of standard deviations
-  }
-
-  groupA <- matrix(NA, nrow=N, ncol=4)
-  groupA[,1] <- actuallognorm(N, amean=musA[1], asd=sgsqs[1])
-  groupA[,2] <- actuallognorm(N, amean=musA[2], asd=sgsqs[2])
-  groupA[,3] <- actuallognorm(N, amean=musA[3], asd=sgsqs[3])
-  groupA[,4] <- actuallognorm(N, amean=musA[4], asd=sgsqs[4])
-  
-  if(is.null(effsize)){
-    musB <- musA * runif(4, multiplier[1], multiplier[2])
-  }else{
-    # effsize: difference between means in units of standard deviations
-    # (mahalanobis distance, approximately)
-    # up to 4 dimensions (K), so divide the multivariate effect size by sqrt(K)
-    sds <- apply(groupA, 2, sd)
-    musB <- (effsize/sqrt(4)*sds) + musA
-    }
-  
-    groupB <- matrix(NA, nrow=N, ncol=4)
-    groupB[,1] <- actuallognorm(N, amean=musB[1], asd=sgsqs[1])
-    groupB[,2] <- actuallognorm(N, amean=musB[2], asd=sgsqs[2])
-    groupB[,3] <- actuallognorm(N, amean=musB[3], asd=sgsqs[3])
-    groupB[,4] <- actuallognorm(N, amean=musB[4], asd=sgsqs[4])
-
-  combined <- data.frame(rbind(groupA,groupB))
-  
-  colnames(combined) <- c('u','s','m', 'l')
-  rownames(combined) <- paste(rep(c('gA','gB'), each=N),1:N, sep='')
-  
-  attr(combined, 'relative') <- FALSE
-  
-  simpars <- data.frame(rbind(musA, musB, sgsqs))
-  colnames(simpars) <- c('u','s','m', 'l')
-  rownames(simpars) <- c('muA','muB','ssq')
-  attr(combined, 'simpar') <- simpars
-  
-  combined
-  }
-
-# make distance matrix and run adonis
-adoniscoldist <- function(x, ...){
-  coldistres <- as.matrix(rbind(x[ ,c(1,2,3)], x[ ,c(2,1,3)]))
-  uniquepatches <-  unique(c(coldistres[,1], coldistres[,2]))
-
-  M <- matrix(nrow=length(uniquepatches), ncol=length(uniquepatches))
-
-  rownames(M) <- colnames(M) <- uniquepatches
-
-  M[coldistres[,1:2] ] <- coldistres[,3]
-  M[coldistres[,2:1] ] <- coldistres[,3]
-
-  class(M) <- 'numeric'
-  M[is.na(M)] <- 0
-  
-  grouping <- as.factor(gsub('[0-9]','', rownames(M)))
-
-  M <- as.dist(M)
-
-  adonis(M~grouping, ...)
-  }
-
-# split data and run volume overlap
-voloverlaptest <- function(dat, jnd2xyzres=FALSE){
-  if(jnd2xyzres){
-    tcsdat <- dat
-  }else{
-    tcsdat <- suppressWarnings(colspace(dat, space='tcs'))
-  }
-  gA <- tcsdat[1:(dim(dat)[1]/2),]
-  gB <- tcsdat[(dim(dat)[1]/2+1):(dim(dat)[1]),]
-  
-  voloverlap(gA, gB)
-}
-
-# split data, get centroids, get color distance
-centroidist <- function(dat){
-  gA.c <- colMeans(dat[1:(dim(dat)[1]/2),])
-  gB.c <- colMeans(dat[(dim(dat)[1]/2+1):(dim(dat)[1]),])
-  
-  suppressWarnings(coldist(rbind(gA.c, gB.c), achro=FALSE, qcatch='Qi'))$dS
-}
-
-
+# load simulation and analysis functions
+source('R/simfoos.R')
+source('R/simanalysis.R')
 ```
 
 # False positives and power
@@ -162,7 +44,7 @@ We will simulate data with varying effect sizes (centroid distance relative to t
 
 ```{r powercoldistcache, cache=TRUE}
 effs <- c(0, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3)
-timeseach <- 100
+timeseach <- 200
 simN <- 50
 
 effsims <- rep(effs, each=timeseach)
@@ -198,7 +80,7 @@ simulatecoldist <- parallel::mclapply(simulatedata, function(x) {
   Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
   Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
   Y
-  }, mc.cores=6)
+  }, mc.cores=4)
 ```
 
 Validating simulations:
@@ -277,8 +159,8 @@ Run adonis, volume overlap, calculate distance between centroids:
 
 ```{r poweradoniscache, results='hide', cache=TRUE, dependson='powercoldistcache'}
 gc(verbose=FALSE)
-adonissim <- parallel::mclapply(simulatecoldist, adoniscoldist, mc.cores=6)
-vovsim <- parallel::mclapply(simulatedata, voloverlaptest, mc.cores=6)
+adonissim <- parallel::mclapply(simulatecoldist, adoniscoldist, mc.cores=4)
+vovsim <- parallel::mclapply(simulatedata, voloverlaptest, mc.cores=4)
 centdist <- unlist(lapply(simulatedata, centroidist))
 gc(verbose=FALSE)
 ```
@@ -297,7 +179,7 @@ pykelm <- lapply(pykesim, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=5
 pykemanova <- lapply(pykelm, function(x) summary(manova(x)))
 
 vovpyke <- parallel::mclapply(pykesim, function(x)
-  voloverlap(x[1:simN,], x[(simN+1):(simN*2), ]), mc.cores=6)
+  voloverlap(x[1:simN,], x[(simN+1):(simN*2), ]), mc.cores=4)
 ```
 
 Calculate statistics of interest:
@@ -381,7 +263,7 @@ So tests have similar power but disagree as to the outcome in terms of what is s
 
 ```{r, echo=FALSE}
 #`r knitr::kable(table(adonisP, manovaP)/1000) ` 
-table(adonisP, manovaP)/1000
+table(adonisP, manovaP)/length(adonisP)
 ```
 
 About 10% divergence in results, maybe not worth worrying about. Note that most of the discrepancy comes from results that are significant in MANOVA but not in Adonis, suggesting again that MANOVA approach is less conservative.
@@ -437,6 +319,105 @@ abline(0,1)
 ``` 
 
 This just shows the Pyke transformation is working and that the Euclidean distance between the centroids calculated in this transformed space is identical to the distance between the centroids in JNDs.
+
+
+# Power and sample size
+
+```{r powercoldistcache2, cache=TRUE}
+pausemcl <- function(X, FUN, splt=5){
+  N <- length(X)
+  resultvector <- vector('list', length=N)
+  splitlist <- parallel::splitIndices(N, splt)
+  
+  for(i in seq_along(splitlist)){
+    tmp <- splitlist[[i]]
+    gc()
+    resultvector[tmp] <- parallel::mclapply(X[tmp], FUN, mc.cores=4)
+    #resultvector[tmp] <- lapply(X[tmp], FUN)
+    gc()
+    Sys.sleep(2)
+  }
+resultvector
+}
+
+effs <- c(0, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3)
+timeseach <- 200
+effsims <- rep(effs, each=timeseach)
+
+
+simulatedata.n10 <- lapply(effsims,
+                       function(x)
+                       simdich(N=10, sgsqsrate=0.5, multiplier=NULL, effsize=x)
+                       )
+
+simulatedata.n20 <- lapply(effsims,
+                       function(x)
+                       simdich(N=20, sgsqsrate=0.5, multiplier=NULL, effsize=x)
+                       )
+
+simulatedata.n100 <- lapply(effsims,
+                       function(x)
+                       simdich(N=100, sgsqsrate=0.5, multiplier=NULL, effsize=x)
+                       )
+
+rfs <- 
+matrix(c(100,01,01,01,
+         01,100,01,01,
+         01,01,100,01,
+         01,01,01,100,
+         50,50,50,50
+         ), ncol=4, byrow=TRUE)
+rownames(rfs) <- c('refforjnd2xyz.u','refforjnd2xyz.s','refforjnd2xyz.m','refforjnd2xyz.l', 'refforjnd2xyz.acent')
+colnames(rfs) <- c('u','s','m','l')
+
+simulatedata.n10 <- lapply(simulatedata.n10, 'attr<-', which='resrefs', value=rfs)
+simulatedata.n20 <- lapply(simulatedata.n20, 'attr<-', which='resrefs', value=rfs)
+simulatedata.n100 <- lapply(simulatedata.n100, 'attr<-', which='resrefs', value=rfs)
+
+
+simulatecoldist.n10 <- pausemcl(simulatedata.n10, function(x) {
+  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  })
+
+simulatecoldist.n20 <- pausemcl(simulatedata.n20, function(x) {
+  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  })
+
+simulatecoldist.n100 <- pausemcl(simulatedata.n100, function(x) {
+  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  })
+
+```
+
+
+## Running Analysis
+
+Run adonis, volume overlap, calculate distance between centroids:
+
+```{r poweradoniscache2, results='hide', cache=TRUE, dependson='powercoldistcache2'}
+gc(verbose=FALSE)
+adonissim.n10 <- pausemcl(simulatecoldist.n10, adoniscoldist)
+Sys.sleep(5)
+adonissim.n20 <- pausemcl(simulatecoldist.n20, adoniscoldist)
+Sys.sleep(5)
+adonissim.n100 <- pausemcl(simulatecoldist.n100, adoniscoldist)
+gc(verbose=FALSE)
+```
 
 
 <!--

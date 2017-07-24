@@ -4,6 +4,7 @@ Simulations
 -   [False positives and power](#false-positives-and-power)
     -   [Running Analysis](#running-analysis)
     -   [Visualizing Results](#visualizing-results)
+-   [Power and sample size](#power-and-sample-size)
 -   [Threshold scenario: high within-group variability, centroid distance ~1JND](#threshold-scenario-high-within-group-variability-centroid-distance-1jnd)
     -   [Running analyses](#running-analyses)
     -   [Visualizing results](#visualizing-results-1)
@@ -142,7 +143,7 @@ We will simulate data with varying effect sizes (centroid distance relative to t
 
 ``` r
 effs <- c(0, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3)
-timeseach <- 100
+timeseach <- 200
 simN <- 50
 
 effsims <- rep(effs, each=timeseach)
@@ -178,7 +179,7 @@ simulatecoldist <- parallel::mclapply(simulatedata, function(x) {
   Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
   Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
   Y
-  }, mc.cores=6)
+  }, mc.cores=4)
 ```
 
 Validating simulations:
@@ -194,8 +195,8 @@ Run adonis, volume overlap, calculate distance between centroids:
 
 ``` r
 gc(verbose=FALSE)
-adonissim <- parallel::mclapply(simulatecoldist, adoniscoldist, mc.cores=6)
-vovsim <- parallel::mclapply(simulatedata, voloverlaptest, mc.cores=6)
+adonissim <- parallel::mclapply(simulatecoldist, adoniscoldist, mc.cores=4)
+vovsim <- parallel::mclapply(simulatedata, voloverlaptest, mc.cores=4)
 centdist <- unlist(lapply(simulatedata, centroidist))
 gc(verbose=FALSE)
 ```
@@ -214,7 +215,7 @@ pykelm <- lapply(pykesim, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=5
 pykemanova <- lapply(pykelm, function(x) summary(manova(x)))
 
 vovpyke <- parallel::mclapply(pykesim, function(x)
-  voloverlap(x[1:simN,], x[(simN+1):(simN*2), ]), mc.cores=6)
+  voloverlap(x[1:simN,], x[(simN+1):(simN*2), ]), mc.cores=4)
 ```
 
 Calculate statistics of interest:
@@ -282,9 +283,9 @@ However, there is some discrepancy in test results. There doesn't seem to be a b
 So tests have similar power but disagree as to the outcome in terms of what is significant:
 
     ##        manovaP
-    ## adonisP FALSE  TRUE
-    ##   FALSE 0.459 0.082
-    ##   TRUE  0.015 0.444
+    ## adonisP  FALSE   TRUE
+    ##   FALSE 0.4680 0.0810
+    ##   TRUE  0.0245 0.4265
 
 About 10% divergence in results, maybe not worth worrying about. Note that most of the discrepancy comes from results that are significant in MANOVA but not in Adonis, suggesting again that MANOVA approach is less conservative.
 
@@ -301,6 +302,89 @@ R2 increases with increasing effect size, which is good. We can also see that ev
 ![](../output/figures/final/final_figunnamed-chunk-10-1.jpeg)
 
 This just shows the Pyke transformation is working and that the Euclidean distance between the centroids calculated in this transformed space is identical to the distance between the centroids in JNDs.
+
+Power and sample size
+=====================
+
+``` r
+pausemcl <- function(X, FUN, splt=5){
+  N <- length(X)
+  resultvector <- vector('list', length=N)
+  splitlist <- parallel::splitIndices(N, splt)
+  
+  for(i in seq_along(splitlist)){
+    tmp <- splitlist[[i]]
+    gc()
+    resultvector[tmp] <- parallel::mclapply(X[tmp], FUN, mc.cores=4)
+    #resultvector[tmp] <- lapply(X[tmp], FUN)
+    gc()
+    Sys.sleep(2)
+  }
+resultvector
+}
+
+effs <- c(0, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3)
+timeseach <- 200
+effsims <- rep(effs, each=timeseach)
+
+
+simulatedata.n10 <- lapply(effsims,
+                       function(x)
+                       simdich(N=10, sgsqsrate=0.5, multiplier=NULL, effsize=x)
+                       )
+
+simulatedata.n20 <- lapply(effsims,
+                       function(x)
+                       simdich(N=20, sgsqsrate=0.5, multiplier=NULL, effsize=x)
+                       )
+
+simulatedata.n100 <- lapply(effsims,
+                       function(x)
+                       simdich(N=100, sgsqsrate=0.5, multiplier=NULL, effsize=x)
+                       )
+
+rfs <- 
+matrix(c(100,01,01,01,
+         01,100,01,01,
+         01,01,100,01,
+         01,01,01,100,
+         50,50,50,50
+         ), ncol=4, byrow=TRUE)
+rownames(rfs) <- c('refforjnd2xyz.u','refforjnd2xyz.s','refforjnd2xyz.m','refforjnd2xyz.l', 'refforjnd2xyz.acent')
+colnames(rfs) <- c('u','s','m','l')
+
+simulatedata.n10 <- lapply(simulatedata.n10, 'attr<-', which='resrefs', value=rfs)
+simulatedata.n20 <- lapply(simulatedata.n20, 'attr<-', which='resrefs', value=rfs)
+simulatedata.n100 <- lapply(simulatedata.n100, 'attr<-', which='resrefs', value=rfs)
+
+
+simulatecoldist.n10 <- pausemcl(simulatedata.n10, function(x) {
+  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  })
+
+simulatecoldist.n20 <- pausemcl(simulatedata.n20, function(x) {
+  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  })
+
+simulatecoldist.n100 <- pausemcl(simulatedata.n100, function(x) {
+  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  })
+```
 
 <!--
 (run some cleanup before the next simulation)
@@ -452,13 +536,13 @@ sessionInfo()
     ## [4] permute_0.9-4        scatterplot3d_0.3-40 pavo_1.2.1          
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.11    cluster_2.0.6   knitr_1.15.1    magrittr_1.5   
-    ##  [5] maps_3.2.0      magic_1.5-6     MASS_7.3-47     geometry_0.3-6 
-    ##  [9] stringr_1.2.0   tools_3.4.1     parallel_3.4.1  grid_3.4.1     
-    ## [13] nlme_3.1-131    mgcv_1.8-17     htmltools_0.3.6 yaml_2.1.14    
-    ## [17] rprojroot_1.2   digest_0.6.12   Matrix_1.2-10   mapproj_1.2-5  
-    ## [21] rcdd_1.2        evaluate_0.10   rmarkdown_1.5   stringi_1.1.5  
-    ## [25] compiler_3.4.1  backports_1.0.5
+    ##  [1] Rcpp_0.12.11     cluster_2.0.6    knitr_1.15.1     magrittr_1.5    
+    ##  [5] maps_3.2.0       magic_1.5-6      MASS_7.3-47      geometry_0.3-6  
+    ##  [9] stringr_1.2.0    tools_3.4.1      parallel_3.4.1   grid_3.4.1      
+    ## [13] nlme_3.1-131     mgcv_1.8-17      htmltools_0.3.6  yaml_2.1.14     
+    ## [17] rprojroot_1.2    digest_0.6.12    Matrix_1.2-10    mapproj_1.2-5   
+    ## [21] codetools_0.2-15 rcdd_1.2         evaluate_0.10    rmarkdown_1.5   
+    ## [25] stringi_1.1.5    compiler_3.4.1   backports_1.0.5
 
 ``` r
 ######################
