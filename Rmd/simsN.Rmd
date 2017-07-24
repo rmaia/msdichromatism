@@ -173,8 +173,10 @@ pykemanova.n10 <- lapply(pykelm.n10, function(x) summary(manova(x)))
 ```{r statscalc, echo=FALSE, cache=TRUE, dependson=c('n10ana', 'n20ana', 'n100ana')}
 
 # Recover simulations for N = 50
-lazyLoad('output/cache/final/final_cache_poweradoniscache_d1a17571c626004bfe78daceeb251486')
-lazyLoad('output/cache/final/final_cache_powerpyke_69e0150df93ab0eff876b88ea9c6ee3b')
+lsfiles <- unique(gsub('\\..*','', list.files('output/cache/final', full.names=TRUE)))
+lazyLoad(grep('poweradoniscache', lsfiles, value=TRUE))
+lazyLoad(grep('powerpyke', lsfiles, value=TRUE))
+
 # Pyke MANOVA: P-values, which significant
 manovaPval.n50 <- unlist(lapply(pykemanova, function(x) x$stats[1,'Pr(>F)']))
 manovaP.n50 <- manovaPval.n50 < 0.05
@@ -277,6 +279,12 @@ abline(h=0.05, lty=3)
 plot(pvsimsadonis.n100~unique(effsims), pch=20, cex=2, type='b', ylab='Proportion of tests significant', xlab="Effect size (Mahalanobis' Distance)", ylim=c(0,1.1), col=powerpal[9], main='N=100')
 points(pvsimsmanova.n100~ unique(effsims), pch=20, cex=2, type='b', col=powerpal[1])
 abline(h=0.05, lty=3)
+
+par(mfrow=c(1,1))
+plot(tapply(disagreement.n10, effsims, mean)~unique(effsims), type='b',pch=20, col=grey(0.7), ylim=c(0,0.4), ylab='Proportion of differences between the two approaches', xlab='Effect size (Mahalanobis distance)')
+points(tapply(disagreement.n20, effsims, mean)~unique(effsims), type='b',pch=20, col=grey(0.5))
+points(tapply(disagreement.n50, effsims, mean)~unique(effsims), type='b',pch=20, col=grey(0.3))
+points(tapply(disagreement.n100, effsims, mean)~unique(effsims), type='b',pch=20, col=grey(0))
 ``` 
 
 

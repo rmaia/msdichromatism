@@ -163,7 +163,7 @@ Run analysis
 Visualizing Results
 -------------------
 
-![](../output/figures/final/SimN_fig_unnamed-chunk-1-1.jpeg)![](../output/figures/final/SimN_fig_unnamed-chunk-1-2.jpeg)![](../output/figures/final/SimN_fig_unnamed-chunk-1-3.jpeg)
+![](../output/figures/final/SimN_fig_unnamed-chunk-1-1.jpeg)![](../output/figures/final/SimN_fig_unnamed-chunk-1-2.jpeg)![](../output/figures/final/SimN_fig_unnamed-chunk-1-3.jpeg)![](../output/figures/final/SimN_fig_unnamed-chunk-1-4.jpeg)
 
 ``` r
 sessionInfo()
