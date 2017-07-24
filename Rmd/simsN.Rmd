@@ -262,19 +262,19 @@ legend('topleft', legend=c("Pyke & MANOVA, N=10",
        col=powerpal[c(4,3,2,1)])
 
 par(mfrow=c(2,2))
-plot(pvsimsadonis.n10~unique(effsims), pch=20, cex=2, type='b', ylab='Proportion of tests significant', xlab="Effect size (Mahalanobis' Distance)", ylim=c(0,1), col=powerpal[9], main='N=10')
+plot(pvsimsadonis.n10~unique(effsims), pch=20, cex=2, type='b', ylab='Proportion of tests significant', xlab="Effect size (Mahalanobis' Distance)", ylim=c(0,1.1), col=powerpal[9], main='N=10')
 points(pvsimsmanova.n10~ unique(effsims), pch=20, cex=2, type='b', col=powerpal[1])
 abline(h=0.05, lty=3)
 
-plot(pvsimsadonis.n20~unique(effsims), pch=20, cex=2, type='b', ylab='Proportion of tests significant', xlab="Effect size (Mahalanobis' Distance)", ylim=c(0,1), col=powerpal[9], main='N=20')
+plot(pvsimsadonis.n20~unique(effsims), pch=20, cex=2, type='b', ylab='Proportion of tests significant', xlab="Effect size (Mahalanobis' Distance)", ylim=c(0,1.1), col=powerpal[9], main='N=20')
 points(pvsimsmanova.n20~ unique(effsims), pch=20, cex=2, type='b', col=powerpal[1])
 abline(h=0.05, lty=3)
 
-plot(pvsimsadonis.n50~unique(effsims), pch=20, cex=2, type='b', ylab='Proportion of tests significant', xlab="Effect size (Mahalanobis' Distance)", ylim=c(0,1), col=powerpal[9], main='N=50')
+plot(pvsimsadonis.n50~unique(effsims), pch=20, cex=2, type='b', ylab='Proportion of tests significant', xlab="Effect size (Mahalanobis' Distance)", ylim=c(0,1.1), col=powerpal[9], main='N=50')
 points(pvsimsmanova.n50~ unique(effsims), pch=20, cex=2, type='b', col=powerpal[1])
 abline(h=0.05, lty=3)
 
-plot(pvsimsadonis.n100~unique(effsims), pch=20, cex=2, type='b', ylab='Proportion of tests significant', xlab="Effect size (Mahalanobis' Distance)", ylim=c(0,1), col=powerpal[9], main='N=100')
+plot(pvsimsadonis.n100~unique(effsims), pch=20, cex=2, type='b', ylab='Proportion of tests significant', xlab="Effect size (Mahalanobis' Distance)", ylim=c(0,1.1), col=powerpal[9], main='N=100')
 points(pvsimsmanova.n100~ unique(effsims), pch=20, cex=2, type='b', col=powerpal[1])
 abline(h=0.05, lty=3)
 ``` 
