@@ -1,23 +1,53 @@
 Worked examples
+================
+
+-   [Worked examples](#worked-examples)
+    -   [Example 1: Dichromatism.](#example-1-dichromatism.)
+    -   [Example 2: Mimicry.](#example-2-mimicry.)
+
+Worked examples
 ===============
 
 ``` r
+require(pavo)
+require(scatterplot3d)
+require(gridExtra)
+require(vegan)
+require(MASS)
+require(RColorBrewer)
+
+# load aesthetic functions (plot, make colors transparent)
+source('R/aesthetic.R')
+
+# load function to convert JND to cartesian coordinates
+source('R/jnd2xyz.R')
+
+# load function for bootstrap
 source('R/bootstrapcentroiddS.R')
-source('R/trispace.R')
 
 # Distance matrix generator
 distmat <- function(x){
-  dmat <- matrix(0, nrow=length(unique(x$patch1)), ncol=length(unique(x$patch1)))
-  rownames(dmat) <- colnames(dmat) <- as.character(unique(x$patch1))
+  coldistres <- as.matrix(rbind(x[ ,c(1,2,3)], x[ ,c(2,1,3)]))
+  uniquepatches <-  unique(c(coldistres[,1], coldistres[,2]))
   
-  for(i in rownames(dmat))
-    for(j in colnames(dmat))
-      if(length(x$dS[x$patch1 == i & x$patch2 == j]) != 0)
-      dmat[i,j] <- dmat[j,i] <- x$dS[x$patch1 == i & x$patch2 == j]
+  M <- matrix(nrow=length(uniquepatches), ncol=length(uniquepatches))
   
-  dmat
+  rownames(M) <- colnames(M) <- uniquepatches
   
-}
+  M[coldistres[,1:2] ] <- coldistres[,3]
+  M[coldistres[,2:1] ] <- coldistres[,3]
+  
+  class(M) <- 'numeric'
+  M[is.na(M)] <- 0
+  
+  grouping <- as.factor(gsub('[0-9]','', rownames(M)))
+  
+  M <- as.dist(M)
+  M
+  }
+
+#color palette
+palette <- rcbalpha(0.8, 4, 'Set1')
 ```
 
 Example 1: Dichromatism.
@@ -35,26 +65,17 @@ specs <- list(all = as.rspec(read.csv('data/dichromatism/combined.csv'), interp 
               throat = as.rspec(read.csv('data/dichromatism/throat.csv'), interp = FALSE),
               roof = as.rspec(read.csv('data/dichromatism/roof.csv'), interp = FALSE),
               tongue = as.rspec(read.csv('data/dichromatism/tongue.csv'), interp = FALSE))
-```
 
-    ## wavelengths found in column 1 
-    ## wavelengths found in column 1 
-    ## wavelengths found in column 1 
-    ## wavelengths found in column 1 
-    ## wavelengths found in column 1
-
-``` r
 # Ctenophorus ornatus
 liz_vis <- sensmodel(c(360, 440, 493, 571)) 
 names(liz_vis) <- c('wl', 'u', 's', 'm', 'l')
 
-models <- lapply(specs, function(x) vismodel(x, visual = liz_vis, relative = FALSE, 
-                                             qcatch = "fi", scale = 10000))  # deltaS
-models_rel <- lapply(specs, function(x) vismodel(x, visual = liz_vis, relative = TRUE, 
-                                                 qcatch = "fi", scale = 10000))  # tcs 
+models <- lapply(specs, vismodel, visual = liz_vis, relative = FALSE, qcatch='Qi')
 
-deltaS <- lapply(models, function(x) coldist(x, achro = FALSE, n1 = 1, n2 = 1, 
-                                             n3 = 3.5, n4 = 6, v = 0.10, noise = 'neural'))
+spaces <- lapply(models, colspace)
+
+deltaS <- lapply(models, coldist, achro = FALSE, n = c(1,1,3.5,6), 
+                                  weber = 0.05, noise = "neural")
 ```
 
 Visualise
@@ -62,80 +83,43 @@ Visualise
 ``` r
 layout(matrix(c(1, 2, 3, 4, 5, 6, 7, 8), 4, 2, byrow = TRUE))
 
-aggplot(as.rspec(cbind(specs$lab$wl, specs$lab[grepl("M", colnames(specs$lab))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
+aggplot(specs[['lab']], by=gsub("[0-9].*","",names(specs[['lab']])), lwd=3, ylim=c(0,50))
+
+scatterplot3d(spaces[['lab']][,c('x','y','z')],  
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['lab']]))[-1], 
+                             labels=palette[1:2])),
+      box=FALSE, pch=21, cex.symbols=2, color=NA,
+      x.ticklabs='', y.ticklabs='', z.ticklabs='', xlab='', ylab='', zlab='')
+
+
+aggplot(specs[['throat']], by=gsub("[0-9].*","",names(specs[['throat']])), lwd=3, ylim=c(0,50))
+
+scatterplot3d(spaces[['throat']][,c('x','y','z')],  
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['throat']]))[-1],
+                             labels=palette[1:2])),
+      box=FALSE, pch=21, cex.symbols=2, color=NA,
+      x.ticklabs='', y.ticklabs='', z.ticklabs='', xlab='', ylab='', zlab='')
+
+
+aggplot(specs[['roof']], by=gsub("[0-9].*","",names(specs[['roof']])), lwd=3, ylim=c(0,50))
+
+scatterplot3d(spaces[['roof']][,c('x','y','z')],  
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['roof']]))[-1],
+                             labels=palette[1:2])),
+      box=FALSE, pch=21, cex.symbols=2, color=NA,
+      x.ticklabs='', y.ticklabs='', z.ticklabs='', xlab='', ylab='', zlab='')
+
+
+aggplot(specs[['tongue']], by=gsub("[0-9].*","",names(specs[['tongue']])), lwd=3, ylim=c(0,50))
+
+scatterplot3d(spaces[['tongue']][,c('x','y','z')],  
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['tongue']]))[-1],
+                             labels=palette[1:2])),
+      box=FALSE, pch=21, cex.symbols=2, color=NA,
+      x.ticklabs='', y.ticklabs='', z.ticklabs='', xlab='', ylab='', zlab='')
 ```
 
-    ## wavelengths found in column 1
-
-``` r
-par(new = TRUE)
-aggplot(as.rspec(cbind(specs$lab$wl, specs$lab[grepl("F", colnames(specs$lab))])), ylim = c(0, 50), lcol = 'red', shadecol = 'red')
-```
-
-    ## wavelengths found in column 1
-
-``` r
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$lab[grepl("M", rownames(models_rel$lab)), ])
-                                       [, c('x','y','z')]), pch=19, box=F, main = 'labium', label.tick.marks = FALSE)
-sp3d$points3d(suppressWarnings(tcs(models_rel$lab[grepl("F", rownames(models_rel$lab)), ])
-                               [, c('x','y','z')]), col='red',pch=19)
-
-aggplot(as.rspec(cbind(specs$throat$wl, specs$throat[grepl("M", colnames(specs$throat))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
-```
-
-    ## wavelengths found in column 1
-
-``` r
-par(new = TRUE)
-aggplot(as.rspec(cbind(specs$throat$wl, specs$throat[grepl("F", colnames(specs$throat))])), ylim = c(0, 50), lcol = 'red', shadecol = 'red')
-```
-
-    ## wavelengths found in column 1
-
-``` r
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$throat[grepl("M", rownames(models_rel$throat)), ])
-                                       [, c('x','y','z')]), pch=19, box=F, main = 'throat', label.tick.marks = FALSE)
-sp3d$points3d(suppressWarnings(tcs(models_rel$throat[grepl("F", rownames(models_rel$throat)), ])
-                               [, c('x','y','z')]), col='red',pch=19)
-
-aggplot(as.rspec(cbind(specs$roof$wl, specs$roof[grepl("M", colnames(specs$roof))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
-```
-
-    ## wavelengths found in column 1
-
-``` r
-par(new = TRUE)
-aggplot(as.rspec(cbind(specs$roof$wl, specs$roof[grepl("F", colnames(specs$roof))])), ylim = c(0, 50), lcol = 'red', shadecol = 'red')
-```
-
-    ## wavelengths found in column 1
-
-``` r
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$roof[grepl("M", rownames(models_rel$roof)), ])
-                                       [, c('x','y','z')]), pch=19, box=F, main = 'roof', label.tick.marks = FALSE)
-sp3d$points3d(suppressWarnings(tcs(models_rel$roof[grepl("F", rownames(models_rel$roof)), ])
-                               [, c('x','y','z')]), col='red',pch=19)
-
-aggplot(as.rspec(cbind(specs$tongue$wl, specs$tongue[grepl("M", colnames(specs$tongue))])), ylim = c(0, 50), lcol = 'black', shadecol = 'black')
-```
-
-    ## wavelengths found in column 1
-
-``` r
-par(new = TRUE)
-aggplot(as.rspec(cbind(specs$tongue$wl, specs$tongue[grepl("F", colnames(specs$tongue))])), ylim = c(0, 50), lcol = 'red', shadecol = 'red')
-```
-
-    ## wavelengths found in column 1
-
-``` r
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$tongue[grepl("M", rownames(models_rel$tongue)), ])
-                                       [, c('x','y','z')]), pch=19, box=F, main = 'tongue', label.tick.marks = FALSE)
-sp3d$points3d(suppressWarnings(tcs(models_rel$tongue[grepl("F", rownames(models_rel$tongue)), ])
-                               [, c('x','y','z')]), col='red',pch=19)
-```
-
-![](../output/figures/examples/examples_figliz_spectcs-1.png)
+![](../output/figures/examples/examples_fig_liz_spectcs-1.jpeg)
 
 **Step 1:** PERMANOVAs
 
@@ -146,11 +130,12 @@ mat <- list(all = distmat(deltaS$all),
             throat = distmat(deltaS$throat),
             roof = distmat(deltaS$roof),
             tongue = distmat(deltaS$tongue))
-group <- list(all = paste0(substring(rownames(mat$all), nchar(rownames(mat$all))), substring(rownames(mat$all), 1, 1)),
-              lab = substring(rownames(mat$lab), 1, 1),
-              throat = substring(rownames(mat$throat), 1, 1),
-              roof = substring(rownames(mat$roof), 1, 1),
-              tongue = substring(rownames(mat$tongue), 1, 1))
+
+group <- list(all = paste0(substring(rownames(as.matrix(mat$all)), nchar(rownames(as.matrix(mat$all)))), substring(rownames(as.matrix(mat$all)), 1, 1)),
+              lab = substring(rownames(as.matrix(mat$lab)), 1, 1),
+              throat = substring(rownames(as.matrix(mat$throat)), 1, 1),
+              roof = substring(rownames(as.matrix(mat$roof)), 1, 1),
+              tongue = substring(rownames(as.matrix(mat$tongue)), 1, 1))
 
 # Labium
 adonis(mat$lab ~ group$lab)
@@ -166,9 +151,9 @@ adonis(mat$lab ~ group$lab)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$lab  1    150.12 150.119  14.117 0.20134  0.001 ***
-    ## Residuals 56    595.50  10.634         0.79866           
-    ## Total     57    745.62                 1.00000           
+    ## group$lab  1     98.04  98.038  13.964 0.19678  0.001 ***
+    ## Residuals 57    400.17   7.021         0.80322           
+    ## Total     58    498.21                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -186,10 +171,10 @@ adonis(mat$roof ~ group$roof)
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##            Df SumsOfSqs MeanSqs F.Model    R2 Pr(>F)
-    ## group$roof  1      3.22  3.2242 0.49025 0.009  0.528
-    ## Residuals  54    355.14  6.5766         0.991       
-    ## Total      55    358.36                 1.000
+    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+    ## group$roof  1     2.251  2.2511 0.52282 0.00942  0.498
+    ## Residuals  55   236.813  4.3057         0.99058       
+    ## Total      56   239.065                 1.00000
 
 ``` r
 # Throat
@@ -206,9 +191,9 @@ adonis(mat$throat ~ group$throat)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$throat  1    202.58 202.583  14.978 0.20809  0.001 ***
-    ## Residuals    57    770.97  13.526         0.79191           
-    ## Total        58    973.55                 1.00000           
+    ## group$throat  1    170.26 170.261  14.842 0.20376  0.001 ***
+    ## Residuals    58    665.34  11.471         0.79624           
+    ## Total        59    835.60                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -227,9 +212,9 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1     12.17 12.1726  1.6766 0.02857  0.199
-    ## Residuals    57    413.82  7.2601         0.97143       
-    ## Total        58    426.00                 1.00000
+    ## group$tongue  1      8.65  8.6466  1.6293 0.02732  0.223
+    ## Residuals    58    307.81  5.3071         0.97268       
+    ## Total        59    316.46                 1.00000
 
 **LESS SHITTY ALTERNATIVE?**
 
@@ -247,6 +232,14 @@ levels(cpatch)  # First letter indicates body region, second indicates sex (see 
 ``` r
 contrasts(cpatch) <- contr.sdif(8)  # Sliding contrasts
 
+# RM: maybe this works? 
+
+contmat <- matrix(0, nrow=8, ncol=4)
+contmat[1,1] <- contmat[3,2] <- contmat[5,3] <- contmat[7,4] <- 0.5
+contmat[2,1] <- contmat[4,2] <- contmat[6,3] <- contmat[8,4] <- -0.5
+
+contrasts(cpatch) <- contmat
+
 # Design matrix without intercept
 cgmmat <- model.matrix(~cpatch)[,-1]
 
@@ -255,8 +248,16 @@ cgmmat <- model.matrix(~cpatch)[,-1]
 # LM vs LF (4-3), labium
 # RF vs RM (6-5), mouth-roof
 # TF vs TM (8-7), tongue
-adonis2(mat$all ~ cgmmat[,'cpatch2-1'] + cgmmat[,'cpatch4-3'] + 
-          cgmmat[,'cpatch6-5'] + cgmmat[,'cpatch8-7'] , by = 'margin')
+#adonis2(mat$all ~ cgmmat[,'cpatch2-1'] + cgmmat[,'cpatch4-3'] + 
+#          cgmmat[,'cpatch6-5'] + cgmmat[,'cpatch8-7'] , by = 'margin')
+
+# cpatch1 = H
+#       2 = L
+#       3 = R
+#       4 = T
+
+adonis2(mat$all ~ cgmmat[,'cpatch1'] + cgmmat[,'cpatch2'] +
+                  cgmmat[,'cpatch3'] + cgmmat[,'cpatch4'], by='margin')
 ```
 
     ## Permutation test for adonis under reduced model
@@ -264,17 +265,19 @@ adonis2(mat$all ~ cgmmat[,'cpatch2-1'] + cgmmat[,'cpatch4-3'] +
     ## Permutation: free
     ## Number of permutations: 999
     ## 
-    ## adonis2(formula = mat$all ~ cgmmat[, "cpatch2-1"] + cgmmat[, "cpatch4-3"] + cgmmat[, "cpatch6-5"] + cgmmat[, "cpatch8-7"], by = "margin")
-    ##                        Df SumOfSqs        F Pr(>F)    
-    ## cgmmat[, "cpatch2-1"]   1     19.8   0.4802  0.520    
-    ## cgmmat[, "cpatch4-3"]   1   5394.6 130.6531  0.001 ***
-    ## cgmmat[, "cpatch6-5"]   1   2481.6  60.1032  0.001 ***
-    ## cgmmat[, "cpatch8-7"]   1    114.9   2.7832  0.080 .  
-    ## Residual              230   9496.7                    
+    ## adonis2(formula = mat$all ~ cgmmat[, "cpatch1"] + cgmmat[, "cpatch2"] + cgmmat[, "cpatch3"] + cgmmat[, "cpatch4"], by = "margin")
+    ##                      Df SumOfSqs      F Pr(>F)  
+    ## cgmmat[, "cpatch1"]   1    380.4 4.5754  0.030 *
+    ## cgmmat[, "cpatch2"]   1    129.6 1.5585  0.225  
+    ## cgmmat[, "cpatch3"]   1     28.7 0.3456  0.618  
+    ## cgmmat[, "cpatch4"]   1     67.9 0.8172  0.390  
+    ## Residual            231  19205.8                
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-TW: Yeah that's not right - see individual tests above. Should be labium (4-3) = distinct, throat (2-1) = distinct, mouth (6-5) = nope, tongue (8-7) = nope. Should 'sex' be split off as a factor? ...
+TW: Yeah that's not right - see individual tests above. Should be labium (4-3) = distinct, throat (2-1) = distinct, mouth (6-5) = nope, tongue (8-7) = nope. Should 'sex' be split off as a factor?...
+
+RM: my re-do results in only throat being significant...
 
 **Step 2:** Effect sizes.
 
@@ -284,23 +287,126 @@ Add grouping variable to raw models, then bootstrap centroids for statistically 
 # Groups
 models$lab$group <- substring(rownames(models$lab), 1, 1)
 models$throat$group <- substring(rownames(models$throat), 1, 1)
+models$roof$group <- substring(rownames(models$roof), 1, 1)
+models$tongue$group <- substring(rownames(models$tongue), 1, 1)
 
 # labium
-bootcentroidDS(models$lab[,1:4], models$lab$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
+laboot <- bootcentroidDS(models$lab[,1:4], models$lab$group, 
+                         n=c(1,1,3.5,6), weber=0.05, qcatch='Qi', achro=FALSE)
 ```
 
-    ##     measured.dS    CI.lwr   CI.upr
-    ## F-M   0.4650257 0.3096813 0.640355
+    ## Warning: number of cones not specified; assumed to be 4
 
 ``` r
 # throat
-bootcentroidDS(models$throat[,1:4], models$throat$group, n1 = 1, n2 = 1, n3 = 3.5, n4 = 6, v = 0.10)
+thboot <- bootcentroidDS(models$throat[,1:4], models$throat$group, 
+                         n=c(1,1,3.5,6), weber=0.05, qcatch='Qi', achro=FALSE)
 ```
 
-    ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.5703535 0.3685354 0.8249836
+    ## Warning: number of cones not specified; assumed to be 4
+
+``` r
+# roof
+roboot <- bootcentroidDS(models$roof[,1:4], models$roof$group, 
+                         n=c(1,1,3.5,6), weber=0.05, qcatch='Qi', achro=FALSE)
+```
+
+    ## Warning: number of cones not specified; assumed to be 4
+
+``` r
+# tongue
+toboot <- bootcentroidDS(models$tongue[,1:4], models$tongue$group, 
+                         n=c(1,1,3.5,6), weber=0.05, qcatch='Qi', achro=FALSE)
+```
+
+    ## Warning: number of cones not specified; assumed to be 4
+
+``` r
+bootres <- rbind(laboot, thboot, roboot, toboot)
+rownames(bootres) <- c('Labium', 'Throat', 'Roof', 'Tongue')
+
+plot(bootres[,1], xlim=c(0.5, 4.5), ylim=c(0, 5), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+
+abline(h=1, lty=3, lwd=2)
+segments(1:4, bootres[,2], 1:4, bootres[,3], lwd=2)
+
+axis(1, at=1:4, labels=rownames(bootres))
+```
+
+![](../output/figures/examples/examples_fig_unnamed-chunk-5-1.jpeg)
 
 So lab's & throats are statistically distinct, but fall below threshold.
+
+plots for publication:
+
+``` r
+pdf(height=10*1.3, width=8*1.3, pointsize = 12*1.3*1.2, file='figures/lizards.pdf')
+
+oma <- par()$mar
+
+oma[3] <- 1.1
+oma[1] <- 4.1
+
+layout(cbind(matrix(c(1, 2, 3, 4, 5, 6, 7, 8), 4, 2, byrow = TRUE), rep(9,4)))
+
+par(mar=oma)
+
+aggplot(specs[['lab']], by=gsub("[0-9].*","",names(specs[['lab']])), lwd=3, ylim=c(0,50))
+
+scatterplot3d(spaces[['lab']][,c('x','y','z')],  
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['lab']]))[-1], 
+                             labels=palette[1:2])),
+      box=FALSE, pch=21, cex.symbols=2, color=NA,
+      x.ticklabs='', y.ticklabs='', z.ticklabs='', xlab='', ylab='', zlab='',
+      mar=c(4.5,0,0,0))
+
+par(mar=oma)
+
+aggplot(specs[['throat']], by=gsub("[0-9].*","",names(specs[['throat']])), lwd=3, ylim=c(0,50))
+
+scatterplot3d(spaces[['throat']][,c('x','y','z')],  
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['throat']]))[-1],
+                             labels=palette[1:2])),
+      box=FALSE, pch=21, cex.symbols=2, color=NA,
+      x.ticklabs='', y.ticklabs='', z.ticklabs='', xlab='', ylab='', zlab='',
+      mar=c(4.5,0,0,0))
+
+par(mar=oma)
+
+aggplot(specs[['roof']], by=gsub("[0-9].*","",names(specs[['roof']])), lwd=3, ylim=c(0,50))
+
+scatterplot3d(spaces[['roof']][,c('x','y','z')],  
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['roof']]))[-1],
+                             labels=palette[1:2])),
+      box=FALSE, pch=21, cex.symbols=2, color=NA,
+      x.ticklabs='', y.ticklabs='', z.ticklabs='', xlab='', ylab='', zlab='',
+      mar=c(4.5,0,0,0))
+
+par(mar=oma)
+
+aggplot(specs[['tongue']], by=gsub("[0-9].*","",names(specs[['tongue']])), lwd=3, ylim=c(0,50))
+
+scatterplot3d(spaces[['tongue']][,c('x','y','z')],  
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['tongue']]))[-1],
+                             labels=palette[1:2])),
+      box=FALSE, pch=21, cex.symbols=2, color=NA,
+      x.ticklabs='', y.ticklabs='', z.ticklabs='', xlab='', ylab='', zlab='',
+      mar=c(4.5,0,0,0))
+
+par(mar=oma)
+par(mar=c(4,4,1,1)+0.1)
+
+plot(rev(bootres[,1]), 1:4, ylim=c(0.8, 4.2), xlim=c(0, 5), pch=21, bg=1, cex=2, yaxt='n', ylab='Body patch', xlab='Chromatic contrast (JND)')
+axis(2, at=1:4, labels=rev(rownames(bootres)))
+
+abline(v=1, lty=3, lwd=2)
+segments(rev(bootres[,2]), 1:4, rev(bootres[,3]), 1:4, lwd=2)
+
+dev.off()
+```
+
+    ## pdf 
+    ##   2
 
 ``` r
 rm(list = setdiff(ls(), lsf.str()))
@@ -326,27 +432,27 @@ specs <- as.rspec(read.csv('data/mimicry/flowers_spiders.csv'), interp = FALSE)
     ## wavelengths found in column 1
 
 ``` r
-# Honeybee
-bee_vis <- sensmodel(c(344, 436, 556), beta = FALSE) 
-names(bee_vis) <- c('wl','s', 'm', 'l')
+models <- vismodel(specs, visual = 'apis', relative = FALSE)
 
-# Receptor-noise
-models <- vismodel(specs, visual = bee_vis, relative = FALSE,
-                                                 qcatch = "fi", scale = 10000)  # rn
-models_rel <- vismodel(specs, visual = bee_vis, relative = TRUE,
-                                                 qcatch = "fi", scale = 10000)  # for plotting
-models_tri <- trispace(models_rel)
-
-deltaS <- coldist(models, achro = FALSE, n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
-
-models$group <- substring(rownames(models), 1, 1)
-bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
+spaces <- colspace(models)
 ```
 
-    ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4216446 1.4333632
-    ## F-Y   1.3789736 0.9974827 1.8532475
-    ## W-Y   0.7111240 0.6407573 0.8038745
+    ## Warning: Quantum catch are not relative, and have been transformed
+
+``` r
+#deltaS <- coldist(models, achro = FALSE, n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
+deltaS <- coldist(models, achro=FALSE, n=c(1,0.5,4.4), weber=0.13)
+
+models$group <- substring(rownames(models), 1, 1)
+bootcentroidDS(models[, 1:3], models$group, n=c(1,0.5,4.4), weber=0.13, achro=FALSE, qcatch='Qi')
+```
+
+    ## Warning: number of cones not specified; assumed to be 3
+
+    ##     measured.dS    CI.lwr   CI.upr
+    ## F-W    1.111253 0.2520501 2.344860
+    ## F-Y    2.034473 1.7203520 2.743678
+    ## W-Y    1.879937 1.7076943 2.149129
 
 ``` r
 # Contrast labels
@@ -361,13 +467,24 @@ deltaS$comparison[grepl('Y_', deltaS$patch1) & grepl('F_', deltaS$patch2)] <- 'i
 Visualise.
 
 ``` r
-# Max triangle
-triplot(models_tri[grepl("F_", rownames(models_tri)), ], col = 'black', bg = 'forestgreen', cex = 1.3, pch = 21, achro = FALSE)
-points(models_tri[grepl("Y_", rownames(models_tri)), ][c('x', 'y')], pch = 21, col = 'black', bg = 'darkgoldenrod1', cex = 1.3)
-points(models_tri[grepl("W_", rownames(models_tri)), ][c('x', 'y')], pch = 21, col = 'black', bg = 'darkgrey', cex = 1.3)
+# specs
+aggplot(specs, by=substr(names(specs), 1,1)[-1], shadecol=c('darkgoldenrod1', 'darkgrey', 'forestgreen'), alpha=c(0.8,0.8,0.2), lcol=1, lwd=2)
 ```
 
-![](../output/figures/examples/examples_figmimic_triplot-1.png)
+![](../output/figures/examples/examples_fig_mimic_triplot-1.jpeg)
+
+``` r
+aggplot(specs[,grep('F', names(specs), invert=T)], by=substr(grep('F', names(specs), invert=TRUE, value=TRUE), 1,1)[-1], shadecol=c('goldenrod1', 'darkgrey'), alpha=0.5, lcol=1, lwd=2, ylim=c(0,100))
+```
+
+![](../output/figures/examples/examples_fig_mimic_triplot-2.jpeg)
+
+``` r
+# Max triangle
+plot(spaces, pch=21, cex=2, bg=as.character(factor(substr(rownames(spaces), 1, 1), labels=c('forestgreen', 'darkgrey', 'darkgoldenrod1'))))
+```
+
+![](../output/figures/examples/examples_fig_mimic_triplot-3.jpeg)
 
 **PERMANOVA**
 
@@ -378,25 +495,49 @@ mat <- list(all = distmat(deltaS),
             WF = distmat(subset(deltaS, !(comparison %in% c('intra.Y', 'inter.WY', 'inter.YF')))),
             YF = distmat(subset(deltaS, !(comparison %in% c('intra.W', 'inter.WY', 'inter.WF'))))
             )
-group <- list(all = substring(rownames(mat$all), 1, 1),
-              WY = substring(rownames(mat$WY), 1, 1),
-              WF = substring(rownames(mat$WF), 1, 1),
-              YF = substring(rownames(mat$YF), 1, 1))
+group <- list(all = substring(rownames(as.matrix(mat$all)), 1, 1),
+              WY = substring(rownames(as.matrix(mat$WY)), 1, 1),
+              WF = substring(rownames(as.matrix(mat$WF)), 1, 1),
+              YF = substring(rownames(as.matrix(mat$YF)), 1, 1))
 
+# test if W and Y are different
+adonis(mat$WY ~ group$WY)
+```
+
+    ## 
+    ## Call:
+    ## adonis(formula = mat$WY ~ group$WY) 
+    ## 
+    ## Permutation: free
+    ## Number of permutations: 999
+    ## 
+    ## Terms added sequentially (first to last)
+    ## 
+    ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+    ## group$WY   1    60.286  60.286  32.125 0.34871  0.001 ***
+    ## Residuals 60   112.598   1.877         0.65129           
+    ## Total     61   172.884                 1.00000           
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
+# test if W and Y are different from F
 # Use customized contrasts to test a priori hypotheses together
 cgroups <- factor(group$all)
 
-# Create the contrasts we want
+contrasts(cgroups) <- contr.treatment(3)
+
 contrasts(cgroups) <- cbind(
-  c(-1, 0.5, 0.5), # compare F vs. W&Y, will be named "cgroups1"
-  c(0, -0.5, 0.5)  # compare W vs Y, will be named "cgroups2"
-  )
+  c(-1,1,0),
+  c(-1,0,1)
+)
 
 # Create design matrix, without intercept
 cgmmat <- model.matrix(~cgroups)[,-1]
+colnames(cgmmat) <- c('W','Y')
 
 # Run the model testing only specified contrasts
-adonis2(mat$all ~ cgmmat[, 'cgroups1'] + cgmmat[, 'cgroups2'], by='margin')
+adonis2(mat$all ~ cgmmat[,'W'] + cgmmat[,'Y'], by='margin')
 ```
 
     ## Permutation test for adonis under reduced model
@@ -404,11 +545,11 @@ adonis2(mat$all ~ cgmmat[, 'cgroups1'] + cgmmat[, 'cgroups2'], by='margin')
     ## Permutation: free
     ## Number of permutations: 999
     ## 
-    ## adonis2(formula = mat$all ~ cgmmat[, "cgroups1"] + cgmmat[, "cgroups2"], by = "margin")
-    ##                       Df SumOfSqs       F Pr(>F)    
-    ## cgmmat[, "cgroups1"]   1   1267.2 13.2141  0.001 ***
-    ## cgmmat[, "cgroups2"]   1    382.0  3.9833  0.045 *  
-    ## Residual             133  12754.1                   
+    ## adonis2(formula = mat$all ~ cgmmat[, "W"] + cgmmat[, "Y"], by = "margin")
+    ##                Df SumOfSqs      F Pr(>F)    
+    ## cgmmat[, "W"]   1    17.73 1.6070  0.213    
+    ## cgmmat[, "Y"]   1   102.65 9.3022  0.001 ***
+    ## Residual      134  1478.64                  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -418,257 +559,116 @@ Note that the degrees of freedom, sums of squares, and R2 are the same between t
 
 ``` r
 models$group <- substring(rownames(models), 1, 1)
-bootcentroidDS(models[, 1:3], models$group, vis = 'tri', n1 = 1, n2 = 0.471, n3 = 4.412, v = 0.13)
+spiderboot <- bootcentroidDS(models[, 1:3], models$group, n=c(1, 0.5, 4.4), weber = 0.13, qcatch='Qi', achro=FALSE)
 ```
 
-    ##     measured.dS    CI.lwr    CI.upr
-    ## F-W   0.9156266 0.4353753 1.4198322
-    ## F-Y   1.3789736 1.0005900 1.8328855
-    ## W-Y   0.7111240 0.6461624 0.8112797
+    ## Warning: number of cones not specified; assumed to be 3
+
+``` r
+spiderboot
+```
+
+    ##     measured.dS    CI.lwr   CI.upr
+    ## F-W    1.111253 0.2290807 2.312648
+    ## F-Y    2.034473 1.7269386 2.752589
+    ## W-Y    1.879937 1.7112592 2.147412
+
+``` r
+plot(spiderboot[,1], xlim=c(0.5, 3.5), ylim=c(0, 3), pch=21, bg=1, cex=2, xaxt='n', ylab='Chromatic distance (JND)', xlab='Centroid comparison')
+axis(1, at=1:3, labels = c('Flower-White', 'Flower-Yellow', 'White-Yellow'))
+segments(1:3, spiderboot[,2], 1:3, spiderboot[,3], lwd=2)
+abline(h=1, lty=3, lwd=2)
+abline(h=0.3, lty=3, lwd=2, col='darkgrey')
+```
+
+![](../output/figures/examples/examples_fig_unnamed-chunk-10-1.jpeg)
 
 So the RN threshold for honeybees can be pretty damn low (0.3 JNDs, Dyer & Neumeyer 2005), but is variable depending on testing conditions, past experience etc. These would suggest that everying's (on average) perceptably distinct, but probably tough (depending on experience etc.).
 
-``` r
-rm(list = setdiff(ls(), lsf.str()))
-```
-
-Example 3: Crypsis.
--------------------
-
-Reflectance data from various body regions (H = head, L = left arm, R = right arm, P = prothorax, W = wing) of 27 female and 7 male mantids *Pseudomantis albofimbriata* and 50 background samples (*Lomandra longifolia*, which they pretty much exclusively hang on).
-
-So six groups, a couple of **Q's:** Are mantids cryptic? i.e. are all body regions chromaticically indistinguishable from their background? And are they any sex differences ('hidden' UV sexual signals perhaps)?
-
-Calculate deltaS according to blue tits
+plot for paper:
 
 ``` r
-specs <- as.rspec(read.csv('data/crypsis/mantids_bkgs.csv'), lim = c(300, 700))
+# transparent colors
+spidercol <- rgb(data.frame(t(col2rgb(c('forestgreen', 'darkgrey', 'darkgoldenrod1'),
+                                      alpha=F))/255), alpha=0.8)
+
+pdf(height=8*1.3, width=4*1.3, pointsize = 12, file='figures/spiders1.pdf')
+
+par(mfrow=c(3,1), mar=c(5.1, 4.1, 2.1, 2.1))
+
+aggplot(specs[,grep('F', names(specs), invert=T)], by=substr(grep('F', names(specs), invert=TRUE, value=TRUE), 1,1)[-1], shadecol=c('goldenrod1', 'darkgrey'), alpha=0.5, lcol=1, lwd=2, ylim=c(0,100))
+
+plot(spaces, pch=21, cex=2, 
+     margins=c(0,0,3,0),
+     bg=as.character(factor(substr(rownames(spaces), 1, 1), labels=spidercol)),
+     col=NA, achrocol='black')
+
+
+plot(spiderboot[,1], xlim=c(0.5, 3.5), ylim=c(0, 3), pch=21, bg=1, cex=2, xaxt='n', ylab='Chromatic distance (JND)', xlab='Centroid comparison')
+axis(1, at=1:3, labels = c('Flower-White', 'Flower-Yellow', 'White-Yellow'))
+abline(h=1, lty=3, lwd=2)
+abline(h=0.3, lty=3, lwd=2, col='darkgrey')
+segments(1:3, spiderboot[,2], 1:3, spiderboot[,3], lwd=2)
+
+dev.off()
 ```
 
-    ## wavelengths found in column 1
+    ## pdf 
+    ##   2
 
 ``` r
-models <- vismodel(specs, visual = 'bluetit', relative = FALSE, qcatch = "fi", scale = 10000)  # deltaS
-models_rel <- list(female = vismodel(as.rspec(cbind(specs$wl, specs[grepl("_F", colnames(specs))])), 
-                                     visual = 'bluetit', relative = TRUE, qcatch = "fi", scale = 10000),
-                   male = vismodel(as.rspec(cbind(specs$wl, specs[grepl("_M", colnames(specs))])), 
-                                     visual = 'bluetit', relative = TRUE, qcatch = "fi", scale = 10000),
-                   bkg = vismodel(as.rspec(cbind(specs$wl, specs[grepl("B_", colnames(specs))])), 
-                                     visual = 'bluetit', relative = TRUE, qcatch = "fi", scale = 10000))
+pdf(height=8*1.3, width=4*1.3, pointsize = 12, file='figures/spiders2.pdf')
+
+par(mfrow=c(3,1), mar=c(5.1, 4.1, 2.1, 2.1))
+
+aggplot(specs, by=substr(names(specs), 1,1)[-1], shadecol=c('darkgoldenrod1', 'darkgrey', 'forestgreen'), alpha=c(0.8,0.8,0.2), lcol=1, lwd=2, ylim=c(0,100))
+
+plot(spaces, pch=21, cex=2, 
+     margins=c(0,0,3,0),
+     bg=as.character(factor(substr(rownames(spaces), 1, 1), labels=spidercol)),
+     col=NA, achrocol='black')
+
+
+plot(spiderboot[,1], xlim=c(0.5, 3.5), ylim=c(0, 3), pch=21, bg=1, cex=2, xaxt='n', ylab='Chromatic contrast (JND)', xlab='Centroid comparison')
+axis(1, at=1:3, labels = c('Flower-White', 'Flower-Yellow', 'White-Yellow'))
+abline(h=1, lty=3, lwd=2)
+abline(h=0.3, lty=3, lwd=2, col='darkgrey')
+segments(1:3, spiderboot[,2], 1:3, spiderboot[,3], lwd=2)
+
+dev.off()
 ```
 
-    ## wavelengths found in column 1 
-    ## wavelengths found in column 1 
-    ## wavelengths found in column 1
-
-``` r
-deltaS <- coldist(models, achro = FALSE)
-```
-
-Visualise
-
-``` r
-cols <- c('darkgoldenrod', 'darkgoldenrod1', 'darkgoldenrod2', 'darkgoldenrod3', 'darkgoldenrod4')
-
-layout(matrix(c(1, 2, 3, 4), 2, 2, byrow = TRUE))
-
-# Female specs
-aggplot(as.rspec(cbind(specs$wl, specs[grepl("_F", colnames(specs))])), 
-        by =  substring(names(specs[grepl("_F", colnames(specs))]), 1, 1), 
-        ylim = c(0, 100),
-        lcol = 'black',
-        shadecol = cols)
-```
-
-    ## wavelengths found in column 1
-
-``` r
-# Female tcs
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$bkg)[, c('x','y','z')]), 
-                                       xlim=c(-0.02,0.03), ylim=c(-0.01,0.028), zlim=c(-0.06,0.01), 
-                                       pch=19, box=F, color = 'forestgreen', label.tick.marks = FALSE)
-sp3d$points3d(suppressWarnings(tcs(models_rel$female[grepl("H_", rownames(models_rel$female)), ])
-                               [, c('x','y','z')]), col='darkgoldenrod',pch=19)
-sp3d$points3d(suppressWarnings(tcs(models_rel$female[grepl("L_", rownames(models_rel$female)), ])
-                               [, c('x','y','z')]), col='darkgoldenrod1',pch=19)
-sp3d$points3d(suppressWarnings(tcs(models_rel$female[grepl("R_", rownames(models_rel$female)), ])
-                               [, c('x','y','z')]), col='darkgoldenrod2',pch=19)
-sp3d$points3d(suppressWarnings(tcs(models_rel$female[grepl("P_", rownames(models_rel$female)), ])
-                               [, c('x','y','z')]), col='darkgoldenrod3',pch=19)
-sp3d$points3d(suppressWarnings(tcs(models_rel$female[grepl("W_", rownames(models_rel$female)), ])
-                               [, c('x','y','z')]), col='darkgoldenrod4',pch=19)
-
-# Male specs
-aggplot(as.rspec(cbind(specs$wl, specs[grepl("_M", colnames(specs))])), 
-        by =  substring(names(specs[grepl("_M", colnames(specs))]), 1, 1), 
-        ylim = c(0, 100),
-        lcol = 'black',
-        shadecol = cols)
-```
-
-    ## wavelengths found in column 1
-
-``` r
-# Male tcs
-sp3d <- scatterplot3d(suppressWarnings(tcs(models_rel$bkg)[, c('x','y','z')]), 
-                                       xlim=c(-0.02,0.03), ylim=c(-0.01,0.028), zlim=c(-0.06,0.01), 
-                                       pch=19, box=F, color = 'forestgreen', label.tick.marks = FALSE)
-sp3d$points3d(suppressWarnings(tcs(models_rel$male[grepl("H_", rownames(models_rel$male)), ])
-                               [, c('x','y','z')]), col='darkgoldenrod',pch=19)
-sp3d$points3d(suppressWarnings(tcs(models_rel$male[grepl("L_", rownames(models_rel$male)), ])
-                               [, c('x','y','z')]), col='darkgoldenrod1',pch=19)
-sp3d$points3d(suppressWarnings(tcs(models_rel$male[grepl("R_", rownames(models_rel$male)), ])
-                               [, c('x','y','z')]), col='darkgoldenrod2',pch=19)
-sp3d$points3d(suppressWarnings(tcs(models_rel$male[grepl("P_", rownames(models_rel$male)), ])
-                               [, c('x','y','z')]), col='darkgoldenrod3',pch=19)
-sp3d$points3d(suppressWarnings(tcs(models_rel$male[grepl("W_", rownames(models_rel$male)), ])
-                               [, c('x','y','z')]), col='darkgoldenrod4',pch=19)
-```
-
-![](../output/figures/examples/examples_figcrypsis_tcs-1.png)
-
-**Step 1:** PERMANOVA
-
-``` r
-# Set up distance matrices & groupings for focal comparisons 
-mat <- distmat(deltaS)
-patch <- substring(rownames(mat), 1, 1)  # body part
-sex <- substring(rownames(mat), nchar(rownames(mat)))  # sex (Male, Female, None (bkg))  
-
-# Specify contrasts based on the questions:
-# contrasts for patch
-cpatch <- factor(patch)
-contrasts(cpatch) <- cbind(c(-1, 0.2, 0.2, 0.2, 0.2, 0.2), # B vs HLPRW
-                           rep(0, 6), rep(0,6), rep(0,6), rep(0,6))
-
-# we don't really care about HxLxPxRxW right? so that should do it
-csex <- factor(sex)
-contrasts(csex) <- cbind(
-                        c(-1,1,0), # M vs F
-                        rep(0,3) # we don't care about comparisons with N
-                        )
-
-# without interaction
-adonis2(mat ~ cpatch + csex, by = 'margin')
-```
-
-    ## Permutation test for adonis under reduced model
-    ## Marginal effects of terms
-    ## Permutation: free
-    ## Number of permutations: 999
-    ## 
-    ## adonis2(formula = mat ~ cpatch + csex, by = "margin")
-    ##           Df SumOfSqs       F Pr(>F)    
-    ## cpatch     1   226.74 49.9730  0.001 ***
-    ## csex       1    35.47  7.8178  0.001 ***
-    ## Residual 216   980.03                   
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-**note reduced degrees of freedom**
-
-also note that in this scenario, the "interaction" becomes nonsingular and unidentifiable - since all patches are treated as one group and the background as another, and the background is ignored in the sex variable, then the interaction and the sex align perfectly:
-
-(HLPRW):F == F (HLPRW):M == M (HLPRW):B == 0
-
-We can show that there are no degrees of freedom for this comparison:
-
-``` r
-# get model matrix 
-modmat <- model.matrix(~cpatch * csex)
-
-# only columns that interest us:
-# cpatch1: B vs HLPRW
-# csex1: M vs F, ignore N
-# cpatch1:csex1: their interaction
-
-modmat <- modmat[, c("cpatch1", "csex1", "cpatch1:csex1")]
-
-adonis2(mat ~ modmat, by='margin')
-```
-
-    ## Permutation test for adonis under NA model
-    ## Marginal effects of terms
-    ## Permutation: free
-    ## Number of permutations: 999
-    ## 
-    ## adonis2(formula = mat ~ modmat, by = "margin")
-    ##           Df SumOfSqs      F Pr(>F)    
-    ## modmat     2   298.59 32.905  0.001 ***
-    ## Residual 216   980.03                  
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-We can change the contrasts to show an interaction in the form of a sex-by-patch effect, but since we are ignoring the patch differences when testing for crypsis, maybe we shouldn't?
-
-ALSO, note that the contrasts I designed are testing the hypothesis: "are males different from females?" We could also change the contrasts to test MxB x FxB (that is, do the sexes contrast with the background differently) - but given the threshold results that might not even be worth it!
-
-**Step 2:** Effect sizes
-
-``` r
-# Splitting up by sex. Need to tidy this up.
-models$patch <- substring(rownames(models), 1, 1)
-models$sex <- substring(rownames(models), nchar(rownames(models)))
-
-models_m <- subset(models, sex != 'F')
-models_f <- subset(models, sex != 'M')
-
-cents_m <- bootcentroidDS(models_m[,1:4], models_m$patch)
-cents_f <- bootcentroidDS(models_f[,1:4], models_f$patch)
-
-cents_m <- as.data.frame(cents_m[grep("B", rownames(cents_m)), ])  # Mantid-background contrasts only
-cents_f <- as.data.frame(cents_f[grep("B", rownames(cents_f)), ])
-
-cents_m$sex <- 'M'
-cents_f$sex <- 'F'
-cents_m$comp <- rownames(cents_m)
-cents_f$comp <- rownames(cents_f)
-
-cents <- rbind(cents_m, cents_f)
-```
-
-Plot (patch \* sex)-versus-bkg bootstrapped centroid distances
-
-``` r
-  pd <- position_dodge(.5)
-  ggplot(cents, aes(x = sex, y = measured.dS, colour = comp, group = comp)) + 
-    geom_errorbar(aes(ymin = CI.lwr, ymax = CI.upr), colour = "black", width = .2, position = pd) +
-    geom_point(aes(fill = comp), position = pd, size = 3, shape = 21, colour = 'black') + 
-    geom_hline(yintercept = 1, linetype = 2) +
-    scale_y_continuous(limits = c(0, 1.2)) +
-    ylab("dS") +
-    theme(legend.position = 'none')  
-```
-
-![](../output/figures/examples/examples_figcrypsis_effectplot-1.png)
-
-So all patches are below threshold (i.e. cryptic), and there are some very minor, imperceptible differences between sexes.
+    ## pdf 
+    ##   2
 
 ``` r
 sessionInfo()
 ```
 
-    ## R version 3.3.1 (2016-06-21)
-    ## Platform: x86_64-apple-darwin13.4.0 (64-bit)
-    ## Running under: OS X 10.11.6 (El Capitan)
+    ## R version 3.4.1 (2017-06-30)
+    ## Platform: x86_64-apple-darwin15.6.0 (64-bit)
+    ## Running under: macOS Sierra 10.12.6
+    ## 
+    ## Matrix products: default
+    ## BLAS: /Library/Frameworks/R.framework/Versions/3.4/Resources/lib/libRblas.0.dylib
+    ## LAPACK: /Library/Frameworks/R.framework/Versions/3.4/Resources/lib/libRlapack.dylib
     ## 
     ## locale:
-    ## [1] en_AU.UTF-8/en_AU.UTF-8/en_AU.UTF-8/C/en_AU.UTF-8/en_AU.UTF-8
+    ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
     ## 
     ## attached base packages:
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## other attached packages:
-    ## [1] MASS_7.3-45          vegan_2.4-0          lattice_0.20-33     
-    ## [4] permute_0.9-0        gridExtra_2.2.1      ggplot2_2.1.0       
-    ## [7] scatterplot3d_0.3-37 pavo_0.5-5           rgl_0.95.1441       
+    ## [1] RColorBrewer_1.1-2   MASS_7.3-47          vegan_2.4-3         
+    ## [4] lattice_0.20-35      permute_0.9-4        gridExtra_2.2.1     
+    ## [7] scatterplot3d_0.3-40 pavo_1.2.1          
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.5      cluster_2.0.4    knitr_1.13       magrittr_1.5    
-    ##  [5] maps_3.1.0       magic_1.5-6      munsell_0.4.3    colorspace_1.2-6
-    ##  [9] geometry_0.3-6   plyr_1.8.4       stringr_1.0.0    tools_3.3.1     
-    ## [13] parallel_3.3.1   grid_3.3.1       nlme_3.1-128     gtable_0.2.0    
-    ## [17] mgcv_1.8-12      htmltools_0.3.5  yaml_2.1.13      digest_0.6.9    
-    ## [21] Matrix_1.2-6     mapproj_1.2-4    formatR_1.4      rcdd_1.1-10     
-    ## [25] evaluate_0.9     rmarkdown_0.9.6  labeling_0.3     stringi_1.1.1   
-    ## [29] scales_0.4.0
+    ##  [1] Rcpp_0.12.12    cluster_2.0.6   knitr_1.16      magrittr_1.5   
+    ##  [5] maps_3.2.0      magic_1.5-6     geometry_0.3-6  stringr_1.2.0  
+    ##  [9] tools_3.4.1     parallel_3.4.1  grid_3.4.1      nlme_3.1-131   
+    ## [13] gtable_0.2.0    mgcv_1.8-17     htmltools_0.3.6 yaml_2.1.14    
+    ## [17] rprojroot_1.2   digest_0.6.12   Matrix_1.2-10   mapproj_1.2-5  
+    ## [21] rcdd_1.2        evaluate_0.10.1 rmarkdown_1.6   stringi_1.1.5  
+    ## [25] compiler_3.4.1  backports_1.1.0

@@ -1,12 +1,47 @@
 # EXAMPLE AT THE END OF THE SCRIPT
 # dat = vismodel object (quantum catch)
 # groups = vector defining the groups to be compared
-# nboot = number of bootstrap replicates
+# boot.n = number of bootstrap replicates
 # alpha = confidence interval
 # ... = attributes passed to coldist
 
-bootcentroidDS <- function(dat, groups, nboot=1000, alpha=0.95, ...){
+bootcentroidDS <- function(dat, groups, boot.n=1000, alpha=0.95, ...){
 
+arg0 <- list(...)
+att <- vector('list', 0)
+
+if(is.null(arg0$n))
+  stop('argument "n" is missing', call.=FALSE)
+
+if(is.null(arg0$weber))
+  stop('argument "weber" is missing', call.=FALSE)
+
+if(is.null(arg0$qcatch)){
+  if(is.null(attr(dat, 'qcatch')))
+    stop('argument "qcatch" is missing', call.=FALSE)
+  
+  arg0$qcatch <- attr(dat, 'qcatch')
+}
+  
+if(is.null(arg0$achro)){
+  if(is.null(attr(dat, 'visualsystem.achromatic')))
+    stop('argument "achro" is missing', call.=FALSE)
+  
+  if(attr(dat, 'visualsystem.achromatic') == 'none')
+    arg0$achro <- FALSE
+
+  if(attr(dat, 'visualsystem.achromatic') != 'none')
+    arg0$achro <- TRUE
+}
+
+if(is.null(arg0$noise))
+  arg0$noise <- 'neural'
+
+if(is.null(arg0$weber.ref))
+  arg0$weber.ref <- 'longest'
+
+
+  
 sortinggroups <- order(groups)
 dat <- dat[sortinggroups, ]
 groups <- groups[sortinggroups]
@@ -19,7 +54,13 @@ empgroupmeans <- aggregate(dat, list(groups), mean, simplify=TRUE)
 row.names(empgroupmeans) <- empgroupmeans[,1]
 empgroupmeans <- empgroupmeans[, -1]
 
-empcd <- coldist(empgroupmeans, ...)
+#empcd <- coldist(empgroupmeans, ...)
+#empcd <- do.call(coldist, list(modeldata=empgroupmeans, arg0))
+
+empcd <- coldist(empgroupmeans, noise=arg0$noise, subset=arg0$subset, achro=arg0$achro,
+                 qcatch=arg0$qcatch, n=arg0$n, weber=arg0$weber, weber.ref=arg0$weber.ref,
+                 weber.achro=arg0$weber.achro)
+
 empdS <- setNames(empcd$dS, paste(empcd$patch1,empcd$patch2, sep='-'))
 
 
@@ -29,7 +70,7 @@ bygroup <- lapply(unique(groups), function(x) dat[groups==x, ])
 names(bygroup) <- unique(groups)
 
 # create vectors of indices to sample
-its <- lapply(samplesizes, function(x) sample(1:x, x*nboot, replace=TRUE))
+its <- lapply(samplesizes, function(x) sample(1:x, x*boot.n, replace=TRUE))
 
 # sample
 # returns a list with entries = number of groups
@@ -41,7 +82,7 @@ bootsamples <- lapply(1:length(bygroup), function(x) bygroup[[x]][its[[x]], ] )
 
 # first dimension of the list is the original group
 # second dimension is the bootstrap replicate
-bootindex <- lapply(samplesizes, function(x) as.character(rep(1:nboot, each=x)))
+bootindex <- lapply(samplesizes, function(x) as.character(rep(1:boot.n, each=x)))
 
 bootbygroup <- lapply(1:length(bygroup), function(x){
   lapply(unique(bootindex[[x]]), function(z) bootsamples[[x]][bootindex[[x]]==z, ])  
@@ -50,7 +91,7 @@ bootbygroup <- lapply(1:length(bygroup), function(x){
 
 # should work but isn't:
 #bootbygroup <- lapply(1:length(bygroup), function(x) 
-#  split(bootsamples[[x]], rep(1:nboot, each=samplesizes[x] )
+#  split(bootsamples[[x]], rep(1:boot.n, each=samplesizes[x] )
 #       ))
 
 
@@ -60,14 +101,22 @@ bootbygroup <- lapply(1:length(bygroup), function(x){
 groupcolmeans <- lapply(bootbygroup, function(x) do.call(rbind, lapply(x, colMeans) ) )
 
 # ...and combine them by bootstrap replicate
-bootgrouped <- lapply(1:nboot, function(x) 
+bootgrouped <- lapply(1:boot.n, function(x) 
   do.call(rbind, lapply(groupcolmeans, '[', x, )))
 
 # ...name the rows by group
 bootgrouped <- lapply(bootgrouped, function(x){row.names(x) <- unique(groups); x})
 
+bootgrouped <- lapply(bootgrouped, data.frame)
+
 # apply coldist to the replicated bootstraps
-bootcd <- lapply(bootgrouped, coldist, ...)
+#bootcd <- lapply(bootgrouped, coldist, ...)
+#bootcd <- lapply(bootgrouped, function(x) do.call(coldist, list(modeldata=x, arg0)))
+
+bootcd <- suppressWarnings(lapply(bootgrouped, coldist, noise=arg0$noise, subset=arg0$subset, achro=arg0$achro,
+                 qcatch=arg0$qcatch, n=arg0$n, weber=arg0$weber, weber.ref=arg0$weber.ref,
+                 weber.achro=arg0$weber.achro))
+
 
 # get deltaS and name by group difference
 bootdS <- do.call(rbind,
@@ -84,7 +133,7 @@ bootdS <- do.call(rbind,
 #dsCI <- empdS + bootdS[quantileindices]
 
 # which gives the same as just
-quantileindices <- round(nboot*((1+c(-alpha, alpha))/2))
+quantileindices <- round(boot.n*((1+c(-alpha, alpha))/2))
 #bootdS <- sort(bootdS)
 bootdS <- apply(bootdS, 2, sort)
 dsCI <- bootdS[quantileindices, , drop=FALSE]

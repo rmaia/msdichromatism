@@ -279,17 +279,135 @@ abline(h=0.05, lty=3)
 plot(pvsimsadonis.n100~unique(effsims), pch=20, cex=2, type='b', ylab='Proportion of tests significant', xlab="Effect size (Mahalanobis' Distance)", ylim=c(0,1.1), col=powerpal[9], main='N=100')
 points(pvsimsmanova.n100~ unique(effsims), pch=20, cex=2, type='b', col=powerpal[1])
 abline(h=0.05, lty=3)
-
-par(mfrow=c(1,1))
-plot(tapply(disagreement.n10, effsims, mean)~unique(effsims), type='b',pch=20, col=grey(0.7), ylim=c(0,0.4), ylab='Proportion of differences between the two approaches', xlab='Effect size (Mahalanobis distance)')
-points(tapply(disagreement.n20, effsims, mean)~unique(effsims), type='b',pch=20, col=grey(0.5))
-points(tapply(disagreement.n50, effsims, mean)~unique(effsims), type='b',pch=20, col=grey(0.3))
-points(tapply(disagreement.n100, effsims, mean)~unique(effsims), type='b',pch=20, col=grey(0))
 ``` 
 
+```{r, echo=FALSE, dependson='statscalc'}
+# Disagreement by effect size and sample size
+plot(tapply(disagreement.n10, effsims, mean)*100~unique(effsims), type='b',pch=20, col=grey(0.7), ylim=c(0,40), ylab='Disagreement between approaches (%)', xlab='Effect size (Mahalanobis distance)')
+points(tapply(disagreement.n20, effsims, mean)*100~unique(effsims), type='b',pch=20, col=grey(0.5))
+points(tapply(disagreement.n50, effsims, mean)*100~unique(effsims), type='b',pch=20, col=grey(0.3))
+points(tapply(disagreement.n100, effsims, mean)*100~unique(effsims), type='b',pch=20, col=grey(0))
+```
+
+```{r, echo=FALSE, dependson='statscalc', fig.height=14}
+par(mfrow=c(4,2))
+plot(adonisPval.n10~manovaPval.n10, pch=20, col=rcbalpha(0.8, 4, 'RdBu')[c(4,1)][factor(disagreement.n10)], xlab='Pyke MANOVA P-value', ylab='adonis P-value', main='N=10')
+abline(0,1)
+abline(h=0.05, lty=2)
+abline(v=0.05, lty=2)
+hist(adonisPval.n10 - manovaPval.n10, breaks=30, main='difference in P values \nbetween the two approaches')
+
+plot(adonisPval.n20~manovaPval.n20, pch=20, col=rcbalpha(0.8, 4, 'RdBu')[c(4,1)][factor(disagreement.n20)], xlab='Pyke MANOVA P-value', ylab='adonis P-value', main='N=20')
+abline(0,1)
+abline(h=0.05, lty=2)
+abline(v=0.05, lty=2)
+hist(adonisPval.n10 - manovaPval.n20, breaks=30, main='difference in P values \nbetween the two approaches')
+
+plot(adonisPval.n50~manovaPval.n50, pch=20, col=rcbalpha(0.8, 4, 'RdBu')[c(4,1)][factor(disagreement.n50)], xlab='Pyke MANOVA P-value', ylab='adonis P-value', main='N=50')
+abline(0,1)
+abline(h=0.05, lty=2)
+abline(v=0.05, lty=2)
+hist(adonisPval.n50 - manovaPval.n50, breaks=30, main='difference in P values \nbetween the two approaches')
+
+plot(adonisPval.n100~manovaPval.n100, pch=20, col=rcbalpha(0.8, 4, 'RdBu')[c(4,1)][factor(disagreement.n100)], xlab='Pyke MANOVA P-value', ylab='adonis P-value', main='N=100')
+abline(0,1)
+abline(h=0.05, lty=2)
+abline(v=0.05, lty=2)
+hist(adonisPval.n10 - manovaPval.n100, breaks=30, main='difference in P values \nbetween the two approaches')
+```
+
+```{r, echo=FALSE, dependson='statscalc'}
+dis.n10 <- table(adonisP.n10, manovaP.n10)/length(adonisP.n10)
+dis.n20 <- table(adonisP.n20, manovaP.n20)/length(adonisP.n20)
+dis.n50 <- table(adonisP.n50, manovaP.n50)/length(adonisP.n50)
+dis.n100 <- table(adonisP.n100, manovaP.n100)/length(adonisP.n100)
+
+
+disbar <- rbind(
+  c(dis.n10[2,1], dis.n10[1,2]),
+  c(dis.n20[2,1], dis.n20[1,2]),
+  c(dis.n50[2,1], dis.n50[1,2]),
+  c(dis.n100[2,1], dis.n100[1,2])
+)
+
+disbar <- disbar*100
+
+rownames(disbar) <- c('10','20','50','100')
+colnames(disbar) <- c('sigAdonis','sigMANOVA')
+
+par(mfrow=c(1,1))
+barplot(t(disbar), beside=TRUE, ylab='Simulations (%)',xlab='Sample size', col=powerpal[c(9,1)], ylim=c(0,15))
+box()
+legend('topright', legend=c('significant in Adonis but not in MANOVA','significant in MANOVA but not in Adonis'), fill=powerpal[c(9,1)], bty='n')
+```
 
 ```{r}
 sessionInfo()
 ```
 
+Plots for publication:
+
+```{r, echo=FALSE}
+ogoma <- par()$oma
+ogmar <- par()$mar
+
+pdf(height=4*1.3*2, width=7/3*2*1.3*2, pointsize = 12*2, file='figures/samplesize_1.pdf')
+
+par(mfrow=c(2,2), oma=c(3,3,0,0), mar=c(2,2,1,1))
+plot(pvsimsadonis.n10~unique(effsims), pch=21, cex=2,  lwd=4, type='b', ylab='', xlab='', ylim=c(0,1.2), col=powerpal[9], bg=powerpal[9], xaxt='n', yaxt='n')
+points(pvsimsmanova.n10~ unique(effsims), pch=21, cex=2,  lwd=4, type='b', col=powerpal[1], bg=powerpal[1])
+abline(h=0.05,  lwd=4, lty=3)
+axis(1, at=c(0,1,2,3))
+axis(2, at=c(0,0.5,1.0))
+text(x=3.2, y=1.1, pos=2, 'N=10', cex=1.2, font=2)
+
+legend('topleft', col=powerpal[c(9,1)], pt.bg=powerpal[c(9,1)], pch=21, lty=1, 
+       legend=c('distance PERMANOVA', 'cartesian MANOVA'),
+       bty='n', pt.cex=2, lwd=4, cex=0.9)
+
+plot(pvsimsadonis.n20~unique(effsims), pch=21, cex=2,  lwd=4, type='b', ylab='', xlab='', ylim=c(0,1.2), col=powerpal[9], bg=powerpal[9], xaxt='n', yaxt='n')
+points(pvsimsmanova.n20~ unique(effsims), pch=21, cex=2,  lwd=4, type='b', col=powerpal[1], bg=powerpal[1])
+abline(h=0.05,  lwd=4, lty=3)
+axis(1, at=c(0,1,2,3))
+axis(2, at=c(0,0.5,1.0))
+text(x=3.2, y=1.1, pos=2, 'N=20', cex=1.2, font=2)
+
+plot(pvsimsadonis.n50~unique(effsims), pch=21, cex=2,  lwd=4, type='b', ylab='', xlab='', ylim=c(0,1.2), col=powerpal[9], bg=powerpal[9], xaxt='n', yaxt='n')
+points(pvsimsmanova.n50~ unique(effsims), pch=21, cex=2,  lwd=4, type='b', col=powerpal[1], bg=powerpal[1])
+abline(h=0.05,  lwd=4, lty=3)
+axis(1, at=c(0,1,2,3))
+axis(2, at=c(0,0.5,1.0))
+text(x=3.2, y=1.1, pos=2, 'N=50', cex=1.2, font=2)
+
+plot(pvsimsadonis.n100~unique(effsims), pch=21, cex=2, lwd=4, type='b', ylab='', xlab='', ylim=c(0,1.2), col=powerpal[9], bg=powerpal[9], xaxt='n', yaxt='n')
+points(pvsimsmanova.n100~ unique(effsims), pch=21, cex=2, lwd=4, type='b', bg=powerpal[1], col=powerpal[1])
+abline(h=0.05,  lwd=4, lty=3)
+axis(1, at=c(0,1,2,3))
+axis(2, at=c(0,0.5,1.0))
+text(x=3.2, y=1.1, pos=2, 'N=100', cex=1.2, font=2)
+
+mtext('Simulated effect size (Mahalanobis distance)', side = 1, outer = TRUE, line = 1)
+mtext('Proportion of significant tests', side = 2, outer = TRUE, line = 1)
+
+dev.off()
+
+pdf(height=4*1.3*2, width=7*1.3*2, pointsize = 12*2, file='figures/samplesize_2.pdf')
+par(mfrow=c(1,2))
+barplot(t(disbar), beside=TRUE, ylab='Simulations (%)',xlab='Sample size', col=powerpal[c(9,1)], ylim=c(0,15), yaxt='n')
+axis(2, at=c(0,3,6,9,12))
+box()
+legend('topleft', legend=c('significant only in distance PERMANOVA','significant only in cartesian MANOVA'), pch=15, cex=0.9, pt.cex=2, col=powerpal[c(9,1)], bty='n')
+
+plot(tapply(disagreement.n10, effsims, mean)*100~unique(effsims), type='b', pch=21, col=grey(0.8), bg=grey(0.8), ylim=c(0,40), xlim=c(0,3.8), ylab='Disagreement between approaches (%)', xlab='Simulated effect size (Mahalanobis distance)', cex=2, lwd=4, xaxt='n')
+axis(1, at=c(0,1,2,3))
+points(tapply(disagreement.n20, effsims, mean)*100~unique(effsims), type='b', pch=21, col=grey(0.6), bg=grey(0.6), cex=2, lwd=4)
+points(tapply(disagreement.n50, effsims, mean)*100~unique(effsims), type='b', pch=21, col=grey(0.4), bg=grey(0.4), cex=2, lwd=4)
+points(tapply(disagreement.n100, effsims, mean)*100~unique(effsims), type='b', pch=21, col=grey(0), bg=grey(0), cex=2, lwd=4)
+
+text(x=3.1, y=tail(tapply(disagreement.n10, effsims, mean)*100, 1), labels='N=10', pos=4)
+text(x=3.1, y=tail(tapply(disagreement.n20, effsims, mean)*100, 1), labels='N=20', pos=4)
+text(x=3.1, y=tail(tapply(disagreement.n50, effsims, mean)*100, 1), labels='N=50', pos=4)
+text(x=3.1, y=tail(tapply(disagreement.n100, effsims, mean)*100, 1), labels='N=100', pos=4)
+dev.off()
+```
 

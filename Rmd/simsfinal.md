@@ -4,136 +4,44 @@ Simulations
 -   [False positives and power](#false-positives-and-power)
     -   [Running Analysis](#running-analysis)
     -   [Visualizing Results](#visualizing-results)
--   [Power and sample size](#power-and-sample-size)
 -   [Threshold scenario: high within-group variability, centroid distance ~1JND](#threshold-scenario-high-within-group-variability-centroid-distance-1jnd)
     -   [Running analyses](#running-analyses)
     -   [Visualizing results](#visualizing-results-1)
 
 ``` r
+require(pavo)
+```
+
+    ## Loading required package: pavo
+
+``` r
+require(vegan)
+```
+
+    ## Loading required package: vegan
+
+    ## Loading required package: permute
+
+    ## Loading required package: lattice
+
+    ## This is vegan 2.4-3
+
+``` r
+require(RColorBrewer)
+```
+
+    ## Loading required package: RColorBrewer
+
+``` r
+# load aesthetic functions (plot, make colors transparent)
+source('R/aesthetic.R')
+
+# load function to convert JND to cartesian coordinates
 source('R/jnd2xyz.R')
 
-# Make RColorBrewer colors transparent
-rcbalpha <- function(alpha=1, ...){
-  aa <- data.frame(t(col2rgb(brewer.pal(...), alpha=F)))/255
-  rgb(aa, alpha=alpha)
-}
-
-# significant/not significant histogram 
-yesnohist <- function(x, xlab=""){
-  bq <- 0.5  
-  while(length(seq(0, ceiling(max(x)),by=bq)) < 10) 
-    bq <- bq/2
-
-yes <- hist(x[adonisP], breaks=seq(0, ceiling(max(x)),by=bq), plot=F)
-no <- hist(x[!adonisP], breaks=seq(0, ceiling(max(x)),by=bq), plot=F)
-
-plot(c(0,yes$breaks), c(0,yes$counts,0), type='s',col=palette[1], lwd=5,
-     ylab='Frequency', xlab=xlab,
-     ylim=range(c(yes$counts,no$counts))* c(0,1.1),
-     xlim=c(0, max(c(yes$breaks, no$breaks)*1.1)))
-lines(c(0,no$breaks), c(0,no$counts,0), col=palette[2], type='s', lwd=5)
-
-legend('topright', col=palette[1:2], c('significant  ','not significant  '), 
-       pch=15, pt.cex=2.5, bty='n')
-}
-
-# simulate lognormal with realized mean and standard deviation on the log scale
-actuallognorm <- function(N, amean, asd){
-  location <- log(amean^2 / sqrt(asd^2 + amean^2))
-  shape <- sqrt(log(1 + (asd^2 / amean^2)))
-  rlnorm(n=N, meanlog=location, sdlog=shape)
-}
-
-# simulate two groups of data
-simdich <- function(N=50, sgsqsrate=1, sdmeanratio=TRUE, sdmeanratiovalues=c(0,0.5), multiplier=c(0.95, 1.05), effsize=NULL){
-
-  musA <- runif(4, 1, 10) # vector of means for group A
-  
-  if(sdmeanratio){
-    sgsqs <- runif(4,sdmeanratiovalues[1],sdmeanratiovalues[2])*musA
-  }else{
-    sgsqs <- rexp(4, sgsqsrate) # vector of standard deviations
-  }
-
-  groupA <- matrix(NA, nrow=N, ncol=4)
-  groupA[,1] <- actuallognorm(N, amean=musA[1], asd=sgsqs[1])
-  groupA[,2] <- actuallognorm(N, amean=musA[2], asd=sgsqs[2])
-  groupA[,3] <- actuallognorm(N, amean=musA[3], asd=sgsqs[3])
-  groupA[,4] <- actuallognorm(N, amean=musA[4], asd=sgsqs[4])
-  
-  if(is.null(effsize)){
-    musB <- musA * runif(4, multiplier[1], multiplier[2])
-  }else{
-    # effsize: difference between means in units of standard deviations
-    # (mahalanobis distance, approximately)
-    # up to 4 dimensions (K), so divide the multivariate effect size by sqrt(K)
-    sds <- apply(groupA, 2, sd)
-    musB <- (effsize/sqrt(4)*sds) + musA
-    }
-  
-    groupB <- matrix(NA, nrow=N, ncol=4)
-    groupB[,1] <- actuallognorm(N, amean=musB[1], asd=sgsqs[1])
-    groupB[,2] <- actuallognorm(N, amean=musB[2], asd=sgsqs[2])
-    groupB[,3] <- actuallognorm(N, amean=musB[3], asd=sgsqs[3])
-    groupB[,4] <- actuallognorm(N, amean=musB[4], asd=sgsqs[4])
-
-  combined <- data.frame(rbind(groupA,groupB))
-  
-  colnames(combined) <- c('u','s','m', 'l')
-  rownames(combined) <- paste(rep(c('gA','gB'), each=N),1:N, sep='')
-  
-  attr(combined, 'relative') <- FALSE
-  
-  simpars <- data.frame(rbind(musA, musB, sgsqs))
-  colnames(simpars) <- c('u','s','m', 'l')
-  rownames(simpars) <- c('muA','muB','ssq')
-  attr(combined, 'simpar') <- simpars
-  
-  combined
-  }
-
-# make distance matrix and run adonis
-adoniscoldist <- function(x, ...){
-  coldistres <- as.matrix(rbind(x[ ,c(1,2,3)], x[ ,c(2,1,3)]))
-  uniquepatches <-  unique(c(coldistres[,1], coldistres[,2]))
-
-  M <- matrix(nrow=length(uniquepatches), ncol=length(uniquepatches))
-
-  rownames(M) <- colnames(M) <- uniquepatches
-
-  M[coldistres[,1:2] ] <- coldistres[,3]
-  M[coldistres[,2:1] ] <- coldistres[,3]
-
-  class(M) <- 'numeric'
-  M[is.na(M)] <- 0
-  
-  grouping <- as.factor(gsub('[0-9]','', rownames(M)))
-
-  M <- as.dist(M)
-
-  adonis(M~grouping, ...)
-  }
-
-# split data and run volume overlap
-voloverlaptest <- function(dat, jnd2xyzres=FALSE){
-  if(jnd2xyzres){
-    tcsdat <- dat
-  }else{
-    tcsdat <- suppressWarnings(colspace(dat, space='tcs'))
-  }
-  gA <- tcsdat[1:(dim(dat)[1]/2),]
-  gB <- tcsdat[(dim(dat)[1]/2+1):(dim(dat)[1]),]
-  
-  voloverlap(gA, gB)
-}
-
-# split data, get centroids, get color distance
-centroidist <- function(dat){
-  gA.c <- colMeans(dat[1:(dim(dat)[1]/2),])
-  gB.c <- colMeans(dat[(dim(dat)[1]/2+1):(dim(dat)[1]),])
-  
-  suppressWarnings(coldist(rbind(gA.c, gB.c), achro=FALSE, qcatch='Qi'))$dS
-}
+# load simulation and analysis functions
+source('R/simfoos.R')
+source('R/simanalysis.R')
 ```
 
 False positives and power
@@ -268,7 +176,7 @@ Visualizing Results
 
 ![](../output/figures/final/final_figunnamed-chunk-3-1.jpeg)
 
-The simulation was successfu in producing samples that had the desired mahalanobis distance. There is some spread because of the small sample size relative to the dimensionality of the dataset, and for that reason the distances between groups asymptotes before zero.
+The simulation was successful in producing samples that had the desired mahalanobis distance. There is some spread because of the small sample size relative to the dimensionality of the dataset, and for that reason the distances between groups asymptotes before zero.
 
 ![](../output/figures/final/final_figunnamed-chunk-4-1.jpeg)
 
@@ -303,102 +211,6 @@ R2 increases with increasing effect size, which is good. We can also see that ev
 
 This just shows the Pyke transformation is working and that the Euclidean distance between the centroids calculated in this transformed space is identical to the distance between the centroids in JNDs.
 
-Power and sample size
-=====================
-
-``` r
-pausemcl <- function(X, FUN, splt=5){
-  N <- length(X)
-  resultvector <- vector('list', length=N)
-  splitlist <- parallel::splitIndices(N, splt)
-  
-  for(i in seq_along(splitlist)){
-    tmp <- splitlist[[i]]
-    gc()
-    resultvector[tmp] <- parallel::mclapply(X[tmp], FUN, mc.cores=4)
-    #resultvector[tmp] <- lapply(X[tmp], FUN)
-    gc()
-    Sys.sleep(2)
-  }
-resultvector
-}
-
-effs <- c(0, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3)
-timeseach <- 200
-effsims <- rep(effs, each=timeseach)
-
-
-simulatedata.n10 <- lapply(effsims,
-                       function(x)
-                       simdich(N=10, sgsqsrate=0.5, multiplier=NULL, effsize=x)
-                       )
-
-simulatedata.n20 <- lapply(effsims,
-                       function(x)
-                       simdich(N=20, sgsqsrate=0.5, multiplier=NULL, effsize=x)
-                       )
-
-simulatedata.n100 <- lapply(effsims,
-                       function(x)
-                       simdich(N=100, sgsqsrate=0.5, multiplier=NULL, effsize=x)
-                       )
-
-rfs <- 
-matrix(c(100,01,01,01,
-         01,100,01,01,
-         01,01,100,01,
-         01,01,01,100,
-         50,50,50,50
-         ), ncol=4, byrow=TRUE)
-rownames(rfs) <- c('refforjnd2xyz.u','refforjnd2xyz.s','refforjnd2xyz.m','refforjnd2xyz.l', 'refforjnd2xyz.acent')
-colnames(rfs) <- c('u','s','m','l')
-
-simulatedata.n10 <- lapply(simulatedata.n10, 'attr<-', which='resrefs', value=rfs)
-simulatedata.n20 <- lapply(simulatedata.n20, 'attr<-', which='resrefs', value=rfs)
-simulatedata.n100 <- lapply(simulatedata.n100, 'attr<-', which='resrefs', value=rfs)
-
-
-simulatecoldist.n10 <- pausemcl(simulatedata.n10, function(x) {
-  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
-  Y$comparison <- NA
-  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
-  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
-  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
-  Y
-  })
-
-simulatecoldist.n20 <- pausemcl(simulatedata.n20, function(x) {
-  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
-  Y$comparison <- NA
-  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
-  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
-  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
-  Y
-  })
-
-simulatecoldist.n100 <- pausemcl(simulatedata.n100, function(x) {
-  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
-  Y$comparison <- NA
-  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
-  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
-  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
-  Y
-  })
-```
-
-<!--
-(run some cleanup before the next simulation)
-
-#```{r cleanup}
-#rm(list=ls())
-#gc()
-#```
-
-#```{r ref.label='setup'}
-#```
-#```{r ref.label='fxns'}
-#``` 
--->
 Threshold scenario: high within-group variability, centroid distance ~1JND
 ==========================================================================
 
@@ -519,7 +331,7 @@ sessionInfo()
 
     ## R version 3.4.1 (2017-06-30)
     ## Platform: x86_64-apple-darwin15.6.0 (64-bit)
-    ## Running under: macOS Sierra 10.12.4
+    ## Running under: macOS Sierra 10.12.6
     ## 
     ## Matrix products: default
     ## BLAS: /Library/Frameworks/R.framework/Versions/3.4/Resources/lib/libRblas.0.dylib
@@ -532,25 +344,21 @@ sessionInfo()
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## other attached packages:
-    ## [1] RColorBrewer_1.1-2   vegan_2.4-3          lattice_0.20-35     
-    ## [4] permute_0.9-4        scatterplot3d_0.3-40 pavo_1.2.1          
+    ## [1] RColorBrewer_1.1-2 vegan_2.4-3        lattice_0.20-35   
+    ## [4] permute_0.9-4      pavo_1.2.1        
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.11     cluster_2.0.6    knitr_1.15.1     magrittr_1.5    
-    ##  [5] maps_3.2.0       magic_1.5-6      MASS_7.3-47      geometry_0.3-6  
-    ##  [9] stringr_1.2.0    tools_3.4.1      parallel_3.4.1   grid_3.4.1      
-    ## [13] nlme_3.1-131     mgcv_1.8-17      htmltools_0.3.6  yaml_2.1.14     
-    ## [17] rprojroot_1.2    digest_0.6.12    Matrix_1.2-10    mapproj_1.2-5   
-    ## [21] codetools_0.2-15 rcdd_1.2         evaluate_0.10    rmarkdown_1.5   
-    ## [25] stringi_1.1.5    compiler_3.4.1   backports_1.0.5
+    ##  [1] Rcpp_0.12.12         cluster_2.0.6        knitr_1.16          
+    ##  [4] magrittr_1.5         maps_3.2.0           magic_1.5-6         
+    ##  [7] MASS_7.3-47          scatterplot3d_0.3-40 geometry_0.3-6      
+    ## [10] stringr_1.2.0        tools_3.4.1          parallel_3.4.1      
+    ## [13] grid_3.4.1           nlme_3.1-131         mgcv_1.8-17         
+    ## [16] htmltools_0.3.6      yaml_2.1.14          rprojroot_1.2       
+    ## [19] digest_0.6.12        Matrix_1.2-10        mapproj_1.2-5       
+    ## [22] rcdd_1.2             evaluate_0.10.1      rmarkdown_1.6       
+    ## [25] stringi_1.1.5        compiler_3.4.1       backports_1.1.0
 
 ``` r
-######################
-# RESULTS FROM SIM 2 #
-######################
-pdf(height=4*1.3, width=7*1.3, file='figures/simulation2.pdf')
-par(mfrow=c(2,3), mar=c(4,5,1,1))
-
 plotrange <- function(x, log=TRUE){
   res <- range(x)
   res[1] <- floor(res[1])
@@ -564,10 +372,92 @@ plotrange <- function(x, log=TRUE){
   res
 }
 
-plot(centdist~intradist, 
+############
+# EXAMPLES #
+############
+pdf(height=4*1.3, width=7*1.3, file='figures/exampletetrab.pdf')
+par(mfrow=c(1,2))
+eg1 <- simulatedata[[10]]
+attr(eg1, 'conenumb') <- '4'
+attr(eg1, 'relative') <- FALSE
+attr(eg1, 'qcatch') <- 'Qi'
+class(eg1) <- c('vismodel', 'data.frame')
+plot(colspace(eg1), col=rep(palette[1:2], each=50), view=200, scale.y=2, out.lwd=2, vertexsize=2, margin=c(1,0,1,0))
+```
+
+    ## Warning: Quantum catch are not relative, and have been transformed
+
+``` r
+eg2 <- simulatedata[[2000]]
+attr(eg2, 'conenumb') <- '4'
+attr(eg2, 'relative') <- FALSE
+attr(eg2, 'qcatch') <- 'Qi'
+class(eg2) <- c('vismodel', 'data.frame')
+plot(colspace(eg2), col=rep(palette[1:2], each=50), view=200, scale.y=2, out.lwd=2, vertexsize=2, margin=c(1,0,1,0))
+```
+
+    ## Warning: Quantum catch are not relative, and have been transformed
+
+``` r
+dev.off()
+```
+
+    ## pdf 
+    ##   2
+
+``` r
+######################
+# RESULTS FROM SIM 1 #
+######################
+pdf(height=4*1.3, width=7*1.3, file='figures/samplesize_3.pdf')
+par(mfrow=c(1,2))
+
+plot(centdist~mahd, pch=21, 
+     xlim=c(0.05, 10), ylim=c(0.1,100),
+     col=NA, 
+     bg=as.character(factor(adonisP, labels=palette[1:2])),
+     log='xy', yaxt='n', xaxt='n',
+     ylab='Distance between centroids (JND)', xlab='Effect size (Mahalanobis distance)')
+
+axis(1, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+axis(1, at=c(seq(0.06,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+axis(2, at=c(0.1, 1, 10, 100), labels=c(0.1, 1, 10, 100))
+axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1), seq(20,90, by=10)), tcl=par("tcl")*0.5, labels=FALSE)
+
+abline(h=1,lty=3, lwd=2)
+
+legend('topleft', bty='n', pch=21, col=NA, pt.bg=palette[1:2], 
+       legend=c('p > 0.05', 'p < 0.05'))
+
+
+plot(overlap~mahd, pch=21, 
+     xlim=c(0.05, 10), ylim=c(0,80),
+     bg=as.character(factor(adonisP, labels=palette[1:2])), 
+     col=NA,
+     log='x', yaxt='n', xaxt='n',
+     ylab='Colour volume overlap (%)', xlab='Effect size (Mahalanobis distance)')
+
+axis(1, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+axis(1, at=c(seq(0.06,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+axis(2, at=c(0, 20, 40, 60, 80))
+
+dev.off()
+```
+
+    ## pdf 
+    ##   2
+
+``` r
+######################
+# RESULTS FROM SIM 2 #
+######################
+pdf(height=4*1.3, width=7*1.3, file='figures/threshold_1.pdf')
+par(mfrow=c(2,3), mar=c(4,5,1,1))
+
+plot(centdistT~intradistT, 
      xlab='mean within-group distance (JND)\n ', ylab=' \ncentroid distance (JND)', 
-     ylim=plotrange(c(intradist,centdist)), xlim=plotrange(c(intradist,centdist)), 
-     pch=19, col=sigpal, log='xy', yaxt='n', xaxt='n')
+     ylim=plotrange(c(intradistT,centdistT)), xlim=plotrange(c(intradistT,centdistT)), 
+     pch=21, bg=sigpalT, col=NA, log='xy', yaxt='n', xaxt='n')
 axis(1, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
 axis(1, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
@@ -580,16 +470,16 @@ abline(-0.5, 1, lty=5, col='grey')
 
 #the grey line represents an intercept of 1/sqrt(4) so MahD = 1
 
-legend('topleft', pch=19, cex=0.9, bty='n', col=rcbalpha(1, 6, 'RdBu')[c(1,3,6,4)],
+legend('topleft', pch=21, cex=0.9, bty='n', col=NA, pt.bg=rcbalpha(1, 6, 'RdBu')[c(1,3,6,4)],
        legend=c('p > 0.05, JND > 1',
                 'p > 0.05, JND < 1',
                 'p < 0.05, JND < 1',
                 'p < 0.05, JND > 1'))
 
-plot(adonisR2~centdist, 
-     ylab=expression(paste(R^2,' from PERMANOVA')), xlab='centroid distance (JND)\n ', 
-     ylim=plotrange(adonisR2), xlim=plotrange(centdist),
-     pch=19, col=sigpal, log='xy', yaxt='n', xaxt='n')
+plot(adonisR2T~centdistT, 
+     ylab=expression(paste(R^2,' (%)')), xlab='centroid distance (JND)\n ', 
+     ylim=plotrange(adonisR2T), xlim=plotrange(centdistT),
+     pch=21, bg=sigpalT, col=NA, log='xy', yaxt='n', xaxt='n')
 #axis(2, at=c(0.05, 0.5, 5, 50), labels=c(0.05, 0.5, 5, 50))
 axis(2, at=c(0.01, 0.1, 1, 10,100), labels=c(0.01, 0.1, 1, 10,100))
 #axis(2, at=c(0.06,0.07,0.08,0.09, 0.2, 0.3, 0.4, 0.6, 0.7, 0.8, 0.9, 2, 3, 4, 6, 7, 8, 9, 20, 30, 40), tcl=par("tcl")*0.5, labels=FALSE)
@@ -601,10 +491,10 @@ axis(1, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=F
 abline(v=1, lty=3)
 abline(h=3, lty=3)
 
-plot(adonisR2~overlap, 
-     ylab=expression(paste(R^2,' from PERMANOVA')), xlab='color volume overlap\n ',  
-     ylim=c(0.01, 100), xlim=plotrange(overlap, log=FALSE),
-     pch=19, col=sigpal, log='y', yaxt='n', xaxt='n')
+plot(adonisR2T~overlapT, 
+     ylab=expression(paste(R^2,' (%)')), xlab='color volume overlap (%)\n ',  
+     ylim=c(0.01, 100), xlim=plotrange(overlapT, log=FALSE),
+     pch=21, bg=sigpalT, col=NA, log='y', yaxt='n', xaxt='n')
 axis(1, at=c(0,20,40,60))
 #axis(2, at=c(0.05, 0.5, 5, 50), labels=c(0.05, 0.5, 5, 50))
 axis(2, at=c(0.01, 0.1, 1, 10,100), labels=c(0.01, 0.1, 1, 10,100))
@@ -612,26 +502,27 @@ axis(2, at=c(0.01, 0.1, 1, 10,100), labels=c(0.01, 0.1, 1, 10,100))
 axis(2, at=c(seq(0.02,0.09,by=0.01), seq(0.2,0.9,by=0.1), seq(2,9,by=1), seq(20,90,by=10)), tcl=par("tcl")*0.5, labels=FALSE)
 #axis(2, at=c(0.1, 1, 10), tcl=par("tcl")*1, labels=FALSE)
 
-plot(overlapyke~overlap, 
-     ylab="color volume overlap \n(perceptually-corrected, %)", xlab="color volume overlap (%)\n ",
-     ylim=plotrange(c(overlapyke,overlap), log=FALSE), xlim=plotrange(c(overlapyke,overlap), log=FALSE), 
-     pch=19, col=sigpal)
+plot(overlapykeT~overlapT, 
+     ylab="color volume overlap \n(perceptually-corrected, %)", 
+     xlab="color volume overlap (%)\n ",
+     ylim=plotrange(c(overlapykeT,overlapT), log=FALSE), xlim=plotrange(c(overlapykeT,overlapT), log=FALSE), 
+     pch=21, bg=sigpalT, col=NA)
 abline(0,1, lty=2)
 
-plot(centdist~overlap,
+plot(centdistT~overlapT,
      ylab=' \ncentroid distance (JND)', xlab='color volume overlap (%)\n ',
-     ylim=plotrange(centdist), xlim=plotrange(overlap, log=FALSE),
-     pch=19, col=sigpal, log='y', yaxt='n', xaxt='n')
+     ylim=plotrange(centdistT), xlim=plotrange(overlapT, log=FALSE),
+     pch=21, bg=sigpalT, col=NA, log='y', yaxt='n', xaxt='n')
 axis(1, at=c(0,20,40,60))
 axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
 axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 abline(h=1, lty=3)
 
 
-plot(centdist~overlapyke,
+plot(centdistT~overlapykeT,
      ylab='centroid distance (JND)', xlab='color volume overlap \n(perceptually-corrected, %)',
-     ylim=plotrange(centdist), xlim=plotrange(overlapyke, log=FALSE),
-     pch=19, col=sigpal, log='y', yaxt='n')
+     ylim=plotrange(centdistT), xlim=plotrange(overlapykeT, log=FALSE),
+     pch=21, bg=sigpalT, col=NA, log='y', yaxt='n')
 axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
 axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 abline(h=1, lty=3)

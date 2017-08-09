@@ -163,7 +163,13 @@ Run analysis
 Visualizing Results
 -------------------
 
-![](../output/figures/final/SimN_fig_unnamed-chunk-1-1.jpeg)![](../output/figures/final/SimN_fig_unnamed-chunk-1-2.jpeg)![](../output/figures/final/SimN_fig_unnamed-chunk-1-3.jpeg)![](../output/figures/final/SimN_fig_unnamed-chunk-1-4.jpeg)
+![](../output/figures/final/SimN_fig_unnamed-chunk-1-1.jpeg)![](../output/figures/final/SimN_fig_unnamed-chunk-1-2.jpeg)![](../output/figures/final/SimN_fig_unnamed-chunk-1-3.jpeg)
+
+![](../output/figures/final/SimN_fig_unnamed-chunk-2-1.jpeg)
+
+![](../output/figures/final/SimN_fig_unnamed-chunk-3-1.jpeg)
+
+![](../output/figures/final/SimN_fig_unnamed-chunk-4-1.jpeg)
 
 ``` r
 sessionInfo()
@@ -171,7 +177,7 @@ sessionInfo()
 
     ## R version 3.4.1 (2017-06-30)
     ## Platform: x86_64-apple-darwin15.6.0 (64-bit)
-    ## Running under: macOS Sierra 10.12.4
+    ## Running under: macOS Sierra 10.12.6
     ## 
     ## Matrix products: default
     ## BLAS: /Library/Frameworks/R.framework/Versions/3.4/Resources/lib/libRblas.0.dylib
@@ -188,12 +194,20 @@ sessionInfo()
     ## [4] permute_0.9-4      pavo_1.2.1        
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.11         cluster_2.0.6        knitr_1.15.1        
+    ##  [1] Rcpp_0.12.12         cluster_2.0.6        knitr_1.16          
     ##  [4] magrittr_1.5         maps_3.2.0           magic_1.5-6         
     ##  [7] MASS_7.3-47          scatterplot3d_0.3-40 geometry_0.3-6      
     ## [10] stringr_1.2.0        tools_3.4.1          parallel_3.4.1      
     ## [13] grid_3.4.1           nlme_3.1-131         mgcv_1.8-17         
     ## [16] htmltools_0.3.6      yaml_2.1.14          rprojroot_1.2       
     ## [19] digest_0.6.12        Matrix_1.2-10        mapproj_1.2-5       
-    ## [22] rcdd_1.2             evaluate_0.10        rmarkdown_1.5       
-    ## [25] stringi_1.1.5        compiler_3.4.1       backports_1.0.5
+    ## [22] rcdd_1.2             evaluate_0.10.1      rmarkdown_1.6       
+    ## [25] stringi_1.1.5        compiler_3.4.1       backports_1.1.0
+
+Plots for publication:
+
+    ## pdf 
+    ##   2
+
+    ## pdf 
+    ##   2
