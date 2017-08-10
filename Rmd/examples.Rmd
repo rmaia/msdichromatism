@@ -91,7 +91,7 @@ models <- lapply(specs, vismodel, visual = liz_vis, relative = FALSE, qcatch='Qi
 spaces <- lapply(models, colspace)
 
 deltaS <- lapply(models, coldist, achro = FALSE, n = c(1,1,3.5,6), 
-                                  weber = 0.05, noise = "neural")
+                                  weber = 0.1, noise = "neural")
 ```
 
 Visualise
@@ -224,19 +224,19 @@ models$tongue$group <- substring(rownames(models$tongue), 1, 1)
 
 # labium
 laboot <- bootcentroidDS(models$lab[,1:4], models$lab$group, 
-                         n=c(1,1,3.5,6), weber=0.05, qcatch='Qi', achro=FALSE)
+                         n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
 
 # throat
 thboot <- bootcentroidDS(models$throat[,1:4], models$throat$group, 
-                         n=c(1,1,3.5,6), weber=0.05, qcatch='Qi', achro=FALSE)
+                         n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
 
 # roof
 roboot <- bootcentroidDS(models$roof[,1:4], models$roof$group, 
-                         n=c(1,1,3.5,6), weber=0.05, qcatch='Qi', achro=FALSE)
+                         n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
 
 # tongue
 toboot <- bootcentroidDS(models$tongue[,1:4], models$tongue$group, 
-                         n=c(1,1,3.5,6), weber=0.05, qcatch='Qi', achro=FALSE)
+                         n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
 
 ```
 
@@ -244,7 +244,9 @@ toboot <- bootcentroidDS(models$tongue[,1:4], models$tongue$group,
 bootres <- rbind(laboot, thboot, roboot, toboot)
 rownames(bootres) <- c('Labium', 'Throat', 'Roof', 'Tongue')
 
-plot(bootres[,1], xlim=c(0.5, 4.5), ylim=c(0, 5), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+bootres
+
+plot(bootres[,1], xlim=c(0.5, 4.5), ylim=c(0, 2.2), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
 
 abline(h=1, lty=3, lwd=2)
 segments(1:4, bootres[,2], 1:4, bootres[,3], lwd=2)
@@ -314,7 +316,7 @@ scatterplot3d(spaces[['tongue']][,c('x','y','z')],
 par(mar=oma)
 par(mar=c(4,4,1,1)+0.1)
 
-plot(rev(bootres[,1]), 1:4, ylim=c(0.8, 4.2), xlim=c(0, 5), pch=21, bg=1, cex=2, yaxt='n', ylab='Body patch', xlab='Chromatic contrast (JND)')
+plot(rev(bootres[,1]), 1:4, ylim=c(0.8, 4.2), xlim=c(0, 2.2), pch=21, bg=1, cex=2, yaxt='n', ylab='Body patch', xlab='Chromatic contrast (JND)')
 axis(2, at=1:4, labels=rev(rownames(bootres)))
 
 abline(v=1, lty=3, lwd=2)

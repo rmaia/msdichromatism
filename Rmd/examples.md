@@ -75,7 +75,7 @@ models <- lapply(specs, vismodel, visual = liz_vis, relative = FALSE, qcatch='Qi
 spaces <- lapply(models, colspace)
 
 deltaS <- lapply(models, coldist, achro = FALSE, n = c(1,1,3.5,6), 
-                                  weber = 0.05, noise = "neural")
+                                  weber = 0.1, noise = "neural")
 ```
 
 Visualise
@@ -151,9 +151,9 @@ adonis(mat$lab ~ group$lab)
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$lab  1     98.04  98.038  13.964 0.19678  0.001 ***
-    ## Residuals 57    400.17   7.021         0.80322           
-    ## Total     58    498.21                 1.00000           
+    ## group$lab  1    24.509 24.5094  13.964 0.19678  0.001 ***
+    ## Residuals 57   100.042  1.7551         0.80322           
+    ## Total     58   124.552                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -172,9 +172,9 @@ adonis(mat$roof ~ group$roof)
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$roof  1     2.251  2.2511 0.52282 0.00942  0.498
-    ## Residuals  55   236.813  4.3057         0.99058       
-    ## Total      56   239.065                 1.00000
+    ## group$roof  1     0.563 0.56278 0.52282 0.00942  0.498
+    ## Residuals  55    59.203 1.07642         0.99058       
+    ## Total      56    59.766                 1.00000
 
 ``` r
 # Throat
@@ -191,9 +191,9 @@ adonis(mat$throat ~ group$throat)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group$throat  1    170.26 170.261  14.842 0.20376  0.001 ***
-    ## Residuals    58    665.34  11.471         0.79624           
-    ## Total        59    835.60                 1.00000           
+    ## group$throat  1    42.565  42.565  14.842 0.20376  0.001 ***
+    ## Residuals    58   166.335   2.868         0.79624           
+    ## Total        59   208.901                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -212,9 +212,9 @@ adonis(mat$tongue ~ group$tongue)
     ## Terms added sequentially (first to last)
     ## 
     ##              Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group$tongue  1      8.65  8.6466  1.6293 0.02732  0.223
-    ## Residuals    58    307.81  5.3071         0.97268       
-    ## Total        59    316.46                 1.00000
+    ## group$tongue  1     2.162  2.1617  1.6293 0.02732  0.223
+    ## Residuals    58    76.953  1.3268         0.97268       
+    ## Total        59    79.115                 1.00000
 
 **LESS SHITTY ALTERNATIVE?**
 
@@ -267,11 +267,11 @@ adonis2(mat$all ~ cgmmat[,'cpatch1'] + cgmmat[,'cpatch2'] +
     ## 
     ## adonis2(formula = mat$all ~ cgmmat[, "cpatch1"] + cgmmat[, "cpatch2"] + cgmmat[, "cpatch3"] + cgmmat[, "cpatch4"], by = "margin")
     ##                      Df SumOfSqs      F Pr(>F)  
-    ## cgmmat[, "cpatch1"]   1    380.4 4.5754  0.030 *
-    ## cgmmat[, "cpatch2"]   1    129.6 1.5585  0.225  
-    ## cgmmat[, "cpatch3"]   1     28.7 0.3456  0.618  
-    ## cgmmat[, "cpatch4"]   1     67.9 0.8172  0.390  
-    ## Residual            231  19205.8                
+    ## cgmmat[, "cpatch1"]   1     95.1 4.5754  0.030 *
+    ## cgmmat[, "cpatch2"]   1     32.4 1.5585  0.225  
+    ## cgmmat[, "cpatch3"]   1      7.2 0.3456  0.618  
+    ## cgmmat[, "cpatch4"]   1     17.0 0.8172  0.390  
+    ## Residual            231   4801.5                
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -292,7 +292,7 @@ models$tongue$group <- substring(rownames(models$tongue), 1, 1)
 
 # labium
 laboot <- bootcentroidDS(models$lab[,1:4], models$lab$group, 
-                         n=c(1,1,3.5,6), weber=0.05, qcatch='Qi', achro=FALSE)
+                         n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
 ```
 
     ## Warning: number of cones not specified; assumed to be 4
@@ -300,7 +300,7 @@ laboot <- bootcentroidDS(models$lab[,1:4], models$lab$group,
 ``` r
 # throat
 thboot <- bootcentroidDS(models$throat[,1:4], models$throat$group, 
-                         n=c(1,1,3.5,6), weber=0.05, qcatch='Qi', achro=FALSE)
+                         n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
 ```
 
     ## Warning: number of cones not specified; assumed to be 4
@@ -308,7 +308,7 @@ thboot <- bootcentroidDS(models$throat[,1:4], models$throat$group,
 ``` r
 # roof
 roboot <- bootcentroidDS(models$roof[,1:4], models$roof$group, 
-                         n=c(1,1,3.5,6), weber=0.05, qcatch='Qi', achro=FALSE)
+                         n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
 ```
 
     ## Warning: number of cones not specified; assumed to be 4
@@ -316,7 +316,7 @@ roboot <- bootcentroidDS(models$roof[,1:4], models$roof$group,
 ``` r
 # tongue
 toboot <- bootcentroidDS(models$tongue[,1:4], models$tongue$group, 
-                         n=c(1,1,3.5,6), weber=0.05, qcatch='Qi', achro=FALSE)
+                         n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
 ```
 
     ## Warning: number of cones not specified; assumed to be 4
@@ -325,7 +325,17 @@ toboot <- bootcentroidDS(models$tongue[,1:4], models$tongue$group,
 bootres <- rbind(laboot, thboot, roboot, toboot)
 rownames(bootres) <- c('Labium', 'Throat', 'Roof', 'Tongue')
 
-plot(bootres[,1], xlim=c(0.5, 4.5), ylim=c(0, 5), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+bootres
+```
+
+    ##        measured.dS     CI.lwr    CI.upr
+    ## Labium   1.1788081 0.82117971 1.6630098
+    ## Throat   1.5222987 1.00830608 2.1245782
+    ## Roof     0.1061599 0.03523353 0.4516327
+    ## Tongue   0.2006113 0.05561841 0.5790327
+
+``` r
+plot(bootres[,1], xlim=c(0.5, 4.5), ylim=c(0, 2.2), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
 
 abline(h=1, lty=3, lwd=2)
 segments(1:4, bootres[,2], 1:4, bootres[,3], lwd=2)
@@ -396,7 +406,7 @@ scatterplot3d(spaces[['tongue']][,c('x','y','z')],
 par(mar=oma)
 par(mar=c(4,4,1,1)+0.1)
 
-plot(rev(bootres[,1]), 1:4, ylim=c(0.8, 4.2), xlim=c(0, 5), pch=21, bg=1, cex=2, yaxt='n', ylab='Body patch', xlab='Chromatic contrast (JND)')
+plot(rev(bootres[,1]), 1:4, ylim=c(0.8, 4.2), xlim=c(0, 2.2), pch=21, bg=1, cex=2, yaxt='n', ylab='Body patch', xlab='Chromatic contrast (JND)')
 axis(2, at=1:4, labels=rev(rownames(bootres)))
 
 abline(v=1, lty=3, lwd=2)
