@@ -2,8 +2,8 @@ Simulations - threshold
 ================
 
 -   [Threshold scenario: high within-group variability, centroid distance ~1JND](#threshold-scenario-high-within-group-variability-centroid-distance-1jnd)
-    -   [Running analyses](#running-analyses)
-    -   [Visualizing results](#visualizing-results)
+    -   [Running Analysis](#running-analysis)
+    -   [Visualizing Results](#visualizing-results)
 
 ``` r
 require(pavo)
@@ -48,25 +48,16 @@ Threshold scenario: high within-group variability, centroid distance ~1JND
 Generate data
 
 ``` r
+reps <- 1000
 simN <- 50
+multfact <- c(0.88, 1.12)
+ssqr <- 1
 
-simulatedata3a <- replicate(500, 
-# this gave some interesting results we might want to revisit.
-#                  simdich(N=simN, sgsqsrate=1, sdmeanratio=FALSE, multiplier=c(0.95, 1.05)), 
-                  simdich(N=simN, sgsqsrate=5, sdmeanratio=FALSE, multiplier=c(0.97, 1.03)),
-                  simplify=FALSE)
+simulatedata3 <- replicate(reps, 
+                  simdich(N=simN, sgsqsrate=ssqr, multiplier=multfact,
+                  sdmeanratio=FALSE), simplify=FALSE)
 
-simulatedata3b <- replicate(500, 
-                  simdich(N=simN, sgsqsrate=5, sdmeanratio=FALSE, multiplier=c(0.97, 1.03)),
-                  simplify=FALSE)
-
-simulatedata3 <- c(simulatedata3a, simulatedata3b)
-rm(simulatedata3a, simulatedata3b)
 # we need to add the reference points since we didn't run vismodel()
-#apply(do.call(rbind, lapply(simulatedata, function(x) apply(x, 2, max))), 2, max)
-#data(sicalis)
-#rfs <- attr(vismodel(sicalis, visual='star',relative=FALSE), 'resrefs')
-
 rfs <- 
 matrix(c(100,01,01,01,
          01,100,01,01,
@@ -80,7 +71,7 @@ colnames(rfs) <- c('u','s','m','l')
 simulatedata3 <- lapply(simulatedata3, 'attr<-', which='resrefs', value=rfs)
 
 
-simulatecoldist3a <- pausemcl(simulatedata3[1:500], function(x) {
+simulatecoldist3 <- pausemcl(simulatedata3, function(x) {
   Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
   Y$comparison <- NA
   Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
@@ -88,48 +79,35 @@ simulatecoldist3a <- pausemcl(simulatedata3[1:500], function(x) {
   Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
   Y
   } )
-
-simulatecoldist3b <- pausemcl(simulatedata3[501:1000], function(x) {
-  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
-  Y$comparison <- NA
-  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
-  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
-  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
-  Y
-  } )
-
-simulatecoldist3 <- c(simulatecoldist3a, simulatecoldist3b)
-rm(simulatecoldist3a, simulatecoldist3b)
 ```
 
 Validating simulations:
 
-![](../output/figures/final/final_threshold_figunnamed-chunk-1-1.jpeg)
+![](../output/figures/final_threshold_fig_unnamed-chunk-1-1.jpeg)
 
 Verifying that values obtained in the simulation (empirical) are close to what we wanted to simulate (simulated) for the four cones (violet, blue, green, red)
 
-![](../output/figures/final/final_threshold_fighistograms-1.jpeg)
+![](../output/figures/final_threshold_fig_histograms-1.jpeg)
 
-mean centroid distance of 0.2625012, quantiles of 0.0695082, 0.6383982
+mean centroid distance of 1.1067503, quantiles of 0.2824037, 2.755189
 
-Running analyses
+mean within group distance of 4.4602655, quantiles of 1.0316793, 11.0989034
+
+Running Analysis
 ----------------
 
 ``` r
-adonissim3a <- pausemcl(simulatecoldist3[1:500], adoniscoldist )
-Sys.sleep(10)
-adonissim3b <- pausemcl(simulatecoldist3[501:1000], adoniscoldist )
-adonissim3 <- c(adonissim3a, adonissim3b)
+adonissim3 <- pausemcl(simulatecoldist3, adoniscoldist )
 vovsim3 <- pausemcl(simulatedata3, voloverlaptest )
+```
 
+``` r
 scd23 <- lapply(simulatecoldist3,'[', ,1:3, drop=FALSE)
 for(i in 1:length(scd23)){
   attr(scd23[[i]], 'resrefs') <- attr(simulatecoldist3[[i]],'resrefs')
   attr(scd23[[i]], 'conenumb') <- attr(simulatecoldist3[[i]],'conenumb')
-  }
-```
+}
 
-``` r
 pykesim3 <- lapply(scd23, jnd2xyz)
 pykelm3 <- lapply(pykesim3, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=50)))
 pykemanova3 <- lapply(pykelm3, function(x) summary(manova(x)))
@@ -140,10 +118,10 @@ gc(verbose=FALSE)
 ```
 
     ##             used  (Mb) gc trigger   (Mb)  max used   (Mb)
-    ## Ncells   6933208 370.3   12002346  641.0   9968622  532.4
-    ## Vcells 113927904 869.3  188561891 1438.7 188508752 1438.3
+    ## Ncells   6945720 371.0   12002346  641.0   9968622  532.4
+    ## Vcells 113951893 869.4  188560144 1438.6 188557353 1438.6
 
-Visualizing results
+Visualizing Results
 -------------------
 
 color legend:
@@ -154,7 +132,7 @@ color legend:
 -   light blue: adonis and centroid distance &gt; 1 (GOOD)
 -   dark blue: adonis significant, centroid distance &lt; 1 (BAD)
 -   dark red: adonis non-significant, centroid distance &gt; 1 (BAD)
--   light red: adonis and centroid distance &lt; 1 (GOOD) ![](../output/figures/final/final_threshold_figunnamed-chunk-3-1.jpeg)
+-   light red: adonis and centroid distance &lt; 1 (GOOD) ![](../output/figures/final_threshold_fig_unnamed-chunk-3-1.jpeg)
 
 ``` r
 sessionInfo()
@@ -193,19 +171,6 @@ sessionInfo()
 plots for publication:
 
 ``` r
-plotrange <- function(x, log=TRUE){
-  res <- range(x)
-  res[1] <- floor(res[1])
-  res[2] <- ceiling(res[2])
-  if(log && res[1] == 0)
-    res[1] <- range(x)[1]*0.8
-  
-  if(log && res[2] < 10)
-    res[2] <- 10
-  
-  res
-}
-
 ######################
 # RESULTS FROM SIM 2 #
 ######################

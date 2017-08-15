@@ -4,6 +4,20 @@ rcbalpha <- function(alpha=1, ...){
   rgb(aa, alpha=alpha)
 }
 
+# Define the range for plots
+plotrange <- function(x, log=TRUE){
+  res <- range(x)
+  res[1] <- floor(res[1])
+  res[2] <- ceiling(res[2])
+  if(log && res[1] == 0)
+    res[1] <- range(x)[1]*0.8
+  
+  if(log && res[2] < 10)
+    res[2] <- 10
+  
+  res
+}
+
 # significant/not significant histogram 
 yesnohist <- function(x, xlab=""){
   bq <- 0.5  

@@ -2,7 +2,7 @@ Sample size simulations
 ================
 
 -   [Power and sample size](#power-and-sample-size)
--   [Run analysis](#run-analysis)
+-   [Running Analysis](#running-analysis)
 
 ``` r
 require(pavo)
@@ -65,8 +65,8 @@ simulatecoldist.n100 <- pausemcl(simulatedata.n100, function(x) {
 
 ``` r
 gc(verbose=FALSE)
-#adonissim.n100 <- pausemcl(simulatecoldist.n100, adoniscoldist, mcr=2)
-adonissim.n100 <- lapply(simulatecoldist.n100, adoniscoldist)
+adonissim.n100 <- pausemcl(simulatecoldist.n100, adoniscoldist)
+#adonissim.n100 <- lapply(simulatecoldist.n100, adoniscoldist)
 gc(verbose=FALSE)
 
 scd2.n100 <- lapply(simulatecoldist.n100,'[', ,1:3, drop=FALSE)
@@ -74,9 +74,9 @@ for(i in 1:length(scd2.n100)){
   attr(scd2.n100[[i]], 'resrefs') <- attr(simulatecoldist.n100[[i]],'resrefs')
   attr(scd2.n100[[i]], 'conenumb') <- attr(simulatecoldist.n100[[i]],'conenumb')
 }
-pykesim.n100 <- lapply(scd2.n100, jnd2xyz)
-pykelm.n100 <- lapply(pykesim.n100, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=simN)))
-pykemanova.n100 <- lapply(pykelm.n100, function(x) summary(manova(x)))
+pykesim.n100 <- pausemcl(scd2.n100, jnd2xyz)
+pykelm.n100 <- pausemcl(pykesim.n100, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=simN)))
+pykemanova.n100 <- pausemcl(pykelm.n100, function(x) summary(manova(x)))
 ```
 
 N = 20
@@ -153,8 +153,8 @@ pykelm.n10 <- lapply(pykesim.n10, function(x) lm(as.matrix(x) ~ rep(c('gA','gB')
 pykemanova.n10 <- lapply(pykelm.n10, function(x) summary(manova(x)))
 ```
 
-Run analysis
-============
+Running Analysis
+================
 
     ## NULL
 
@@ -163,13 +163,13 @@ Run analysis
 Visualizing Results
 -------------------
 
-![](../output/figures/final/SimN_fig_unnamed-chunk-1-1.jpeg)![](../output/figures/final/SimN_fig_unnamed-chunk-1-2.jpeg)![](../output/figures/final/SimN_fig_unnamed-chunk-1-3.jpeg)
+![](../output/figures/SimN_fig_unnamed-chunk-1-1.jpeg)![](../output/figures/SimN_fig_unnamed-chunk-1-2.jpeg)![](../output/figures/SimN_fig_unnamed-chunk-1-3.jpeg)
 
-![](../output/figures/final/SimN_fig_unnamed-chunk-2-1.jpeg)
+![](../output/figures/SimN_fig_unnamed-chunk-2-1.jpeg)
 
-![](../output/figures/final/SimN_fig_unnamed-chunk-3-1.jpeg)
+![](../output/figures/SimN_fig_unnamed-chunk-3-1.jpeg)
 
-![](../output/figures/final/SimN_fig_unnamed-chunk-4-1.jpeg)
+![](../output/figures/SimN_fig_unnamed-chunk-4-1.jpeg)
 
 ``` r
 sessionInfo()
@@ -201,8 +201,9 @@ sessionInfo()
     ## [13] grid_3.4.1           nlme_3.1-131         mgcv_1.8-17         
     ## [16] htmltools_0.3.6      yaml_2.1.14          rprojroot_1.2       
     ## [19] digest_0.6.12        Matrix_1.2-10        mapproj_1.2-5       
-    ## [22] rcdd_1.2             evaluate_0.10.1      rmarkdown_1.6       
-    ## [25] stringi_1.1.5        compiler_3.4.1       backports_1.1.0
+    ## [22] codetools_0.2-15     rcdd_1.2             evaluate_0.10.1     
+    ## [25] rmarkdown_1.6        stringi_1.1.5        compiler_3.4.1      
+    ## [28] backports_1.1.0
 
 Plots for publication:
 

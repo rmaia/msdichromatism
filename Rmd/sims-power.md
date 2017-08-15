@@ -1,7 +1,7 @@
 Simulations - power
 ================
 
--   [False positives and power](#false-positives-and-power)
+-   [Type I error and and power](#type-i-error-and-and-power)
     -   [Running Analysis](#running-analysis)
     -   [Visualizing Results](#visualizing-results)
 
@@ -42,8 +42,8 @@ source('R/simanalysis.R')
 source('R/pausemcl.R')
 ```
 
-False positives and power
-=========================
+Type I error and and power
+==========================
 
 We will simulate data with varying effect sizes (centroid distance relative to the variance-covariance matrix, or Mahalanobis distance):
 
@@ -90,7 +90,7 @@ simulatecoldist <- pausemcl(simulatedata, function(x) {
 
 Validating simulations:
 
-![](../output/figures/final/final_power_figunnamed-chunk-1-1.jpeg)
+![](../output/figures/final_power_fig_unnamed-chunk-1-1.jpeg)
 
 Verifying that values obtained in the simulation (empirical) are close to what we wanted to simulate (simulated) for the four cones (violet, blue, green, red)
 
@@ -172,17 +172,17 @@ sigpal <- as.character(factor(paste(adonisP, centroidP),
 Visualizing Results
 -------------------
 
-![](../output/figures/final/final_power_figunnamed-chunk-3-1.jpeg)
+![](../output/figures/final_power_fig_unnamed-chunk-3-1.jpeg)
 
 The simulation was successful in producing samples that had the desired mahalanobis distance. There is some spread because of the small sample size relative to the dimensionality of the dataset, and for that reason the distances between groups asymptotes before zero.
 
-![](../output/figures/final/final_power_figunnamed-chunk-4-1.jpeg)
+![](../output/figures/final_power_fig_unnamed-chunk-4-1.jpeg)
 
 Both tests had similar power. For very low effect sizes, Type-I Error rate is close to the desired 0.05 (dashed line).
 
 Both tests are quite sensitive too, with signifcant results when the distance between centroids is of about the same magnitude as the pooled standard deviations. Further, Pyke-MANOVA seems less conservative overall than Adonis, though they are very close to each other at very small effect sizes.
 
-![](../output/figures/final/final_power_figunnamed-chunk-5-1.jpeg)
+![](../output/figures/final_power_fig_unnamed-chunk-5-1.jpeg)
 
 However, there is some discrepancy in test results. There doesn't seem to be a bias - results are centered around the 1:1 line, difference in P-values from the tests is centered and mostly symmetric around 0. But there are occasions in which results are significant for one test but not the other (red; the space between the dashed lines in the first plot).
 
@@ -190,22 +190,22 @@ So tests have similar power but disagree as to the outcome in terms of what is s
 
     ##        manovaP
     ## adonisP  FALSE   TRUE
-    ##   FALSE 0.4865 0.0870
-    ##   TRUE  0.0210 0.4055
+    ##   FALSE 0.4860 0.0895
+    ##   TRUE  0.0215 0.4030
 
 About 10% divergence in results, maybe not worth worrying about. Note that most of the discrepancy comes from results that are significant in MANOVA but not in Adonis, suggesting again that MANOVA approach is less conservative.
 
-There is disagreement particularly when the effect size is marginal: ![](../output/figures/final/final_power_figunnamed-chunk-7-1.jpeg)
+There is disagreement particularly when the effect size is marginal: ![](../output/figures/final_power_fig_unnamed-chunk-7-1.jpeg)
 
-![](../output/figures/final/final_power_figunnamed-chunk-8-1.jpeg)
+![](../output/figures/final_power_fig_unnamed-chunk-8-1.jpeg)
 
 Even though centroid distance increases with effect size, there's a lot of spread, which is the core of the problem we're trying to address - you can have a huge centroid distance with a small Mahalanobis distance (small separation bewtwen the groups). Note centroid is in log scale.
 
-![](../output/figures/final/final_power_figunnamed-chunk-9-1.jpeg)
+![](../output/figures/final_power_fig_unnamed-chunk-9-1.jpeg)
 
-R2 increases with increasing effect size, which is good. We can also see that even though a lot of the simulations have a distance between centroids greater than 1 (0.4265), they are still not significant (red) according to either approach. Transition from non-siginificant to significant occurs for Mahalanobis Distance between 0.5 and 1.
+R2 increases with increasing effect size, which is good. We can also see that even though a lot of the simulations have a distance between centroids greater than 1 (0.465), they are still not significant (red) according to either approach. Transition from non-siginificant to significant occurs for Mahalanobis Distance between 0.5 and 1.
 
-![](../output/figures/final/final_power_figunnamed-chunk-10-1.jpeg)
+![](../output/figures/final_power_fig_unnamed-chunk-10-1.jpeg)
 
 This just shows the Pyke transformation is working and that the Euclidean distance between the centroids calculated in this transformed space is identical to the distance between the centroids in JNDs.
 
@@ -243,20 +243,9 @@ sessionInfo()
     ## [25] rmarkdown_1.6        stringi_1.1.5        compiler_3.4.1      
     ## [28] backports_1.1.0
 
-``` r
-plotrange <- function(x, log=TRUE){
-  res <- range(x)
-  res[1] <- floor(res[1])
-  res[2] <- ceiling(res[2])
-  if(log && res[1] == 0)
-    res[1] <- range(x)[1]*0.8
-  
-  if(log && res[2] < 10)
-    res[2] <- 10
-  
-  res
-}
+plots for publication:
 
+``` r
 ############
 # EXAMPLES #
 ############
@@ -298,7 +287,7 @@ pdf(height=4*1.3, width=7*1.3, file='figures/samplesize_3.pdf')
 par(mfrow=c(1,2))
 
 plot(centdist~mahd, pch=21, 
-     xlim=c(0.05, 10), ylim=c(0.1,100),
+     xlim=c(0.01, 10), ylim=c(0.01,10),
      col=NA, 
      bg=as.character(factor(adonisP, labels=palette[1:2])),
      log='xy', yaxt='n', xaxt='n',
@@ -306,8 +295,8 @@ plot(centdist~mahd, pch=21,
 
 axis(1, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
 axis(1, at=c(seq(0.06,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
-axis(2, at=c(0.1, 1, 10, 100), labels=c(0.1, 1, 10, 100))
-axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1), seq(20,90, by=10)), tcl=par("tcl")*0.5, labels=FALSE)
+axis(2, at=c(0.01,0.1, 1, 10), labels=c(0.01, 0.1, 1, 10))
+axis(2, at=c(seq(0.02,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 
 abline(h=1,lty=3, lwd=2)
 

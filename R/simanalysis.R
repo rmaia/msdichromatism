@@ -34,10 +34,24 @@ voloverlaptest <- function(dat, jnd2xyzres=FALSE){
   voloverlap(gA, gB)
 }
 
-# split data, get centroids, get color distance
-centroidist <- function(dat){
-  gA.c <- colMeans(dat[1:(dim(dat)[1]/2),])
-  gB.c <- colMeans(dat[(dim(dat)[1]/2+1):(dim(dat)[1]),])
-  
+# geometric mean
+gmean <- function(x, na.rm=TRUE, zero.propagate = FALSE){
+  if(any(x < 0, na.rm = TRUE)){
+    return(NaN)
+  }
+  if(zero.propagate){
+    if(any(x == 0, na.rm = TRUE)){
+      return(0)
+    }
+    exp(mean(log(x), na.rm = na.rm))
+  } else {
+    exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
+  }
+}
+
+# split data, get centroids based on geometric means, get color distance
+centroidist <-  function(dat){
+  gA.c <- apply(dat[1:(dim(dat)[1]/2),], 2, gmean) 
+  gB.c <- apply(dat[(dim(dat)[1]/2+1):(dim(dat)[1]),], 2, gmean) 
   suppressWarnings(coldist(rbind(gA.c, gB.c), achro=FALSE, qcatch='Qi'))$dS
 }

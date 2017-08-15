@@ -13,9 +13,9 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, 
-                      fig.path='../output/figures/final/final_threshold_fig', 
+                      fig.path='../output/figures/final_threshold_fig_', 
                       #fig.height = 10,
-                      cache.path = '../output/cache/final/final_threshold_cache_')
+                      cache.path = '../output/cache/final_threshold_cache_')
 knitr::opts_knit$set(root.dir=normalizePath(".."))
 
 set.seed(6210)
@@ -43,25 +43,16 @@ source('R/pausemcl.R')
 
 Generate data
 ```{r coldistcache3, cache=TRUE}
+reps <- 1000
 simN <- 50
+multfact <- c(0.88, 1.12)
+ssqr <- 1
 
-simulatedata3a <- replicate(500, 
-# this gave some interesting results we might want to revisit.
-#                  simdich(N=simN, sgsqsrate=1, sdmeanratio=FALSE, multiplier=c(0.95, 1.05)), 
-                  simdich(N=simN, sgsqsrate=5, sdmeanratio=FALSE, multiplier=c(0.97, 1.03)),
-                  simplify=FALSE)
+simulatedata3 <- replicate(reps, 
+                  simdich(N=simN, sgsqsrate=ssqr, multiplier=multfact,
+                  sdmeanratio=FALSE), simplify=FALSE)
 
-simulatedata3b <- replicate(500, 
-                  simdich(N=simN, sgsqsrate=5, sdmeanratio=FALSE, multiplier=c(0.97, 1.03)),
-                  simplify=FALSE)
-
-simulatedata3 <- c(simulatedata3a, simulatedata3b)
-rm(simulatedata3a, simulatedata3b)
 # we need to add the reference points since we didn't run vismodel()
-#apply(do.call(rbind, lapply(simulatedata, function(x) apply(x, 2, max))), 2, max)
-#data(sicalis)
-#rfs <- attr(vismodel(sicalis, visual='star',relative=FALSE), 'resrefs')
-
 rfs <- 
 matrix(c(100,01,01,01,
          01,100,01,01,
@@ -75,7 +66,7 @@ colnames(rfs) <- c('u','s','m','l')
 simulatedata3 <- lapply(simulatedata3, 'attr<-', which='resrefs', value=rfs)
 
 
-simulatecoldist3a <- pausemcl(simulatedata3[1:500], function(x) {
+simulatecoldist3 <- pausemcl(simulatedata3, function(x) {
   Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
   Y$comparison <- NA
   Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
@@ -83,18 +74,6 @@ simulatecoldist3a <- pausemcl(simulatedata3[1:500], function(x) {
   Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
   Y
   } )
-
-simulatecoldist3b <- pausemcl(simulatedata3[501:1000], function(x) {
-  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
-  Y$comparison <- NA
-  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
-  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
-  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
-  Y
-  } )
-
-simulatecoldist3 <- c(simulatecoldist3a, simulatecoldist3b)
-rm(simulatecoldist3a, simulatecoldist3b)
 ```
 
 Validating simulations:
@@ -201,23 +180,22 @@ legend('topright', col=palette, c('between-group  ','within-group', 'centroid'),
 
 mean centroid distance of `r mean(centdistT)`, quantiles of `r quantile(centdistT, c(0.025, 0.975))`
 
-## Running analyses
+mean within group distance of `r mean(intradistT)`, quantiles of `r quantile(intradistT, c(0.025, 0.975))`
+
+## Running Analysis
 
 ```{r adoniscache3, results='hide', cache=TRUE, dependson='coldistcache3'}
-adonissim3a <- pausemcl(simulatecoldist3[1:500], adoniscoldist )
-Sys.sleep(10)
-adonissim3b <- pausemcl(simulatecoldist3[501:1000], adoniscoldist )
-adonissim3 <- c(adonissim3a, adonissim3b)
+adonissim3 <- pausemcl(simulatecoldist3, adoniscoldist )
 vovsim3 <- pausemcl(simulatedata3, voloverlaptest )
+```
 
+```{r pyke3cache, cache=TRUE, dependson='coldistcache3'}
 scd23 <- lapply(simulatecoldist3,'[', ,1:3, drop=FALSE)
 for(i in 1:length(scd23)){
   attr(scd23[[i]], 'resrefs') <- attr(simulatecoldist3[[i]],'resrefs')
   attr(scd23[[i]], 'conenumb') <- attr(simulatecoldist3[[i]],'conenumb')
-  }
-```
+}
 
-```{r pyke3cache, cache=TRUE, dependson='coldistcache3'}
 pykesim3 <- lapply(scd23, jnd2xyz)
 pykelm3 <- lapply(pykesim3, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=50)))
 pykemanova3 <- lapply(pykelm3, function(x) summary(manova(x)))
@@ -256,7 +234,7 @@ sigpalT <- as.character(factor(paste(adonisPT, centroidPT),
 #sigpalT[sigpalT=="#FDDBC7CC"] <- "#D1E5F0CC"
 ```
 
-##Visualizing results
+## Visualizing Results
   
 color legend:
 
@@ -320,19 +298,6 @@ sessionInfo()
 plots for publication:
 
 ```{r plotsforpub}
-plotrange <- function(x, log=TRUE){
-  res <- range(x)
-  res[1] <- floor(res[1])
-  res[2] <- ceiling(res[2])
-  if(log && res[1] == 0)
-    res[1] <- range(x)[1]*0.8
-  
-  if(log && res[2] < 10)
-    res[2] <- 10
-  
-  res
-}
-
 ######################
 # RESULTS FROM SIM 2 #
 ######################

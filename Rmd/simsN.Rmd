@@ -13,9 +13,9 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, 
-                      fig.path='../output/figures/final/SimN_fig_', 
+                      fig.path='../output/figures/SimN_fig_', 
                       #fig.height = 10,
-                      cache.path = '../output/cache/final/SimN_cache_')
+                      cache.path = '../output/cache/SimN_cache_')
 knitr::opts_knit$set(root.dir=normalizePath(".."))
 
 set.seed(3128)
@@ -82,8 +82,8 @@ simulatecoldist.n100 <- pausemcl(simulatedata.n100, function(x) {
 
 ```{r n100ana, cache=TRUE, dependson='n100sim', results='hide'}
 gc(verbose=FALSE)
-#adonissim.n100 <- pausemcl(simulatecoldist.n100, adoniscoldist, mcr=2)
-adonissim.n100 <- lapply(simulatecoldist.n100, adoniscoldist)
+adonissim.n100 <- pausemcl(simulatecoldist.n100, adoniscoldist)
+#adonissim.n100 <- lapply(simulatecoldist.n100, adoniscoldist)
 gc(verbose=FALSE)
 
 scd2.n100 <- lapply(simulatecoldist.n100,'[', ,1:3, drop=FALSE)
@@ -91,9 +91,9 @@ for(i in 1:length(scd2.n100)){
   attr(scd2.n100[[i]], 'resrefs') <- attr(simulatecoldist.n100[[i]],'resrefs')
   attr(scd2.n100[[i]], 'conenumb') <- attr(simulatecoldist.n100[[i]],'conenumb')
 }
-pykesim.n100 <- lapply(scd2.n100, jnd2xyz)
-pykelm.n100 <- lapply(pykesim.n100, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=simN)))
-pykemanova.n100 <- lapply(pykelm.n100, function(x) summary(manova(x)))
+pykesim.n100 <- pausemcl(scd2.n100, jnd2xyz)
+pykelm.n100 <- pausemcl(pykesim.n100, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=simN)))
+pykemanova.n100 <- pausemcl(pykelm.n100, function(x) summary(manova(x)))
 ```
 
 
@@ -168,14 +168,14 @@ pykelm.n10 <- lapply(pykesim.n10, function(x) lm(as.matrix(x) ~ rep(c('gA','gB')
 pykemanova.n10 <- lapply(pykelm.n10, function(x) summary(manova(x)))
 ```
 
-# Run analysis
+# Running Analysis
 
 ```{r statscalc, echo=FALSE, cache=TRUE, dependson=c('n10ana', 'n20ana', 'n100ana')}
 
 # Recover simulations for N = 50
-lsfiles <- unique(gsub('\\..*','', list.files('output/cache/final', full.names=TRUE)))
-lazyLoad(grep('poweradoniscache', lsfiles, value=TRUE))
-lazyLoad(grep('powerpyke', lsfiles, value=TRUE))
+lsfiles <- unique(gsub('\\..*','', list.files('output/cache', full.names=TRUE)))
+lazyLoad(grep('final_power_cache_poweradoniscache', lsfiles, value=TRUE))
+lazyLoad(grep('final_power_cache_powerpyke', lsfiles, value=TRUE))
 
 # Pyke MANOVA: P-values, which significant
 manovaPval.n50 <- unlist(lapply(pykemanova, function(x) x$stats[1,'Pr(>F)']))
@@ -228,7 +228,7 @@ pvsimsmanova.n100 <- tapply(manovaP.n100, effsims, mean)
 ```
 
 
-##Visualizing Results
+## Visualizing Results
 
 ```{r, echo=FALSE, dependson='statscalc'}
 

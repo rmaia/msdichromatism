@@ -13,9 +13,9 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, 
-                      fig.path='../output/figures/final/final_power_fig', 
+                      fig.path='../output/figures/final_power_fig_', 
                       #fig.height = 10,
-                      cache.path = '../output/cache/final/final_power_cache_')
+                      cache.path = '../output/cache/final_power_cache_')
 knitr::opts_knit$set(root.dir=normalizePath(".."))
 
 set.seed(6210)
@@ -39,7 +39,7 @@ source('R/simanalysis.R')
 source('R/pausemcl.R')
 ```
 
-# False positives and power
+# Type I error and and power
 
 We will simulate data with varying effect sizes (centroid distance relative to the variance-covariance matrix, or Mahalanobis distance):
 
@@ -228,7 +228,7 @@ sigpal <- as.character(factor(paste(adonisP, centroidP),
           labels=rcbalpha(0.8, 6, 'RdBu')[c(3,1,6,4)] ))
 ```
   
-##Visualizing Results
+## Visualizing Results
 
 ```{r, echo=FALSE, dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
 plot(effsims, mahd, pch=20, ylab="Mahalanobis Distance", xlab="effect size parameter in simulation")
@@ -336,19 +336,6 @@ sessionInfo()
 plots for publication: 
 
 ```{r plotsforpub}
-plotrange <- function(x, log=TRUE){
-  res <- range(x)
-  res[1] <- floor(res[1])
-  res[2] <- ceiling(res[2])
-  if(log && res[1] == 0)
-    res[1] <- range(x)[1]*0.8
-  
-  if(log && res[2] < 10)
-    res[2] <- 10
-  
-  res
-}
-
 ############
 # EXAMPLES #
 ############
@@ -377,7 +364,7 @@ pdf(height=4*1.3, width=7*1.3, file='figures/samplesize_3.pdf')
 par(mfrow=c(1,2))
 
 plot(centdist~mahd, pch=21, 
-     xlim=c(0.05, 10), ylim=c(0.1,100),
+     xlim=c(0.01, 10), ylim=c(0.01,10),
      col=NA, 
      bg=as.character(factor(adonisP, labels=palette[1:2])),
      log='xy', yaxt='n', xaxt='n',
@@ -385,8 +372,8 @@ plot(centdist~mahd, pch=21,
 
 axis(1, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
 axis(1, at=c(seq(0.06,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
-axis(2, at=c(0.1, 1, 10, 100), labels=c(0.1, 1, 10, 100))
-axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1), seq(20,90, by=10)), tcl=par("tcl")*0.5, labels=FALSE)
+axis(2, at=c(0.01,0.1, 1, 10), labels=c(0.01, 0.1, 1, 10))
+axis(2, at=c(seq(0.02,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 
 abline(h=1,lty=3, lwd=2)
 

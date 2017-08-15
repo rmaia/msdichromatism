@@ -6,6 +6,23 @@
 # ... = attributes passed to coldist
 
 bootcentroidDS <- function(dat, groups, boot.n=1000, alpha=0.95, ...){
+  
+  # geometric mean
+  gmean <- function(x, na.rm=TRUE, zero.propagate = FALSE){
+    if(any(x < 0, na.rm = TRUE)){
+      return(NaN)
+    }
+    if(zero.propagate){
+      if(any(x == 0, na.rm = TRUE)){
+        return(0)
+      }
+      exp(mean(log(x), na.rm = na.rm))
+    } else {
+      exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
+    }
+  }
+  
+# start actual function
 
 arg0 <- list(...)
 att <- vector('list', 0)
@@ -50,7 +67,7 @@ groups <- groups[sortinggroups]
 samplesizes <- table(groups)
 
 # calculate empirical deltaS
-empgroupmeans <- aggregate(dat, list(groups), mean, simplify=TRUE)
+empgroupmeans <- aggregate(dat, list(groups), gmean, simplify=TRUE)
 row.names(empgroupmeans) <- empgroupmeans[,1]
 empgroupmeans <- empgroupmeans[, -1]
 
@@ -98,7 +115,10 @@ bootbygroup <- lapply(1:length(bygroup), function(x){
 
 
 # now we need to take the column means for all of these
-groupcolmeans <- lapply(bootbygroup, function(x) do.call(rbind, lapply(x, colMeans) ) )
+groupcolmeans <- lapply(bootbygroup, function(z) 
+  do.call(rbind, lapply(z, function(x) apply(x, 2, gmean))))
+
+#groupcolmeans <- lapply(bootbygroup, function(x) do.call(rbind, lapply(x, colMeans) ) )
 
 # ...and combine them by bootstrap replicate
 bootgrouped <- lapply(1:boot.n, function(x) 

@@ -329,10 +329,10 @@ bootres
 ```
 
     ##        measured.dS     CI.lwr    CI.upr
-    ## Labium   1.1788081 0.82117971 1.6630098
-    ## Throat   1.5222987 1.00830608 2.1245782
-    ## Roof     0.1061599 0.03523353 0.4516327
-    ## Tongue   0.2006113 0.05561841 0.5790327
+    ## Labium   1.2937069 0.89844213 1.7413708
+    ## Throat   1.6930314 1.13963088 2.3782205
+    ## Roof     0.1990052 0.04539802 0.7082294
+    ## Tongue   0.3815314 0.12040517 0.8677577
 
 ``` r
 plot(bootres[,1], xlim=c(0.5, 4.5), ylim=c(0, 2.2), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
@@ -459,10 +459,10 @@ bootcentroidDS(models[, 1:3], models$group, n=c(1,0.5,4.4), weber=0.13, achro=FA
 
     ## Warning: number of cones not specified; assumed to be 3
 
-    ##     measured.dS    CI.lwr   CI.upr
-    ## F-W    1.111253 0.2520501 2.344860
-    ## F-Y    2.034473 1.7203520 2.743678
-    ## W-Y    1.879937 1.7076943 2.149129
+    ##     measured.dS     CI.lwr   CI.upr
+    ## F-W   0.3441268 0.09753368 1.356874
+    ## F-Y   2.1973974 1.82938997 2.724293
+    ## W-Y   1.9762794 1.80987482 2.199899
 
 ``` r
 # Contrast labels
@@ -578,10 +578,10 @@ spiderboot <- bootcentroidDS(models[, 1:3], models$group, n=c(1, 0.5, 4.4), webe
 spiderboot
 ```
 
-    ##     measured.dS    CI.lwr   CI.upr
-    ## F-W    1.111253 0.2290807 2.312648
-    ## F-Y    2.034473 1.7269386 2.752589
-    ## W-Y    1.879937 1.7112592 2.147412
+    ##     measured.dS     CI.lwr   CI.upr
+    ## F-W   0.3441268 0.06977963 1.344082
+    ## F-Y   2.1973974 1.82799484 2.782849
+    ## W-Y   1.9762794 1.82035663 2.199385
 
 ``` r
 plot(spiderboot[,1], xlim=c(0.5, 3.5), ylim=c(0, 3), pch=21, bg=1, cex=2, xaxt='n', ylab='Chromatic distance (JND)', xlab='Centroid comparison')
