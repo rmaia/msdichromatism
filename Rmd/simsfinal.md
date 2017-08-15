@@ -205,7 +205,7 @@ Even though centroid distance increases with effect size, there's a lot of sprea
 
 ![](../output/figures/final/final_figunnamed-chunk-9-1.jpeg)
 
-R2 increases with increasing effect size, which is good. We can also see that even though a lot of the simulations have a distance between centroids greater than 1, they are still not significant (red) according to either approach. Transition from non-siginificant to significant occurs for Mahalanobis Distance between 0.5 and 1.
+R2 increases with increasing effect size, which is good. We can also see that even though a lot of the simulations have a distance between centroids greater than 1 (0.969), they are still not significant (red) according to either approach. Transition from non-siginificant to significant occurs for Mahalanobis Distance between 0.5 and 1.
 
 ![](../output/figures/final/final_figunnamed-chunk-10-1.jpeg)
 
@@ -279,7 +279,7 @@ Verifying that values obtained in the simulation (empirical) are close to what w
 
 ![](../output/figures/final/final_fighistograms-1.jpeg)
 
-mean centroid distance of 1.312769, quantiles of 0.3458123, 2.7338083
+mean centroid distance of 0.2584677, quantiles of 0.0671478, 0.647076
 
 Running analyses
 ----------------
@@ -375,7 +375,7 @@ plotrange <- function(x, log=TRUE){
 ############
 # EXAMPLES #
 ############
-pdf(height=4*1.3, width=7*1.3, file='figures/exampletetrab.pdf')
+pdf(height=4*1.3, width=7*1.3, file='figures/exampletetra.pdf')
 par(mfrow=c(1,2))
 eg1 <- simulatedata[[10]]
 attr(eg1, 'conenumb') <- '4'

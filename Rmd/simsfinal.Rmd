@@ -317,7 +317,7 @@ plot(overlapyke~mahd, pch=20,
 
 ``` 
 
-R2 increases with increasing effect size, which is good. We can also see that even though a lot of the simulations have a distance between centroids greater than 1, they are still not significant (red) according to either approach. Transition from non-siginificant to significant occurs for Mahalanobis Distance between 0.5 and 1.
+R2 increases with increasing effect size, which is good. We can also see that even though a lot of the simulations have a distance between centroids greater than 1 (`r mean(centdist > 1)`), they are still not significant (red) according to either approach. Transition from non-siginificant to significant occurs for Mahalanobis Distance between 0.5 and 1.
 
 ```{r, echo=FALSE,dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
 pykeeucdist <- unlist(lapply(pykesim, function(x) dist(rbind(colMeans(x[1:50,]), colMeans(x[51:100,])))))

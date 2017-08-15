@@ -1,0 +1,409 @@
+---
+title: "Simulations - power"
+output: 
+# html_document:
+#   keep_md: yes
+# md_document:
+#   variant: markdown_github
+  github_document:
+    dev: jpeg
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      fig.path='../output/figures/final/final_power_fig', 
+                      #fig.height = 10,
+                      cache.path = '../output/cache/final/final_power_cache_')
+knitr::opts_knit$set(root.dir=normalizePath(".."))
+
+set.seed(6210)
+```
+
+
+```{r fxns, include=TRUE}
+require(pavo)
+require(vegan)
+require(RColorBrewer)
+
+# load aesthetic functions (plot, make colors transparent)
+source('R/aesthetic.R')
+
+# load function to convert JND to cartesian coordinates
+source('R/jnd2xyz.R')
+
+# load simulation and analysis functions
+source('R/simfoos.R')
+source('R/simanalysis.R')
+source('R/pausemcl.R')
+```
+
+# False positives and power
+
+We will simulate data with varying effect sizes (centroid distance relative to the variance-covariance matrix, or Mahalanobis distance):
+
+```{r powercoldistcache, cache=TRUE}
+effs <- c(0, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3)
+timeseach <- 200
+simN <- 50
+
+effsims <- rep(effs, each=timeseach)
+
+simulatedata <- lapply(effsims,
+                       function(x)
+                       simdich(N=simN, sgsqsrate=0.5, multiplier=NULL, effsize=x)
+                       )
+
+
+# we need to add the reference points since we didn't run vismodel()
+#apply(do.call(rbind, lapply(simulatedata, function(x) apply(x, 2, max))), 2, max)
+#data(sicalis)
+#rfs <- attr(vismodel(sicalis, visual='star',relative=FALSE), 'resrefs')
+
+rfs <- 
+matrix(c(100,01,01,01,
+         01,100,01,01,
+         01,01,100,01,
+         01,01,01,100,
+         50,50,50,50
+         ), ncol=4, byrow=TRUE)
+rownames(rfs) <- c('refforjnd2xyz.u','refforjnd2xyz.s','refforjnd2xyz.m','refforjnd2xyz.l', 'refforjnd2xyz.acent')
+colnames(rfs) <- c('u','s','m','l')
+
+simulatedata <- lapply(simulatedata, 'attr<-', which='resrefs', value=rfs)
+
+
+simulatecoldist <- pausemcl(simulatedata, function(x) {
+  Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
+  Y$comparison <- NA
+  Y$comparison[grepl('A', Y$patch1) & grepl('A', Y$patch2)] <- 'intra.A'
+  Y$comparison[grepl('B', Y$patch1) & grepl('B', Y$patch2)] <- 'intra.B'
+  Y$comparison[grepl('A', Y$patch1) & grepl('B', Y$patch2)] <- 'inter'
+  Y
+  } )
+```
+
+Validating simulations:
+
+```{r, echo=FALSE, dependson='powercoldistcache'}
+par(mfrow=c(2,2))
+# GROUP A MEANS
+empmeans <- do.call(rbind, lapply(simulatedata, function(x) colMeans(x[1:simN,])))
+simmeans <- do.call(rbind, lapply(simulatedata, function(x) attr(x,'simpar')[1,]))
+
+plot(empmeans[,'u']~simmeans[,'u'], pch=19, 
+     col=rgb(data.frame(t(col2rgb('violet', alpha=F)))/255, alpha=0.2), 
+     ylab='empirical',xlab='simulated', 
+     xlim=range(rbind(empmeans,simmeans)), 
+     ylim=range(rbind(empmeans,simmeans)),
+     main='mean group A')
+points(empmeans[,'s']~simmeans[,'s'], pch=19, col=rgb(data.frame(t(col2rgb('blue', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'m']~simmeans[,'m'], pch=19, col=rgb(data.frame(t(col2rgb('darkgreen', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'l']~simmeans[,'l'], pch=19, col=rgb(data.frame(t(col2rgb('tomato', alpha=F)))/255, alpha=0.2))
+
+abline(0,1)
+
+# GROUP B MEANS
+empmeans <- do.call(rbind, lapply(simulatedata, function(x) colMeans(x[(simN+1):(simN*2),])))
+simmeans <- do.call(rbind, lapply(simulatedata, function(x) attr(x,'simpar')[2,]))
+
+plot(empmeans[,'u']~simmeans[,'u'], pch=19, 
+     col=rgb(data.frame(t(col2rgb('violet', alpha=F)))/255, alpha=0.2), 
+     ylab='empirical',xlab='simulated', 
+     xlim=range(rbind(empmeans,simmeans)), 
+     ylim=range(rbind(empmeans,simmeans)),
+     main = 'mean group B')
+points(empmeans[,'s']~simmeans[,'s'], pch=19, col=rgb(data.frame(t(col2rgb('blue', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'m']~simmeans[,'m'], pch=19, col=rgb(data.frame(t(col2rgb('darkgreen', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'l']~simmeans[,'l'], pch=19, col=rgb(data.frame(t(col2rgb('tomato', alpha=F)))/255, alpha=0.2))
+
+abline(0,1)
+# GROUP A SD
+empmeans <- do.call(rbind, lapply(simulatedata, function(x) apply(x[1:simN,], 2, sd)))
+simmeans <- do.call(rbind, lapply(simulatedata, function(x) attr(x,'simpar')[3,]))
+
+
+plot(empmeans[,'u']~simmeans[,'u'], pch=19, 
+     col=rgb(data.frame(t(col2rgb('violet', alpha=F)))/255, alpha=0.2), 
+     ylab='empirical',xlab='simulated', 
+     xlim=range(rbind(empmeans,simmeans)), 
+     ylim=range(rbind(empmeans,simmeans)),
+     main='SD group A')
+points(empmeans[,'s']~simmeans[,'s'], pch=19, col=rgb(data.frame(t(col2rgb('blue', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'m']~simmeans[,'m'], pch=19, col=rgb(data.frame(t(col2rgb('darkgreen', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'l']~simmeans[,'l'], pch=19, col=rgb(data.frame(t(col2rgb('tomato', alpha=F)))/255, alpha=0.2))
+
+abline(0,1)
+# GROUP B SD
+empmeans <- do.call(rbind, lapply(simulatedata, function(x) apply(x[(simN+1):(simN*2),], 2, sd)))
+simmeans <- do.call(rbind, lapply(simulatedata, function(x) attr(x,'simpar')[3,]))
+
+plot(empmeans[,'u']~simmeans[,'u'], pch=19, 
+     col=rgb(data.frame(t(col2rgb('violet', alpha=F)))/255, alpha=0.2), 
+     ylab='empirical',xlab='simulated', 
+     xlim=range(rbind(empmeans,simmeans)), 
+     ylim=range(rbind(empmeans,simmeans)),
+     main='SD group B')
+points(empmeans[,'s']~simmeans[,'s'], pch=19, col=rgb(data.frame(t(col2rgb('blue', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'m']~simmeans[,'m'], pch=19, col=rgb(data.frame(t(col2rgb('darkgreen', alpha=F)))/255, alpha=0.2))
+points(empmeans[,'l']~simmeans[,'l'], pch=19, col=rgb(data.frame(t(col2rgb('tomato', alpha=F)))/255, alpha=0.2))
+
+abline(0,1)
+``` 
+
+Verifying that values obtained in the simulation (empirical) are close to what we wanted to simulate (simulated) for the four cones (violet, blue, green, red)
+
+## Running Analysis
+
+Run adonis, volume overlap, calculate distance between centroids:
+
+```{r poweradoniscache, results='hide', cache=TRUE, dependson='powercoldistcache'}
+gc(verbose=FALSE)
+adonissim <- pausemcl(simulatecoldist, adoniscoldist)
+vovsim <- pausemcl(simulatedata, voloverlaptest)
+centdist <- unlist(lapply(simulatedata, centroidist))
+gc(verbose=FALSE)
+```
+
+Run Pyke MANOVA:
+
+```{r powerpyke, cache=TRUE, dependson='powercoldistcache'}
+scd2 <- lapply(simulatecoldist,'[', ,1:3, drop=FALSE)
+for(i in 1:length(scd2)){
+  attr(scd2[[i]], 'resrefs') <- attr(simulatecoldist[[i]],'resrefs')
+  attr(scd2[[i]], 'conenumb') <- attr(simulatecoldist[[i]],'conenumb')
+  }
+
+pykesim <- lapply(scd2, jnd2xyz)
+pykelm <- lapply(pykesim, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=50)))
+pykemanova <- lapply(pykelm, function(x) summary(manova(x)))
+
+vovpyke <- pausemcl(pykesim, function(x)
+  voloverlap(x[1:simN,], x[(simN+1):(simN*2), ]) )
+```
+
+Calculate statistics of interest:
+
+```{r, dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
+# Pyke MANOVA: P-values, which significant
+manovaPval <- unlist(lapply(pykemanova, function(x) x$stats[1,'Pr(>F)']))
+manovaP <- manovaPval < 0.05
+
+# Adonis: P-values, which significant, R-squared
+adonisPval <- unlist(lapply(adonissim, function(x) x$aov.tab$'Pr(>F)'[1]))
+adonisP <- adonisPval < 0.05
+adonisR2 <- unlist(lapply(adonissim, function(x) x$aov.tab$'R2'[1])) * 100
+
+# Disagreement in significance between Pyke and Adonis
+disagreement <- !manovaP == adonisP
+
+# Proportion of tests significant by effect size, according to each method
+pvsimsadonis <- tapply(adonisP, effsims, mean)
+pvsimsmanova <- tapply(manovaP, effsims, mean)
+
+# Volume overlap
+overlap <- unlist(lapply(vovsim, '[','vboth')) * 100
+overlapyke <- unlist(lapply(vovpyke, '[','vboth')) * 100
+
+
+# Centroids: intra-group distances, inter-group distances, which centroid distances > 1
+gmeans <- lapply(simulatecoldist, function(x) tapply(x$dS, x$comparison, mean))
+gmeans <- do.call(rbind, gmeans)
+
+intradist <- rowMeans(gmeans[, -1])
+interdist <- gmeans[,"inter"]
+
+centroidP <- centdist > 1
+
+# Mahalanobis distance between centroids
+mahd <- unlist(lapply(simulatedata, function(x) sqrt(mahalanobis(colMeans(x[1:50,]), colMeans(x[51:100,]), cov(x[1:50,]) ))))
+
+# Color palette for plots
+palette <- rcbalpha(0.8, 4, 'Set1')
+
+#sigpal <- as.character(factor(adonisP, labels=palette[1:2]))
+sigpal <- as.character(factor(paste(adonisP, centroidP), 
+          levels=c("FALSE FALSE", "FALSE TRUE", "TRUE FALSE", "TRUE TRUE"), 
+          labels=rcbalpha(0.8, 6, 'RdBu')[c(3,1,6,4)] ))
+```
+  
+##Visualizing Results
+
+```{r, echo=FALSE, dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
+plot(effsims, mahd, pch=20, ylab="Mahalanobis Distance", xlab="effect size parameter in simulation")
+abline(0,1)
+``` 
+
+The simulation was successful in producing samples that had the desired mahalanobis distance. There is some spread because of the small sample size relative to the dimensionality of the dataset, and for that reason the distances between groups asymptotes before zero.
+
+```{r, echo=FALSE, dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
+plot(pvsimsadonis~unique(effsims), pch=20, cex=2, type='b', ylab='Proportion of tests significant', xlab="Effect size (Mahalanobis' Distance)", ylim=c(0,1), col=brewer.pal(5,'PRGn')[5])
+points(pvsimsmanova~ unique(effsims), pch=20, cex=2, type='b', col=brewer.pal(5,'PRGn')[1])
+abline(h=0.05, lty=2)
+legend('topleft', legend=c("adonis","Pyke & MANOVA"), pch=20, pt.cex=2, lty=1, col=brewer.pal(5,'PRGn')[c(5,1)], bty='n', seg.len=3)
+``` 
+
+Both tests had similar power. For very low effect sizes, Type-I Error rate is close to the desired 0.05 (dashed line).
+
+Both tests are quite sensitive too, with signifcant results when the distance between centroids is of about the same magnitude as the pooled standard deviations. Further, Pyke-MANOVA seems less conservative overall than Adonis, though they are very close to each other at very small effect sizes.
+
+```{r, echo=FALSE, fig.width=7, fig.height=4, dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
+par(mfrow=c(1,2))
+plot(adonisPval~manovaPval, pch=20, col=rcbalpha(0.8, 4, 'RdBu')[c(4,1)][factor(disagreement)], xlab='Pyke MANOVA P-value', ylab='adonis P-value')
+abline(0,1)
+abline(h=0.05, lty=2)
+abline(v=0.05, lty=2)
+hist(adonisPval - manovaPval, breaks=30, main='difference in P values \nbetween the two approaches')
+``` 
+
+However, there is some discrepancy in test results. There doesn't seem to be a bias - results are centered around the 1:1 line, difference in P-values from the tests is centered and mostly symmetric around 0. But there are occasions in which results are significant for one test but not the other (red; the space between the dashed lines in the first plot).
+
+So tests have similar power but disagree as to the outcome in terms of what is significant:
+
+
+```{r, echo=FALSE}
+#`r knitr::kable(table(adonisP, manovaP)/1000) ` 
+table(adonisP, manovaP)/length(adonisP)
+```
+
+About 10% divergence in results, maybe not worth worrying about. Note that most of the discrepancy comes from results that are significant in MANOVA but not in Adonis, suggesting again that MANOVA approach is less conservative.
+
+There is disagreement particularly when the effect size is marginal:
+```{r, echo=FALSE,dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
+plot(tapply(disagreement, effsims, mean)~unique(effsims), type='b',pch=20, ylab='Proportion of differences between the two approaches', xlab='Effect size (Mahalanobis distance)')
+``` 
+
+```{r, echo=FALSE, fig.width=7, fig.height=4, dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
+par(mfrow=c(1,2))
+plot(tapply(centdist, effsims, mean)~unique(effsims), pch=20, ylab='Centroid distance', xlab="Effect size (Mahalanobis' Distance)", log='y', ylim=c(1e-1,60))
+abline(h=1, lty=2)
+segments(unique(effsims), tapply(centdist, effsims, quantile, 0.025), unique(effsims), tapply(centdist, effsims, quantile, 0.975))
+
+plot(centdist~mahd, pch=20, col='grey', ylab='Centroid distance', xlab="Effect size (Mahalanobis' Distance)", log='xy', ylim=c(1e-1,60))
+abline(h=1, lty=2)
+``` 
+
+Even though centroid distance increases with effect size, there's a lot of spread, which is the core of the problem we're trying to address - you can have a huge centroid distance with a small Mahalanobis distance (small separation bewtwen the groups). Note centroid is in log scale.
+
+```{r, echo=FALSE, fig.width=7, fig.height=16, dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
+par(mfrow=c(4,2))
+plot(tapply(adonisR2, effsims, mean)~unique(effsims), pch=20, type='b', ylab='R2 from adonis', xlab="Effect size (Mahalanobis' Distance)", ylim=c(0,40))
+segments(unique(effsims), tapply(adonisR2, effsims, quantile, 0.025), unique(effsims), tapply(adonisR2, effsims, quantile, 0.975))
+plot(centdist~mahd, pch=20, col='grey', log='xy', ylab='Centroid distance', xlab='Mahalanobis distance')
+abline(h=1, lty=2)
+plot(adonisR2~mahd, pch=20, col='grey', log='xy', ylab='R2 from adonis', xlab='Mahalanobis distance')
+plot(adonisR2~centdist, pch=20, col='grey', log='xy', ylab='R2 from adonis', xlab='Centroid distance')
+abline(v=1, lty=2)
+
+plot(centdist~mahd, pch=20, 
+     col=as.character(factor(adonisP, labels=palette[1:2])), 
+     log='xy', main='P-value according to adonis',
+     ylab='Centroid distance', xlab='Mahalanobis distance')
+abline(h=1,lty=2)
+
+plot(centdist~mahd, pch=20, 
+     col=as.character(factor(manovaP, labels=palette[1:2])), 
+     log='xy', main='P-value according to MANOVA',
+     ylab='Centroid distance', xlab='Mahalanobis distance')
+abline(h=1, lty=2)
+
+plot(overlap~mahd, pch=20,
+     col=as.character(factor(adonisP, labels=palette[1:2])),
+     log='xy', xlab='Mahalanobis distance', ylab='Volume overlap')
+
+plot(overlapyke~mahd, pch=20,
+     col=as.character(factor(manovaP, labels=palette[1:2])),
+     log='x', xlab='Mahalanobis distance', ylab='Volume overlap (perceptually corrected)')
+
+``` 
+
+R2 increases with increasing effect size, which is good. We can also see that even though a lot of the simulations have a distance between centroids greater than 1 (`r mean(centdist > 1)`), they are still not significant (red) according to either approach. Transition from non-siginificant to significant occurs for Mahalanobis Distance between 0.5 and 1.
+
+```{r, echo=FALSE,dependson=c('powercoldistcache', 'poweradoniscache', 'powerpyke')}
+pykeeucdist <- unlist(lapply(pykesim, function(x) dist(rbind(colMeans(x[1:50,]), colMeans(x[51:100,])))))
+
+plot(pykeeucdist~centdist, pch=20, cex=2, col='grey', ylab='Pyke Euclidean distance between centroids', xlab='JND between centroids', log='xy')
+abline(0,1)
+``` 
+
+This just shows the Pyke transformation is working and that the Euclidean distance between the centroids calculated in this transformed space is identical to the distance between the centroids in JNDs.
+
+```{r}
+sessionInfo()
+```
+
+plots for publication: 
+
+```{r plotsforpub}
+plotrange <- function(x, log=TRUE){
+  res <- range(x)
+  res[1] <- floor(res[1])
+  res[2] <- ceiling(res[2])
+  if(log && res[1] == 0)
+    res[1] <- range(x)[1]*0.8
+  
+  if(log && res[2] < 10)
+    res[2] <- 10
+  
+  res
+}
+
+############
+# EXAMPLES #
+############
+pdf(height=4*1.3, width=7*1.3, file='figures/exampletetra.pdf')
+par(mfrow=c(1,2))
+eg1 <- simulatedata[[10]]
+attr(eg1, 'conenumb') <- '4'
+attr(eg1, 'relative') <- FALSE
+attr(eg1, 'qcatch') <- 'Qi'
+class(eg1) <- c('vismodel', 'data.frame')
+plot(colspace(eg1), col=rep(palette[1:2], each=50), view=200, scale.y=2, out.lwd=2, vertexsize=2, margin=c(1,0,1,0))
+
+eg2 <- simulatedata[[2000]]
+attr(eg2, 'conenumb') <- '4'
+attr(eg2, 'relative') <- FALSE
+attr(eg2, 'qcatch') <- 'Qi'
+class(eg2) <- c('vismodel', 'data.frame')
+plot(colspace(eg2), col=rep(palette[1:2], each=50), view=200, scale.y=2, out.lwd=2, vertexsize=2, margin=c(1,0,1,0))
+
+dev.off()
+
+######################
+# RESULTS FROM SIM 1 #
+######################
+pdf(height=4*1.3, width=7*1.3, file='figures/samplesize_3.pdf')
+par(mfrow=c(1,2))
+
+plot(centdist~mahd, pch=21, 
+     xlim=c(0.05, 10), ylim=c(0.1,100),
+     col=NA, 
+     bg=as.character(factor(adonisP, labels=palette[1:2])),
+     log='xy', yaxt='n', xaxt='n',
+     ylab='Distance between centroids (JND)', xlab='Effect size (Mahalanobis distance)')
+
+axis(1, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+axis(1, at=c(seq(0.06,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+axis(2, at=c(0.1, 1, 10, 100), labels=c(0.1, 1, 10, 100))
+axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1), seq(20,90, by=10)), tcl=par("tcl")*0.5, labels=FALSE)
+
+abline(h=1,lty=3, lwd=2)
+
+legend('topleft', bty='n', pch=21, col=NA, pt.bg=palette[1:2], 
+       legend=c('p > 0.05', 'p < 0.05'))
+
+
+plot(overlap~mahd, pch=21, 
+     xlim=c(0.05, 10), ylim=c(0,80),
+     bg=as.character(factor(adonisP, labels=palette[1:2])), 
+     col=NA,
+     log='x', yaxt='n', xaxt='n',
+     ylab='Colour volume overlap (%)', xlab='Effect size (Mahalanobis distance)')
+
+axis(1, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+axis(1, at=c(seq(0.06,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+axis(2, at=c(0, 20, 40, 60, 80))
+
+dev.off()
+```
