@@ -201,9 +201,8 @@ sessionInfo()
     ## [13] grid_3.4.1           nlme_3.1-131         mgcv_1.8-17         
     ## [16] htmltools_0.3.6      yaml_2.1.14          rprojroot_1.2       
     ## [19] digest_0.6.12        Matrix_1.2-10        mapproj_1.2-5       
-    ## [22] codetools_0.2-15     rcdd_1.2             evaluate_0.10.1     
-    ## [25] rmarkdown_1.6        stringi_1.1.5        compiler_3.4.1      
-    ## [28] backports_1.1.0
+    ## [22] rcdd_1.2             evaluate_0.10.1      rmarkdown_1.6       
+    ## [25] stringi_1.1.5        compiler_3.4.1       backports_1.1.0
 
 Plots for publication:
 

@@ -272,6 +272,7 @@ layout(cbind(matrix(c(1, 2, 3, 4, 5, 6, 7, 8), 4, 2, byrow = TRUE), rep(9,4)))
 par(mar=oma)
 
 aggplot(specs[['lab']], by=gsub("[0-9].*","",names(specs[['lab']])), lwd=3, ylim=c(0,50))
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "A") 
 
 scatterplot3d(spaces[['lab']][,c('x','y','z')],  
       bg=as.character(factor(gsub("[0-9].*","",names(specs[['lab']]))[-1], 
@@ -283,6 +284,7 @@ scatterplot3d(spaces[['lab']][,c('x','y','z')],
 par(mar=oma)
 
 aggplot(specs[['throat']], by=gsub("[0-9].*","",names(specs[['throat']])), lwd=3, ylim=c(0,50))
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "B") 
 
 scatterplot3d(spaces[['throat']][,c('x','y','z')],  
       bg=as.character(factor(gsub("[0-9].*","",names(specs[['throat']]))[-1],
@@ -294,6 +296,7 @@ scatterplot3d(spaces[['throat']][,c('x','y','z')],
 par(mar=oma)
 
 aggplot(specs[['roof']], by=gsub("[0-9].*","",names(specs[['roof']])), lwd=3, ylim=c(0,50))
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "C") 
 
 scatterplot3d(spaces[['roof']][,c('x','y','z')],  
       bg=as.character(factor(gsub("[0-9].*","",names(specs[['roof']]))[-1],
@@ -305,6 +308,7 @@ scatterplot3d(spaces[['roof']][,c('x','y','z')],
 par(mar=oma)
 
 aggplot(specs[['tongue']], by=gsub("[0-9].*","",names(specs[['tongue']])), lwd=3, ylim=c(0,50))
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "D") 
 
 scatterplot3d(spaces[['tongue']][,c('x','y','z')],  
       bg=as.character(factor(gsub("[0-9].*","",names(specs[['tongue']]))[-1],
@@ -316,11 +320,12 @@ scatterplot3d(spaces[['tongue']][,c('x','y','z')],
 par(mar=oma)
 par(mar=c(4,4,1,1)+0.1)
 
-plot(rev(bootres[,1]), 1:4, ylim=c(0.8, 4.2), xlim=c(0, 2.2), pch=21, bg=1, cex=2, yaxt='n', ylab='Body patch', xlab='Chromatic contrast (JND)')
-axis(2, at=1:4, labels=rev(rownames(bootres)))
+plot(rev(bootres[,1]), 1:4, ylim=c(0.8, 4.2), xlim=c(0, 2.5), pch=21, bg=1, cex=2, yaxt='n', ylab='Body patch', xlab='Chromatic contrast (JND)')
+axis(2, at=1:4, labels=rev(rownames(bootres)), las=1)
 
 abline(v=1, lty=3, lwd=2)
 segments(rev(bootres[,2]), 1:4, rev(bootres[,3]), 1:4, lwd=2)
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.99, "npc"), cex=1.5, "E") 
 
 dev.off()
 
@@ -447,11 +452,13 @@ pdf(height=8*1.3, width=4*1.3, pointsize = 12, file='figures/spiders1.pdf')
 par(mfrow=c(3,1), mar=c(5.1, 4.1, 2.1, 2.1))
 
 aggplot(specs[,grep('F', names(specs), invert=T)], by=substr(grep('F', names(specs), invert=TRUE, value=TRUE), 1,1)[-1], shadecol=c('goldenrod1', 'darkgrey'), alpha=0.5, lcol=1, lwd=2, ylim=c(0,100))
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "A") 
 
 plot(spaces, pch=21, cex=2, 
      margins=c(0,0,3,0),
      bg=as.character(factor(substr(rownames(spaces), 1, 1), labels=spidercol)),
      col=NA, achrocol='black')
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "B") 
 
 
 plot(spiderboot[,1], xlim=c(0.5, 3.5), ylim=c(0, 3), pch=21, bg=1, cex=2, xaxt='n', ylab='Chromatic distance (JND)', xlab='Centroid comparison')
@@ -459,6 +466,7 @@ axis(1, at=1:3, labels = c('Flower-White', 'Flower-Yellow', 'White-Yellow'))
 abline(h=1, lty=3, lwd=2)
 abline(h=0.3, lty=3, lwd=2, col='darkgrey')
 segments(1:3, spiderboot[,2], 1:3, spiderboot[,3], lwd=2)
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "C") 
 
 dev.off()
 

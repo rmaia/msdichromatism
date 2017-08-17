@@ -239,9 +239,8 @@ sessionInfo()
     ## [13] grid_3.4.1           nlme_3.1-131         mgcv_1.8-17         
     ## [16] htmltools_0.3.6      yaml_2.1.14          rprojroot_1.2       
     ## [19] digest_0.6.12        Matrix_1.2-10        mapproj_1.2-5       
-    ## [22] codetools_0.2-15     rcdd_1.2             evaluate_0.10.1     
-    ## [25] rmarkdown_1.6        stringi_1.1.5        compiler_3.4.1      
-    ## [28] backports_1.1.0
+    ## [22] rcdd_1.2             evaluate_0.10.1      rmarkdown_1.6       
+    ## [25] stringi_1.1.5        compiler_3.4.1       backports_1.1.0
 
 plots for publication:
 
@@ -262,6 +261,8 @@ plot(colspace(eg1), col=rep(palette[1:2], each=50), view=200, scale.y=2, out.lwd
     ## Warning: Quantum catch are not relative, and have been transformed
 
 ``` r
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "A") 
+
 eg2 <- simulatedata[[2000]]
 attr(eg2, 'conenumb') <- '4'
 attr(eg2, 'relative') <- FALSE
@@ -273,6 +274,8 @@ plot(colspace(eg2), col=rep(palette[1:2], each=50), view=200, scale.y=2, out.lwd
     ## Warning: Quantum catch are not relative, and have been transformed
 
 ``` r
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "B") 
+
 dev.off()
 ```
 
@@ -300,9 +303,11 @@ axis(2, at=c(seq(0.02,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl
 
 abline(h=1,lty=3, lwd=2)
 
-legend('topleft', bty='n', pch=21, col=NA, pt.bg=palette[1:2], 
+#legend('topleft', 
+legend(x=grconvertX(0,"npc"), y=grconvertY(0.9, "npc"),
+       bty='n', pch=21, col=NA, pt.bg=palette[1:2], 
        legend=c('p > 0.05', 'p < 0.05'))
-
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "A") 
 
 plot(overlap~mahd, pch=21, 
      xlim=c(0.05, 10), ylim=c(0,80),
@@ -314,6 +319,8 @@ plot(overlap~mahd, pch=21,
 axis(1, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
 axis(1, at=c(seq(0.06,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 axis(2, at=c(0, 20, 40, 60, 80))
+
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "B") 
 
 dev.off()
 ```

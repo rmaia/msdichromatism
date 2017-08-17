@@ -359,9 +359,13 @@ points(pvsimsmanova.n10~ unique(effsims), pch=21, cex=2,  lwd=4, type='b', col=p
 abline(h=0.05,  lwd=4, lty=3)
 axis(1, at=c(0,1,2,3))
 axis(2, at=c(0,0.5,1.0))
-text(x=3.2, y=1.1, pos=2, 'N=10', cex=1.2, font=2)
+#text(x=3.2, y=1.1, pos=2, 'N=10', cex=1.2, font=2)
+text(x=grconvertX(1.02,"npc"), y=grconvertY(0.95, "npc"), cex=1.2, pos=2, "N=10") 
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "A") 
 
-legend('topleft', col=powerpal[c(9,1)], pt.bg=powerpal[c(9,1)], pch=21, lty=1, 
+#legend('topleft', 
+legend(x=grconvertX(0,"npc"), y=grconvertY(0.9, "npc"),
+       col=powerpal[c(9,1)], pt.bg=powerpal[c(9,1)], pch=21, lty=1, 
        legend=c('distance PERMANOVA', 'cartesian MANOVA'),
        bty='n', pt.cex=2, lwd=4, cex=0.9)
 
@@ -370,21 +374,30 @@ points(pvsimsmanova.n20~ unique(effsims), pch=21, cex=2,  lwd=4, type='b', col=p
 abline(h=0.05,  lwd=4, lty=3)
 axis(1, at=c(0,1,2,3))
 axis(2, at=c(0,0.5,1.0))
-text(x=3.2, y=1.1, pos=2, 'N=20', cex=1.2, font=2)
+#text(x=3.2, y=1.1, pos=2, 'N=20', cex=1.2, font=2)
+text(x=grconvertX(1.02,"npc"), y=grconvertY(0.95, "npc"), cex=1.2, pos=2, "N=20") 
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "B") 
+
 
 plot(pvsimsadonis.n50~unique(effsims), pch=21, cex=2,  lwd=4, type='b', ylab='', xlab='', ylim=c(0,1.2), col=powerpal[9], bg=powerpal[9], xaxt='n', yaxt='n')
 points(pvsimsmanova.n50~ unique(effsims), pch=21, cex=2,  lwd=4, type='b', col=powerpal[1], bg=powerpal[1])
 abline(h=0.05,  lwd=4, lty=3)
 axis(1, at=c(0,1,2,3))
 axis(2, at=c(0,0.5,1.0))
-text(x=3.2, y=1.1, pos=2, 'N=50', cex=1.2, font=2)
+#text(x=3.2, y=1.1, pos=2, 'N=50', cex=1.2, font=2)
+text(x=grconvertX(1.02,"npc"), y=grconvertY(0.95, "npc"), cex=1.2, pos=2, "N=50") 
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "C") 
+
 
 plot(pvsimsadonis.n100~unique(effsims), pch=21, cex=2, lwd=4, type='b', ylab='', xlab='', ylim=c(0,1.2), col=powerpal[9], bg=powerpal[9], xaxt='n', yaxt='n')
 points(pvsimsmanova.n100~ unique(effsims), pch=21, cex=2, lwd=4, type='b', bg=powerpal[1], col=powerpal[1])
 abline(h=0.05,  lwd=4, lty=3)
 axis(1, at=c(0,1,2,3))
 axis(2, at=c(0,0.5,1.0))
-text(x=3.2, y=1.1, pos=2, 'N=100', cex=1.2, font=2)
+#text(x=3.2, y=1.1, pos=2, 'N=100', cex=1.2, font=2)
+text(x=grconvertX(1.02,"npc"), y=grconvertY(0.95, "npc"), cex=1.2, pos=2, "N=100") 
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "D") 
+
 
 mtext('Simulated effect size (Mahalanobis distance)', side = 1, outer = TRUE, line = 1)
 mtext('Proportion of significant tests', side = 2, outer = TRUE, line = 1)
@@ -396,9 +409,13 @@ par(mfrow=c(1,2))
 barplot(t(disbar), beside=TRUE, ylab='Simulations (%)',xlab='Sample size', col=powerpal[c(9,1)], ylim=c(0,15), yaxt='n')
 axis(2, at=c(0,3,6,9,12))
 box()
-legend('topleft', legend=c('significant only in distance PERMANOVA','significant only in cartesian MANOVA'), pch=15, cex=0.9, pt.cex=2, col=powerpal[c(9,1)], bty='n')
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "A") 
 
-plot(tapply(disagreement.n10, effsims, mean)*100~unique(effsims), type='b', pch=21, col=grey(0.8), bg=grey(0.8), ylim=c(0,40), xlim=c(0,3.8), ylab='Disagreement between approaches (%)', xlab='Simulated effect size (Mahalanobis distance)', cex=2, lwd=4, xaxt='n')
+#legend('topleft',
+legend(x=grconvertX(0,"npc"), y=grconvertY(0.9, "npc"),
+       legend=c('significant only in distance PERMANOVA','significant only in cartesian MANOVA'), pch=15, cex=0.9, pt.cex=2, col=powerpal[c(9,1)], bty='n')
+
+plot(tapply(disagreement.n10, effsims, mean)*100~unique(effsims), type='b', pch=21, col=grey(0.8), bg=grey(0.8), ylim=c(0,30), xlim=c(0,3.8), ylab='Disagreement between approaches (%)', xlab='Simulated effect size (Mahalanobis distance)', cex=2, lwd=4, xaxt='n')
 axis(1, at=c(0,1,2,3))
 points(tapply(disagreement.n20, effsims, mean)*100~unique(effsims), type='b', pch=21, col=grey(0.6), bg=grey(0.6), cex=2, lwd=4)
 points(tapply(disagreement.n50, effsims, mean)*100~unique(effsims), type='b', pch=21, col=grey(0.4), bg=grey(0.4), cex=2, lwd=4)
@@ -408,6 +425,9 @@ text(x=3.1, y=tail(tapply(disagreement.n10, effsims, mean)*100, 1), labels='N=10
 text(x=3.1, y=tail(tapply(disagreement.n20, effsims, mean)*100, 1), labels='N=20', pos=4)
 text(x=3.1, y=tail(tapply(disagreement.n50, effsims, mean)*100, 1), labels='N=50', pos=4)
 text(x=3.1, y=tail(tapply(disagreement.n100, effsims, mean)*100, 1), labels='N=100', pos=4)
+
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "B") 
+
 dev.off()
 ```
 
