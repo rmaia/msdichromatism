@@ -1,9 +1,16 @@
 example in two dimensions
 ================
 
-``` r
-# illustrating the problem in two dimensions
+-   [illustrating the problem in two dimensions](#illustrating-the-problem-in-two-dimensions)
 
+``` r
+source('R/simanalysis.R')
+```
+
+illustrating the problem in two dimensions
+==========================================
+
+``` r
 movePoints <- function(x0y0, xy, d){
   total.dist <- apply(cbind(x0y0, xy), 1,
                       function(x) stats::dist(rbind(x[1:2], x[3:4])))
@@ -24,6 +31,8 @@ gB2 <- movePoints(gB, matrix(rep(gA[1,], each=10), ncol=2), 0.1)
 dists <- as.matrix(dist(rbind(gA,gB)))
 rownames(dists) <- colnames(dists) <- rep(c('gA','gB'), each=10)
 
+gmeans <- rbind(apply(gA, 2, gmean), apply(gB, 2, gmean))
+
 par(pty='s')
 par(mar=c(1,1,1,1), fig=c(0,1,0,1))
 
@@ -38,11 +47,10 @@ arrows(gA[1,1], gA[1,2],
 points(rbind(gA,gB), col=rep(c('#4575b4','#d73027'), each=10), 
        pch=19, cex=2)
 
-points(matrix(colMeans(gA), ncol=2), pch=3, lwd=3, col='#4575b4', cex=2)
-points(matrix(colMeans(gB), ncol=2), pch=3, lwd=3, col='#d73027', cex=2)
+points(gmeans, pch=3, lwd=3, col=c('#4575b4', '#d73027'), cex=2)
 
-arrows( x0=colMeans(gA)[1], y0=colMeans(gA)[2], 
-        x1=colMeans(gB)[1], y1=colMeans(gB)[2],
+arrows( x0=gmeans[1,1], y0=gmeans[1,2],
+        x1=gmeans[2,1], y1=gmeans[2,2],
   length=0.1, angle=30, lwd=2, code=3, col=grey(0,0.8)
 )
 
@@ -54,10 +62,10 @@ axis(1, at=0:5, labels=c(0,'','','','',5))
 axis(2, at=c(0,10,20,30), labels=c(0,'','',30))
 
 
-abline(v=as.numeric(dist(rbind(colMeans(gA), colMeans(gB)))), lty=3, lwd=3)
+abline(v=as.numeric(dist(gmeans)), lty=3, lwd=3)
 ```
 
-![](../output/figures/final/2deg_fig_unnamed-chunk-1-1.jpeg)
+![](../output/figures/final/2deg_fig_unnamed-chunk-2-1.jpeg)
 
 Figure for publication:
 

@@ -164,21 +164,17 @@ sessionInfo()
     ## [13] grid_3.4.1           nlme_3.1-131         mgcv_1.8-17         
     ## [16] htmltools_0.3.6      yaml_2.1.14          rprojroot_1.2       
     ## [19] digest_0.6.12        Matrix_1.2-10        mapproj_1.2-5       
-    ## [22] codetools_0.2-15     rcdd_1.2             evaluate_0.10.1     
-    ## [25] rmarkdown_1.6        stringi_1.1.5        compiler_3.4.1      
-    ## [28] backports_1.1.0
+    ## [22] rcdd_1.2             evaluate_0.10.1      rmarkdown_1.6       
+    ## [25] stringi_1.1.5        compiler_3.4.1       backports_1.1.0
 
 plots for publication:
 
 ``` r
-######################
-# RESULTS FROM SIM 2 #
-######################
 pdf(height=4*1.3, width=7*1.3, file='figures/threshold_1.pdf')
 par(mfrow=c(2,3), mar=c(4,5,1,1))
 
 plot(centdistT~intradistT, 
-     xlab='mean within-group distance (JND)\n ', ylab=' \ncentroid distance (JND)', 
+     xlab='Mean within-group distance (JND)\n ', ylab=' \nMean distance (JND)', 
      ylim=plotrange(c(intradistT,centdistT)), xlim=plotrange(c(intradistT,centdistT)), 
      pch=21, bg=sigpalT, col=NA, log='xy', yaxt='n', xaxt='n')
 axis(1, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
@@ -191,16 +187,18 @@ abline(h=1, lty=3)
 abline(v=1, lty=3)
 abline(-0.5, 1, lty=5, col='grey')
 
-#the grey line represents an intercept of 1/sqrt(4) so MahD = 1
-
-legend('topleft', pch=21, cex=0.9, bty='n', col=NA, pt.bg=rcbalpha(1, 6, 'RdBu')[c(1,3,6,4)],
+#legend('topleft', 
+legend(x=grconvertX(0,"npc"), y=grconvertY(0.9, "npc"),
+       pch=21, cex=0.9, bty='n', col=NA, pt.bg=rcbalpha(1, 6, 'RdBu')[c(1,3,6,4)],
        legend=c('p > 0.05, JND > 1',
                 'p > 0.05, JND < 1',
                 'p < 0.05, JND < 1',
                 'p < 0.05, JND > 1'))
 
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "A") 
+
 plot(adonisR2T~centdistT, 
-     ylab=expression(paste(R^2,' (%)')), xlab='centroid distance (JND)\n ', 
+     ylab=expression(paste(R^2,' (%)')), xlab='Mean distance (JND)\n ', 
      ylim=plotrange(adonisR2T), xlim=plotrange(centdistT),
      pch=21, bg=sigpalT, col=NA, log='xy', yaxt='n', xaxt='n')
 #axis(2, at=c(0.05, 0.5, 5, 50), labels=c(0.05, 0.5, 5, 50))
@@ -214,9 +212,11 @@ axis(1, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=F
 abline(v=1, lty=3)
 abline(h=3, lty=3)
 
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "B") 
+
 plot(adonisR2T~overlapT, 
-     ylab=expression(paste(R^2,' (%)')), xlab='color volume overlap (%)\n ',  
-     ylim=c(0.01, 100), xlim=plotrange(overlapT, log=FALSE),
+     ylab=expression(paste(R^2,' (%)')), xlab='Colour volume overlap (%)\n ',  
+     ylim=c(0.01, 200), xlim=plotrange(overlapT, log=FALSE),
      pch=21, bg=sigpalT, col=NA, log='y', yaxt='n', xaxt='n')
 axis(1, at=c(0,20,40,60))
 #axis(2, at=c(0.05, 0.5, 5, 50), labels=c(0.05, 0.5, 5, 50))
@@ -225,15 +225,19 @@ axis(2, at=c(0.01, 0.1, 1, 10,100), labels=c(0.01, 0.1, 1, 10,100))
 axis(2, at=c(seq(0.02,0.09,by=0.01), seq(0.2,0.9,by=0.1), seq(2,9,by=1), seq(20,90,by=10)), tcl=par("tcl")*0.5, labels=FALSE)
 #axis(2, at=c(0.1, 1, 10), tcl=par("tcl")*1, labels=FALSE)
 
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "C") 
+
 plot(overlapykeT~overlapT, 
-     ylab="color volume overlap \n(perceptually-corrected, %)", 
-     xlab="color volume overlap (%)\n ",
+     ylab="Color volume overlap \n(perceptually-corrected, %)", 
+     xlab="Color volume overlap (%)\n ",
      ylim=plotrange(c(overlapykeT,overlapT), log=FALSE), xlim=plotrange(c(overlapykeT,overlapT), log=FALSE), 
      pch=21, bg=sigpalT, col=NA)
 abline(0,1, lty=2)
 
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "D") 
+
 plot(centdistT~overlapT,
-     ylab=' \ncentroid distance (JND)', xlab='color volume overlap (%)\n ',
+     ylab=' \nMean distance (JND)', xlab='Color volume overlap (%)\n ',
      ylim=plotrange(centdistT), xlim=plotrange(overlapT, log=FALSE),
      pch=21, bg=sigpalT, col=NA, log='y', yaxt='n', xaxt='n')
 axis(1, at=c(0,20,40,60))
@@ -241,14 +245,19 @@ axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
 axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 abline(h=1, lty=3)
 
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "E") 
+
 
 plot(centdistT~overlapykeT,
-     ylab='centroid distance (JND)', xlab='color volume overlap \n(perceptually-corrected, %)',
+     ylab='Mean distance (JND)', xlab='Color volume overlap \n(perceptually-corrected, %)',
      ylim=plotrange(centdistT), xlim=plotrange(overlapykeT, log=FALSE),
      pch=21, bg=sigpalT, col=NA, log='y', yaxt='n')
 axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
 axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 abline(h=1, lty=3)
+
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "F") 
+ 
 dev.off()
 ```
 
