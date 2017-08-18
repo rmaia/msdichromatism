@@ -290,14 +290,14 @@ pdf(height=4*1.3, width=7*1.3, file='figures/samplesize_3.pdf')
 par(mfrow=c(1,2))
 
 plot(centdist~mahd, pch=21, 
-     xlim=c(0.01, 10), ylim=c(0.01,10),
+     xlim=c(0.05, 10), ylim=c(0.01,10),
      col=NA, 
      bg=as.character(factor(adonisP, labels=palette[1:2])),
      log='xy', yaxt='n', xaxt='n',
-     ylab='Distance between centroids (JND)', xlab='Effect size (Mahalanobis distance)')
+     ylab='Mean distance (JND)', xlab='Effect size (Mahalanobis distance)')
 
 axis(1, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
-axis(1, at=c(seq(0.06,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+axis(1, at=c(seq(0.05,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 axis(2, at=c(0.01,0.1, 1, 10), labels=c(0.01, 0.1, 1, 10))
 axis(2, at=c(seq(0.02,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 
