@@ -1,7 +1,8 @@
-# Dichromatism paper
+# Comparing colours using visual models
 
-dichromatism based on visual models: are we doing it wrong?
+This repository accompanies the manuscript !["Comparing colours using visual models"](http://www.biorxiv.org/content/early/2017/08/21/175992). To run the functions and scripts found here, you will need to install the bleeding edge version of the R package ![pavo (currently in the "jnd2xyz" branch](https://github.com/rmaia/pavo/tree/jnd2xyz):
 
-here's a 2-dimensional representation of the problem. both populations of points were drawn from the same distribution. If you average the distances between all blue points to all red points, that will be much larger than the distance between the centroids of their distributions (crosses). Also, these average distances might be greater than 1 JND, even though both samples are drawn from the same population. 
-
-![](/figures/2dexample.png)
+```
+install.packages('devtools')
+devtools::install_github('rmaia/pavo@jnd2xyz')
+```
