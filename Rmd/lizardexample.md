@@ -1,6 +1,7 @@
 Worked examples and different approaches
 ================
 
+-   [For a simple example looking at a single patch, [click here](lizardexample-single.md)](#for-a-simple-example-looking-at-a-single-patch-click-here)
 -   [The Data](#the-data)
 -   [Approach 1: distance-based PERMANOVA](#approach-1-distance-based-permanova)
     -   [Testing for separation among groups](#testing-for-separation-among-groups)
@@ -12,6 +13,8 @@ Worked examples and different approaches
     -   [Testing for separation among groups](#testing-for-separation-among-groups-2)
     -   [Testing for above-threshold mean differences between groups](#testing-for-above-threshold-mean-differences-between-groups-2)
 -   [Comparing Bayesian vs. Bootstrap mean difference estimates](#comparing-bayesian-vs.-bootstrap-mean-difference-estimates)
+
+#### For a simple example looking at a single patch, [click here](lizardexample-single.md)
 
 First, we need to install the bleeding edge version of pavo:
 
@@ -500,6 +503,14 @@ we can extract both statistical and perceptual information from the posterior di
 Before we do that, we will center all cartesian variables on the female means --- this way, since the model does not have an intercept, male estimates and pMCMC can be interpreted as the effect of sex on each response (X, Y and Z). **This step is essential if we want to interpret model estimates as difference estimates**:
 
 ``` r
+# get perceptual xyz and group vector
+pxyz <- lapply(names(deltaS), function(x) data.frame(
+  jnd2xyz(deltaS[[x]]),                           # perceptual xyz
+  group = substring(names(specs[[x]]), 1, 1)[-1]) # group vector
+  )
+
+names(pxyz) <- names(deltaS)
+
 # Centering variables to the mean of the first group (in this case, F)
 pxyz$lab[, -4] <- sweep(as.matrix(pxyz$lab[,-4]), 2, 
                         as.matrix(aggregate(pxyz$lab[,-4], list(pxyz$lab[,4]), mean)[1,-1]), '-') 
@@ -675,22 +686,10 @@ credibleints
 
 ``` r
 par(mfrow=c(2,2))
-lapply(names(dmcmc), function(x) {plot(density(dmcmc[[x]]), main=x); abline(v=1, lty=3)})
+dplots <- lapply(names(dmcmc), function(x) {plot(density(dmcmc[[x]]), main=x); abline(v=1, lty=3)})
 ```
 
 ![](../output/figures/examples/lizard_fig_unnamed-chunk-15-1.jpeg)
-
-    ## [[1]]
-    ## NULL
-    ## 
-    ## [[2]]
-    ## NULL
-    ## 
-    ## [[3]]
-    ## NULL
-    ## 
-    ## [[4]]
-    ## NULL
 
 Comparing Bayesian vs. Bootstrap mean difference estimates
 ==========================================================

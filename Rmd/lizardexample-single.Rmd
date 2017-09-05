@@ -1,0 +1,323 @@
+---
+title: "Worked example - single patch"
+output: 
+# html_document:
+#   keep_md: yes
+# md_document:
+#   variant: markdown_github
+  github_document:
+    dev: jpeg
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      fig.path='../output/figures/examples/lizard-single_fig_',
+                      #fig.height = 10,
+                      cache.path = '../output/cache/examples/lizard-single_cache_')
+knitr::opts_knit$set(root.dir=normalizePath(".."))
+
+set.seed(3128)
+
+```
+
+First, we need to install the bleeding edge version of pavo:
+
+```{r include=TRUE, message=FALSE}
+devtools::install_github('rmaia/pavo@jnd2xyz')
+```
+
+load the necessary packages and functions:
+
+```{r fxns, include=TRUE, message=FALSE}
+require(pavo)
+require(MCMCglmm)
+require(scatterplot3d)
+require(gridExtra)
+require(vegan)
+require(MASS)
+require(RColorBrewer)
+
+# load aesthetic functions (plot, make colors transparent)
+source('R/aesthetic.R')
+
+# load function to convert JND to cartesian coordinates
+source('R/jnd2xyz.R')
+
+# load function for bootstrap
+source('R/bootstrapcentroiddS.R')
+
+# Convert coldist() output to a distance matrix
+distmat <- function(x){
+  coldistres <- as.matrix(rbind(x[ ,c(1,2,3)], x[ ,c(2,1,3)]))
+  uniquepatches <-  unique(c(coldistres[,1], coldistres[,2]))
+  
+  M <- matrix(nrow=length(uniquepatches), ncol=length(uniquepatches))
+  
+  rownames(M) <- colnames(M) <- uniquepatches
+  
+  M[coldistres[,1:2] ] <- coldistres[,3]
+  M[coldistres[,2:1] ] <- coldistres[,3]
+  
+  class(M) <- 'numeric'
+  M[is.na(M)] <- 0
+  
+  grouping <- as.factor(gsub('[0-9]','', rownames(M)))
+  
+  M <- as.dist(M)
+  M
+  }
+```
+
+# The Data
+
+Reflectance data from four body regions of male and female _Ctenophorus ornatus_ (Whiting et al. 2015, Biol J Linn Soc). Labium, throat, tongue, and mouth-roof.
+
+**Question:** Which body regions are sexually dichromatic?
+
+Calculate deltaS according to conspecific (tetrachromatic) visual system
+
+```{r message=FALSE, warning=FALSE}
+
+specs <-  as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE)
+
+# Ctenophorus ornatus
+liz_vis <- sensmodel(c(360, 440, 493, 571)) 
+names(liz_vis) <- c('wl', 'u', 's', 'm', 'l')
+
+model <- vismodel(specs, visual = liz_vis, relative = FALSE, qcatch='Qi')
+
+space <- colspace(model)
+
+deltaS <- coldist(model, achro = FALSE, n = c(1,1,3.5,6), 
+                         weber = 0.1, noise = "neural")
+```
+
+# Approach 1: distance-based PERMANOVA
+
+```{r}
+# Setup distance matrices & groupings for each body part
+mat <- distmat(deltaS)
+
+group <- substring(rownames(as.matrix(mat)), 1, 1)
+```
+
+
+## Testing for separation among groups
+
+Fist, let's test the assumption of homogeneity of variances
+
+```{r}
+bdisp <- betadisper(mat, group, type='centroid')
+anova(bdisp)
+```
+
+Labials and tongue have unequal variances, which can influence the results of the PERMANOVA. When this assumption is violated but the largest group has the largest variance, it usually isn't a big problem. That's not the case, so the PERMANOVA should be treated with caution.
+
+```{r}
+TukeyHSD(bdisp)
+# Sample sizes
+table(group)
+```
+
+
+
+Permutational MANOVA:
+
+```{r permanova, cache=TRUE}
+pmanova <- adonis(mat~group)
+pmanova
+```
+
+## Testing for above-threshold mean differences between groups
+
+We will use a bootstrap approach to consider the uncertainty on the mean difference between groups when comparing it to a threshold value of 1 JND. Normally it would be unnecessary to do this for Mouth-Roof and Tongue, since the test of separation indicates these are not discriminable. Therefore, even if their mean differences are above 1 JND, males and females would not be considered different, and it would just indicate that within-group variation is also high. But for illustrative purposes, we will analyze all body parts.
+
+```{r boot, cache=TRUE}
+# Groups
+bootds <- bootcentroidDS(model, group, n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
+
+bootds
+```
+
+We can see that, though labium is statistically significant, the distance between groups cannot be considered to be above threshold.:
+
+```{r}
+plot(bootds[,1], ylim=c(0, 2), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+
+abline(h=1, lty=3, lwd=2)
+segments(1, bootds[,2], 1, bootds[,3], lwd=2)
+
+axis(1, at=1, labels='Labials')
+```
+
+
+# Approach 2: Cartesian MANOVA
+
+First, we need to convert our distances into perceptually-proportional cartesian coordinates:
+
+```{r}
+# get perceptual xyz and group vector
+pxyz <- jnd2xyz(deltaS)
+pxyz$group <- substring(names(specs), 1, 1)[-1]
+```
+
+
+## Testing for separation among groups
+
+... add test of variances ...
+
+run MANOVA on cartesian coordinates
+
+```{r}
+summary(manova(lm(cbind(x,y,z)~group, data = pxyz)))
+```
+
+## Testing for above-threshold mean differences between groups
+
+We will use a bootstrap approach to consider the uncertainty on the mean difference between groups when comparing it to a threshold value of 1 JND. Normally it would be unnecessary to do this for Mouth-Roof and Tongue, since the test of separation indicates these are not discriminable. Therefore, even if their mean differences are above 1 JND, males and females would not be considered different, and it would just indicate that within-group variation is also high. But for illustrative purposes, we will analyze all body parts.
+
+```{r boot2, cache=TRUE}
+# Groups
+bootds <- bootcentroidDS(model, group, n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
+
+bootds
+```
+
+We can see that, though labium is statistically significant, the distance between groups cannot be considered to be above threshold.:
+
+```{r}
+plot(bootds[,1], ylim=c(0, 2), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+
+abline(h=1, lty=3, lwd=2)
+segments(1, bootds[,2], 1, bootds[,3], lwd=2)
+
+axis(1, at=1, labels='Labials')
+```
+
+# Approach 3: Bayesian multi-response model using MCMCglmm
+
+we can extract both statistical and perceptual information from the posterior distribution of a bayesian analysis using a multi-response model and the package MCMCglmm. In this analysis, we will estimate the variance-covariance structure, so the assumption of homogeneity of variances is relaxed.
+
+Before we do that, we will center all cartesian variables on the female means --- this way, since the model does not have an intercept, male estimates and pMCMC can be interpreted as the effect of sex on each response (X, Y and Z). **This step is essential if we want to interpret model estimates as difference estimates**:
+
+```{r}
+# get perceptual xyz and group vector
+pxyz <- jnd2xyz(deltaS)
+pxyz$group <- substring(names(specs), 1, 1)[-1]
+
+# Centering variables to the mean of the first group (in this case, F)
+pxyz.c <- pxyz
+pxyz.c[,1:3] <- sweep(as.matrix(pxyz[,1:3]), 2, 
+                        as.matrix(aggregate(pxyz[,1:3], list(pxyz[,4]), mean)[1,-1]), '-')
+```
+
+## Testing for separation among groups
+
+Below we will run the models, but for simplicity we will only show the verbose output for the tests on the labials.
+
+```{r mcmcglmm, cache=TRUE}
+# Running MCMCglmm models with default priors
+mcmcres <- MCMCglmm(
+  fixed = cbind(x,y,z) ~ trait:group - 1,
+  rcov = ~us(trait):units,
+  family = rep('gaussian', 3),
+  data = pxyz.c,
+  nit=11000, burnin=1000, thin=10,
+  verbose = FALSE
+  )
+```
+
+Chains seem to be mixing ok-ish:
+
+```{r}
+plot(mcmcres$VCV, density = FALSE)
+plot(mcmcres$Sol, density = FALSE)
+```
+
+We can see that the posterior estimates approximate the data fairly well (though the chain could probably have been run for a little longer):
+
+```{r}
+summary(mcmcres)
+
+# checking if model estimates approximate empirical means
+# First column = Females, second column = Males
+# (remember: we centered on Female means, so all female estimates should be zero)
+round(as.matrix(aggregate(pxyz.c[,c('x','y','z')], by= list(pxyz.c[,'group']), mean)[,-1]), 4)
+round(matrix(summary(mcmcres$Sol)$statistics[,'Mean'], nrow=2, byrow=TRUE), 4)
+```
+
+The results above already indicate that the groups are statistically different along one of the axes (x). Some people might consider this to be subject to issues of multiple comparisons, because we are considering groups to be different if they are different in **any** (i.e. at least 1) dimension, not **all** dimensions together. 
+
+We don't agree, because the distributions of each response variables are not being calculated independently. Their multivariate nature of the responses is accounted for and the model is estimating their covariances --- so it's **not** the same as, say, testing each of them individually. 
+
+Nonetheless, we can obtain an empirical P-value from the MCMC chain that is analogous to a Wald test, that is, testing if **all** responses are **jointly** different than zero, by estimating the ellipsoid representing its joint credible interval and seeing how many iterations of the MCMC chain include zero:
+
+
+```{r}
+# function modified from: https://stat.ethz.ch/pipermail/r-help/2006-September/113184.html
+
+multimcmcpval <- function(samp)
+{
+   ## elementary version that creates an empirical p-value for the
+   ## hypothesis that the columns of samp have mean zero versus a
+   ## general multivariate distribution with elliptical contours.
+
+   ## differences from the mean standardized by the observed
+   ## variance-covariance factor
+   std <- backsolve(chol(var(samp)),
+                    cbind(0, t(samp)) - colMeans(samp),
+                    transpose = TRUE)
+   sqdist <- colSums(std * std)
+   #sum(sqdist[-1] > sqdist[1])/nrow(samp)
+   mean(sqdist[-1] > sqdist[1])
+}
+
+multimcmcpval(mcmcres$Sol[,4:6])
+```
+
+## Testing for above-threshold mean differences between groups
+
+We will use the posterior distributions of estimates from male and female xyz values to estimate their mean differences along with the credible intervals along these estimates, comparing them to a threshold value of 1 JND.
+
+```{r}
+dmcmc <- apply(mcmcres$Sol, 1, function(x) as.numeric(dist(rbind(x[1:3], x[4:6]))))
+
+credibleints <- cbind(
+posterior.mode(mcmc(dmcmc)),
+HPDinterval(mcmc(dmcmc))
+)
+
+colnames(credibleints)[1] <- 'posteriormode'
+
+credibleints
+
+plot(density(dmcmc))
+abline(v=1, lty=3)
+```
+
+
+# Comparing Bayesian vs. Bootstrap mean difference estimates
+
+We can compare what we obtain from the Bayesian approach with the results from the Bootstrap:
+
+```{r}
+palette <- rcbalpha(1, 4, 'Set1')
+
+plot(0.9, bootds[,'measured.dS'], xlim=c(0.5, 1.5), ylim=c(0, 2.5), pch=21, col=NULL, bg=palette[3], cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+
+segments(0.9, bootds[,'CI.lwr'], 0.9, bootds[,'CI.upr'], lwd=2, col=palette[3])
+
+points(1.1, credibleints[,'posteriormode'], pch=21, bg=palette[4], cex=2, col=NULL)
+
+segments(1.1, credibleints[,'lower'], 1.1, credibleints[,'upper'], lwd=2, col=palette[4])
+
+abline(h=1, lty=3, lwd=2)
+
+
+axis(1, at=1, labels="Labials")
+
+legend('topright', pch=21, pt.cex=1.6, col=palette[3:4], lwd=2, pt.bg=palette[3:4], legend=c('Bootsrap estimate', 'Bayesian posterior'))
+
+```
