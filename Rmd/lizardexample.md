@@ -1,15 +1,12 @@
-Worked examples
+Worked examples and different approaches
 ================
 
--   [Worked example with different approaches](#worked-example-with-different-approaches)
-    -   [The Data](#the-data)
-    -   [Group separation, approach 1: distance-based PERMANOVA](#group-separation-approach-1-distance-based-permanova)
-    -   [Group separation, approach 2: Cartesian MANOVA](#group-separation-approach-2-cartesian-manova)
-    -   [Test for above-threshold distance using bootstrap](#test-for-above-threshold-distance-using-bootstrap)
-    -   [Bayesian approach using MCMCglmm](#bayesian-approach-using-mcmcglmm)
-
-Worked example with different approaches
-========================================
+-   [The Data](#the-data)
+-   [Group separation, approach 1: distance-based PERMANOVA](#group-separation-approach-1-distance-based-permanova)
+-   [Group separation, approach 2: Cartesian MANOVA](#group-separation-approach-2-cartesian-manova)
+-   [Test for above-threshold distance using bootstrap](#test-for-above-threshold-distance-using-bootstrap)
+-   [Bayesian approach using MCMCglmm](#bayesian-approach-using-mcmcglmm)
+-   [Comparing Bayesian vs. Bootstrap estimates](#comparing-bayesian-vs.-bootstrap-estimates)
 
 First, we need to install the bleeding edge version of pavo:
 
@@ -72,11 +69,12 @@ Reflectance data from four body regions of male and female *Ctenophorus ornatus*
 Calculate deltaS according to conspecific (tetrachromatic) visual system
 
 ``` r
-specs <- list(all = as.rspec(read.csv('data/dichromatism/combined.csv'), interp = FALSE),
+specs <- list(
               lab = as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE),
               throat = as.rspec(read.csv('data/dichromatism/throat.csv'), interp = FALSE),
               roof = as.rspec(read.csv('data/dichromatism/roof.csv'), interp = FALSE),
-              tongue = as.rspec(read.csv('data/dichromatism/tongue.csv'), interp = FALSE))
+              tongue = as.rspec(read.csv('data/dichromatism/tongue.csv'), interp = FALSE)
+              )
 
 # Ctenophorus ornatus
 liz_vis <- sensmodel(c(360, 440, 493, 571)) 
@@ -142,17 +140,19 @@ Group separation, approach 1: distance-based PERMANOVA
 
 ``` r
 # Setup distance matrices & groupings for each body part
-mat <- list(all = distmat(deltaS$all),
+mat <- list(
             lab = distmat(deltaS$lab),
             throat = distmat(deltaS$throat),
             roof = distmat(deltaS$roof),
-            tongue = distmat(deltaS$tongue))
+            tongue = distmat(deltaS$tongue)
+            )
 
-group <- list(all = paste0(substring(rownames(as.matrix(mat$all)), nchar(rownames(as.matrix(mat$all)))), substring(rownames(as.matrix(mat$all)), 1, 1)),
+group <- list(
               lab = substring(rownames(as.matrix(mat$lab)), 1, 1),
               throat = substring(rownames(as.matrix(mat$throat)), 1, 1),
               roof = substring(rownames(as.matrix(mat$roof)), 1, 1),
-              tongue = substring(rownames(as.matrix(mat$tongue)), 1, 1))
+              tongue = substring(rownames(as.matrix(mat$tongue)), 1, 1)
+              )
 ```
 
 Fist, let's test the assumption of homogeneity of variances
@@ -221,12 +221,7 @@ TukeyHSD(betadisper(mat$lab, group$lab))
     ## M-F -0.4365211 -0.7426987 -0.1303434 0.0059932
 
 ``` r
-cat('Sample sizes: \n')
-```
-
-    ## Sample sizes:
-
-``` r
+# Sample sizes
 table(group$lab)
 ```
 
@@ -444,9 +439,12 @@ Bayesian approach using MCMCglmm
 
 we can extract both statistical and perceptual information from the posterior distribution of a bayesian analysis using a multi-response model and the package MCMCglmm. In this analysis, we will estimate the variance-covariance structure, so the assumption of homogeneity of variances is relaxed.
 
-Below we will run the models (we will only show the verbose output for the tests on the labials, but the code below will obtain the information for all body parts). Before we do that, we will center all cartesian variables on the female means --- this way, male estimates and pMCMC can be interpreted as being different from zero:
+Below we will run the models (we will only show the verbose output for the tests on the labials, but the code below will obtain the information for all body parts).
+
+Before we do that, we will center all cartesian variables on the female means --- this way, since the model does not have an intercept, male estimates and pMCMC can be interpreted as the effect of sex on each response (X, Y and Z):
 
 ``` r
+# Centering variables
 pxyz$lab[, -4] <- sweep(as.matrix(pxyz$lab[,-4]), 2, 
                         as.matrix(aggregate(pxyz$lab[,-4], list(pxyz$lab[,4]), mean)[1,-1]), '-') 
 
@@ -458,6 +456,8 @@ pxyz$roof[, -4] <- sweep(as.matrix(pxyz$roof[,-4]), 2,
 
 pxyz$tongue[, -4] <- sweep(as.matrix(pxyz$tongue[,-4]), 2, 
                         as.matrix(aggregate(pxyz$tongue[,-4], list(pxyz$tongue[,4]), mean)[1,-1]), '-') 
+
+# Running MCMCglmm models with default priors
 
 mcmclab <- MCMCglmm(
   fixed = cbind(x,y,z) ~ trait:group - 1,
@@ -510,7 +510,7 @@ plot(mcmclab$Sol, density = FALSE)
 
 ![](../output/figures/examples/lizard_fig_unnamed-chunk-9-2.jpeg)
 
-We can see that the posterior estimates approximate the data well:
+We can see that the posterior estimates approximate the data fairly well (though the chain could probably have been run for a little longer):
 
 ``` r
 summary(mcmclab)
@@ -564,7 +564,9 @@ matrix(summary(mcmclab$Sol)$statistics[,'Mean'], nrow=2, byrow=TRUE)
     ## [1,]  0.005192422  0.007171317 -0.001778172
     ## [2,] -1.246883273 -0.327334010  0.065786102
 
-The results above already indicate that the groups are statistically different along one of the axes (x). Some people might consider this to still be subject to multiple comparisons, because we are considering groups to be different if they are different in at least one dimension. We don't agree, because the distributions of each response variables are being calculated while taking into consideration their covariances --- so it's not the same as, say, testing each of them individually. Nonetheless, we can conduct a test analogous to a Wald test, and test if **ALL** responses are different than zero, by estimating an hyperdimensional ellipsoid representing its joint credible interval:
+The results above already indicate that the groups are statistically different along one of the axes (x). Some people might consider this to still be subject to issues of multiple comparisons, because we are considering groups to be different if they are different in at least one dimension. We don't agree, because the distributions of each response variables are not being calculated independently but accounting for their multivariate nature and estimating their covariances --- so it's not the same as, say, testing each of them individually.
+
+Nonetheless, we can conduct a test analogous to a Wald test, and test if **all** responses are **jointly** different than zero, by estimating the ellipsoid representing its joint credible interval:
 
 ``` r
 # function modified from: https://stat.ethz.ch/pipermail/r-help/2006-September/113184.html
@@ -581,7 +583,8 @@ multimcmcpval <- function(samp)
                     cbind(0, t(samp)) - colMeans(samp),
                     transpose = TRUE)
    sqdist <- colSums(std * std)
-   sum(sqdist[-1] > sqdist[1])/nrow(samp)
+   #sum(sqdist[-1] > sqdist[1])/nrow(samp)
+   mean(sqdist[-1] > sqdist[1])
 }
 
 multimcmcpval(mcmclab$Sol[,4:6])
@@ -607,6 +610,8 @@ multimcmcpval(mcmctongue$Sol[,4:6])
 
     ## [1] 0.033
 
+Interestingly, the tongue is coming out as significantly different, likely a result of the differences in distribution between males and females (see first figure).
+
 Now we can test if the posterior distances between centroids are larger than 1JND
 
 ``` r
@@ -623,6 +628,9 @@ plot(density(dmcmctongue), main='Tongue'); abline(v=1, lty=3, lwd=2)
 ```
 
 ![](../output/figures/examples/lizard_fig_unnamed-chunk-12-1.jpeg)
+
+Comparing Bayesian vs. Bootstrap estimates
+------------------------------------------
 
 We can compare what we obtain from the Bayesian approach with the results from the Bootstrap:
 
@@ -649,20 +657,20 @@ row.names(credibleints) <- c("Labium", "Throat", "Roof", "Tongue")
 
 palette <- rcbalpha(1, 4, 'Set1')
 
-plot(y=bootres[,1], x=c(0.8, 1.8, 2.8, 3.8), xlim=c(0.5,4.5), ylim=c(0, 2.5), pch=21, col=NULL, bg=palette[3], cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+plot(y=bootres[,1], x=c(0.9, 1.9, 2.9, 3.9), xlim=c(0.5,4.5), ylim=c(0, 2.5), pch=21, col=NULL, bg=palette[3], cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
 
-segments(c(0.8, 1.8, 2.8, 3.8), bootres[,2], c(0.8, 1.8, 2.8, 3.8), bootres[,3], lwd=2, col=palette[3])
+segments(c(0.9, 1.9, 2.9, 3.9), bootres[,2], c(0.9, 1.9, 2.9, 3.9), bootres[,3], lwd=2, col=palette[3])
 
-points(y=credibleints[,3], x=c(1.2, 2.2, 3.2, 4.2), pch=21, bg=palette[4], cex=2, col=NULL)
+points(y=credibleints[,3], x=c(1.1, 2.1, 3.1, 4.1), pch=21, bg=palette[4], cex=2, col=NULL)
 
-segments(c(1.2, 2.2, 3.2, 4.2), credibleints[,1], c(1.2, 2.2, 3.2, 4.2), credibleints[,2], lwd=2, col=palette[4])
+segments(c(1.1, 2.1, 3.1, 4.1), credibleints[,1], c(1.1, 2.1, 3.1, 4.1), credibleints[,2], lwd=2, col=palette[4])
 
 abline(h=1, lty=3, lwd=2)
 
 
 axis(1, at=1:4, labels=rownames(bootres))
 
-legend('topright', pch=21, pt.cex=1.6, col=palette[3:4], lwd=2, pt.bg=palette[3:4], legend=c('Bootsrap', 'Bayesian posterior'))
+legend('topright', pch=21, pt.cex=1.6, col=palette[3:4], lwd=2, pt.bg=palette[3:4], legend=c('Bootsrap estimate', 'Bayesian posterior'))
 ```
 
 ![](../output/figures/examples/lizard_fig_unnamed-chunk-13-1.jpeg)
