@@ -3,7 +3,7 @@
 # groups = vector defining the groups to be compared
 # boot.n = number of bootstrap replicates
 # alpha = confidence interval
-# ... = attributes passed to coldist
+# ... = REQUIRED: attributes passed to coldist (n, weber, qcatch, etc...)
 
 bootcentroidDS <- function(dat, groups, boot.n=1000, alpha=0.95, ...){
   
