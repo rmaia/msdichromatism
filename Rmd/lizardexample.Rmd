@@ -1,0 +1,424 @@
+---
+title: "Worked examples"
+output: 
+# html_document:
+#   keep_md: yes
+# md_document:
+#   variant: markdown_github
+  github_document:
+    dev: jpeg
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      fig.path='../output/figures/examples/lizard_fig_',
+                      #fig.height = 10,
+                      cache.path = '../output/cache/examples/lizard_cache_')
+knitr::opts_knit$set(root.dir=normalizePath(".."))
+
+set.seed(3128)
+
+```
+
+# Worked example with different approaches
+
+First, we need to install the bleeding edge version of pavo:
+
+```{r include=TRUE, message=FALSE}
+devtools::install_github('rmaia/pavo@jnd2xyz')
+```
+
+load the necessary packages and functions:
+
+```{r fxns, include=TRUE, message=FALSE}
+require(pavo)
+require(MCMCglmm)
+require(scatterplot3d)
+require(gridExtra)
+require(vegan)
+require(MASS)
+require(RColorBrewer)
+
+# load aesthetic functions (plot, make colors transparent)
+source('R/aesthetic.R')
+
+# load function to convert JND to cartesian coordinates
+source('R/jnd2xyz.R')
+
+# load function for bootstrap
+source('R/bootstrapcentroiddS.R')
+
+# Distance matrix generator
+distmat <- function(x){
+  coldistres <- as.matrix(rbind(x[ ,c(1,2,3)], x[ ,c(2,1,3)]))
+  uniquepatches <-  unique(c(coldistres[,1], coldistres[,2]))
+  
+  M <- matrix(nrow=length(uniquepatches), ncol=length(uniquepatches))
+  
+  rownames(M) <- colnames(M) <- uniquepatches
+  
+  M[coldistres[,1:2] ] <- coldistres[,3]
+  M[coldistres[,2:1] ] <- coldistres[,3]
+  
+  class(M) <- 'numeric'
+  M[is.na(M)] <- 0
+  
+  grouping <- as.factor(gsub('[0-9]','', rownames(M)))
+  
+  M <- as.dist(M)
+  M
+  }
+
+#color palette
+palette <- rcbalpha(0.8, 4, 'Set1')
+```
+
+## The Data
+
+Reflectance data from four body regions of male and female _Ctenophorus ornatus_ (Whiting et al. 2015, Biol J Linn Soc). Labium, throat, tongue, and mouth-roof.
+
+**Question:** Which body regions are sexually dichromatic?
+
+Calculate deltaS according to conspecific (tetrachromatic) visual system
+
+```{r message=FALSE, warning=FALSE}
+
+specs <- list(all = as.rspec(read.csv('data/dichromatism/combined.csv'), interp = FALSE),
+              lab = as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE),
+              throat = as.rspec(read.csv('data/dichromatism/throat.csv'), interp = FALSE),
+              roof = as.rspec(read.csv('data/dichromatism/roof.csv'), interp = FALSE),
+              tongue = as.rspec(read.csv('data/dichromatism/tongue.csv'), interp = FALSE))
+
+# Ctenophorus ornatus
+liz_vis <- sensmodel(c(360, 440, 493, 571)) 
+names(liz_vis) <- c('wl', 'u', 's', 'm', 'l')
+
+models <- lapply(specs, vismodel, visual = liz_vis, relative = FALSE, qcatch='Qi')
+
+spaces <- lapply(models, colspace)
+
+deltaS <- lapply(models, coldist, achro = FALSE, n = c(1,1,3.5,6), 
+                                  weber = 0.1, noise = "neural")
+```
+
+Visualise
+```{r liz_spectcs, fig.width=6, fig.height=9, message=FALSE, warning=FALSE}
+layout(matrix(c(1, 2, 3, 4, 5, 6, 7, 8), 4, 2, byrow = TRUE))
+
+aggplot(specs[['lab']], by=gsub("[0-9].*","",names(specs[['lab']])), lwd=3, ylim=c(0,50))
+text(x=grconvertX(0.15,"npc"), y=grconvertY(0.85, "npc"), cex=3, pos=3, "Labials") 
+
+scatterplot3d(spaces[['lab']][,c('x','y','z')],  
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['lab']]))[-1], 
+                             labels=palette[1:2])),
+      box=FALSE, pch=21, cex.symbols=2, color=NA,
+      x.ticklabs='', y.ticklabs='', z.ticklabs='', xlab='', ylab='', zlab='')
+
+
+aggplot(specs[['throat']], by=gsub("[0-9].*","",names(specs[['throat']])), lwd=3, ylim=c(0,50))
+text(x=grconvertX(0.15,"npc"), y=grconvertY(0.85, "npc"), cex=3, pos=3, "Throat")
+
+scatterplot3d(spaces[['throat']][,c('x','y','z')],  
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['throat']]))[-1],
+                             labels=palette[1:2])),
+      box=FALSE, pch=21, cex.symbols=2, color=NA,
+      x.ticklabs='', y.ticklabs='', z.ticklabs='', xlab='', ylab='', zlab='')
+
+
+aggplot(specs[['roof']], by=gsub("[0-9].*","",names(specs[['roof']])), lwd=3, ylim=c(0,50))
+text(x=grconvertX(0.15,"npc"), y=grconvertY(0.85, "npc"), cex=3, pos=3, "Roof")
+
+scatterplot3d(spaces[['roof']][,c('x','y','z')],  
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['roof']]))[-1],
+                             labels=palette[1:2])),
+      box=FALSE, pch=21, cex.symbols=2, color=NA,
+      x.ticklabs='', y.ticklabs='', z.ticklabs='', xlab='', ylab='', zlab='')
+
+
+aggplot(specs[['tongue']], by=gsub("[0-9].*","",names(specs[['tongue']])), lwd=3, ylim=c(0,50))
+text(x=grconvertX(0.15,"npc"), y=grconvertY(0.85, "npc"), cex=3, pos=3, "Tongue")
+
+scatterplot3d(spaces[['tongue']][,c('x','y','z')],  
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['tongue']]))[-1],
+                             labels=palette[1:2])),
+      box=FALSE, pch=21, cex.symbols=2, color=NA,
+      x.ticklabs='', y.ticklabs='', z.ticklabs='', xlab='', ylab='', zlab='')
+```
+
+## Group separation, approach 1: distance-based PERMANOVA
+
+```{r}
+# Setup distance matrices & groupings for each body part
+mat <- list(all = distmat(deltaS$all),
+            lab = distmat(deltaS$lab),
+            throat = distmat(deltaS$throat),
+            roof = distmat(deltaS$roof),
+            tongue = distmat(deltaS$tongue))
+
+group <- list(all = paste0(substring(rownames(as.matrix(mat$all)), nchar(rownames(as.matrix(mat$all)))), substring(rownames(as.matrix(mat$all)), 1, 1)),
+              lab = substring(rownames(as.matrix(mat$lab)), 1, 1),
+              throat = substring(rownames(as.matrix(mat$throat)), 1, 1),
+              roof = substring(rownames(as.matrix(mat$roof)), 1, 1),
+              tongue = substring(rownames(as.matrix(mat$tongue)), 1, 1))
+```
+
+Fist, let's test the assumption of homogeneity of variances
+
+```{r}
+anova(betadisper(mat$lab, group$lab))
+anova(betadisper(mat$throat, group$throat))
+anova(betadisper(mat$roof, group$roof))
+anova(betadisper(mat$tongue, group$tongue))
+```
+
+Throat has unequal variances, with female variances being larger than male variances --- which can be a problem, since femals also have the smallest sample size of the two groups. When this assumption is violated but the largest group has the largest variance, it usually isn't a big problem. But in this case, those results should be treated with caution.
+
+```{r}
+TukeyHSD(betadisper(mat$lab, group$lab))
+
+cat('Sample sizes: \n')
+table(group$lab)
+```
+
+Permutational MANOVA:
+
+```{r permanova, cache=TRUE}
+# Labium
+adonis(mat$lab ~ group$lab)
+
+# Throat
+adonis(mat$throat ~ group$throat)
+
+# Mouth-roof
+adonis(mat$roof ~ group$roof)
+
+# Tongue
+adonis(mat$tongue ~ group$tongue)
+
+```
+
+## Group separation, approach 2: Cartesian MANOVA
+
+First, we need to convert our distances into perceptually-proportional cartesian coordinates:
+
+```{r}
+pxyz <- list(
+    lab = data.frame(jnd2xyz(deltaS$lab), group=substring(names(specs$lab), 1, 1)[-1]),
+    throat = data.frame(jnd2xyz(deltaS$throat), group=substring(names(specs$throat), 1, 1)[-1]),
+    roof = data.frame(jnd2xyz(deltaS$roof), group=substring(names(specs$roof), 1, 1)[-1]),
+    tongue = data.frame(jnd2xyz(deltaS$tongue), group=substring(names(specs$tongue), 1, 1)[-1])
+    )
+
+```
+
+... add test of variances ...
+
+run MANOVA on cartesian coordinates
+
+```{r}
+summary(manova(lm(cbind(x,y,z)~group, data = pxyz$lab)))
+summary(manova(lm(cbind(x,y,z)~group, data = pxyz$throat)))
+summary(manova(lm(cbind(x,y,z)~group, data = pxyz$roof)))
+summary(manova(lm(cbind(x,y,z)~group, data = pxyz$tongue)))
+```
+
+## Test for above-threshold distance using bootstrap
+
+Add grouping variable to raw models, then bootstrap centroids:
+
+```{r boot, cache=TRUE}
+# Groups
+models$lab$group <- substring(rownames(models$lab), 1, 1)
+models$throat$group <- substring(rownames(models$throat), 1, 1)
+models$roof$group <- substring(rownames(models$roof), 1, 1)
+models$tongue$group <- substring(rownames(models$tongue), 1, 1)
+
+# labium
+laboot <- bootcentroidDS(models$lab[,1:4], models$lab$group, 
+                         n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
+
+# throat
+thboot <- bootcentroidDS(models$throat[,1:4], models$throat$group, 
+                         n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
+
+# roof
+roboot <- bootcentroidDS(models$roof[,1:4], models$roof$group, 
+                         n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
+
+# tongue
+toboot <- bootcentroidDS(models$tongue[,1:4], models$tongue$group, 
+                         n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
+
+```
+
+We can see that, though labium is statistically significant, the distance between groups cannot be considered to be above threshold:
+
+```{r}
+bootres <- rbind(laboot, thboot, roboot, toboot)
+rownames(bootres) <- c('Labium', 'Throat', 'Roof', 'Tongue')
+
+bootres
+
+plot(bootres[,1], xlim=c(0.5, 4.5), ylim=c(0, 2.2), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+
+abline(h=1, lty=3, lwd=2)
+segments(1:4, bootres[,2], 1:4, bootres[,3], lwd=2)
+
+axis(1, at=1:4, labels=rownames(bootres))
+
+```
+
+## Bayesian approach using MCMCglmm
+
+we can extract both statistical and perceptual information from the posterior distribution of a bayesian analysis using a multi-response model and the package MCMCglmm. In this analysis, we will estimate the variance-covariance structure, so the assumption of homogeneity of variances is relaxed.
+
+Below we will run the models (we will only show the verbose output for the tests on the labials, but the code below will obtain the information for all body parts). Before we do that, we will center all cartesian variables on the female means --- this way, male estimates and pMCMC can be interpreted as being different from zero:
+
+```{r mcmcglmm, cache=TRUE}
+pxyz$lab[, -4] <- sweep(as.matrix(pxyz$lab[,-4]), 2, 
+                        as.matrix(aggregate(pxyz$lab[,-4], list(pxyz$lab[,4]), mean)[1,-1]), '-') 
+
+pxyz$throat[, -4] <- sweep(as.matrix(pxyz$throat[,-4]), 2, 
+                        as.matrix(aggregate(pxyz$throat[,-4], list(pxyz$throat[,4]), mean)[1,-1]), '-') 
+
+pxyz$roof[, -4] <- sweep(as.matrix(pxyz$roof[,-4]), 2, 
+                        as.matrix(aggregate(pxyz$roof[,-4], list(pxyz$roof[,4]), mean)[1,-1]), '-') 
+
+pxyz$tongue[, -4] <- sweep(as.matrix(pxyz$tongue[,-4]), 2, 
+                        as.matrix(aggregate(pxyz$tongue[,-4], list(pxyz$tongue[,4]), mean)[1,-1]), '-') 
+
+mcmclab <- MCMCglmm(
+  fixed = cbind(x,y,z) ~ trait:group - 1,
+  rcov = ~us(trait):units,
+  family = rep('gaussian', 3),
+  data = pxyz$lab,
+  nit=11000, burnin=1000, thin=10,
+  verbose = FALSE
+)
+
+mcmcthroat <- MCMCglmm(
+  fixed = cbind(x,y,z) ~ trait:group - 1,
+  rcov = ~us(trait):units,
+  family = rep('gaussian', 3),
+  data = pxyz$throat,
+  nit=11000, burnin=1000, thin=10,
+  verbose = FALSE
+)
+
+mcmcroof <- MCMCglmm(
+  fixed = cbind(x,y,z) ~ trait:group - 1,
+  rcov = ~us(trait):units,
+  family = rep('gaussian', 3),
+  data = pxyz$roof,
+  nit=11000, burnin=1000, thin=10,
+  verbose = FALSE
+)
+
+mcmctongue <- MCMCglmm(
+  fixed = cbind(x,y,z) ~ trait:group - 1,
+  rcov = ~us(trait):units,
+  family = rep('gaussian', 3),
+  data = pxyz$tongue,
+  nit=11000, burnin=1000, thin=10,
+  verbose = FALSE
+)
+```
+
+Chains seem to be mixing ok-ish:
+
+```{r}
+plot(mcmclab$VCV, density = FALSE)
+plot(mcmclab$Sol, density = FALSE)
+```
+
+We can see that the posterior estimates approximate the data well:
+
+```{r}
+summary(mcmclab)
+
+aggregate(pxyz$lab[,c('x','y','z')], by= list(pxyz$lab[,'group']), mean)
+matrix(summary(mcmclab$Sol)$statistics[,'Mean'], nrow=2, byrow=TRUE)
+```
+
+The results above already indicate that the groups are statistically different along one of the axes (x). Some people might consider this to still be subject to multiple comparisons, because we are considering groups to be different if they are different in at least one dimension. We don't agree, because the distributions of each response variables are being calculated while taking into consideration their covariances --- so it's not the same as, say, testing each of them individually. Nonetheless, we can conduct a test analogous to a Wald test, and test if **ALL** responses are different than zero, by estimating an hyperdimensional ellipsoid representing its joint credible interval:
+
+
+```{r}
+# function modified from: https://stat.ethz.ch/pipermail/r-help/2006-September/113184.html
+
+multimcmcpval <- function(samp)
+{
+   ## elementary version that creates an empirical p-value for the
+   ## hypothesis that the columns of samp have mean zero versus a
+   ## general multivariate distribution with elliptical contours.
+
+   ## differences from the mean standardized by the observed
+   ## variance-covariance factor
+   std <- backsolve(chol(var(samp)),
+                    cbind(0, t(samp)) - colMeans(samp),
+                    transpose = TRUE)
+   sqdist <- colSums(std * std)
+   sum(sqdist[-1] > sqdist[1])/nrow(samp)
+}
+
+multimcmcpval(mcmclab$Sol[,4:6])
+multimcmcpval(mcmcthroat$Sol[,4:6])
+multimcmcpval(mcmcroof$Sol[,4:6])
+multimcmcpval(mcmctongue$Sol[,4:6])
+```
+
+
+
+Now we can test if the posterior distances between centroids are larger than 1JND
+
+
+```{r}
+dmcmclab <- apply(mcmclab$Sol, 1, function(x) as.numeric(dist(rbind(x[1:3], x[4:6]))))
+dmcmcthroat <- apply(mcmcthroat$Sol, 1, function(x) as.numeric(dist(rbind(x[1:3], x[4:6]))))
+dmcmcroof <- apply(mcmcroof$Sol, 1, function(x) as.numeric(dist(rbind(x[1:3], x[4:6]))))
+dmcmctongue <- apply(mcmctongue$Sol, 1, function(x) as.numeric(dist(rbind(x[1:3], x[4:6]))))
+
+par(mfrow=c(2,2))
+plot(density(dmcmclab), main='Labials'); abline(v=1, lty=3, lwd=2)
+plot(density(dmcmcthroat), main='Throat'); abline(v=1, lty=3, lwd=2)
+plot(density(dmcmcroof), main='Mouth Roof'); abline(v=1, lty=3, lwd=2)
+plot(density(dmcmctongue), main='Tongue'); abline(v=1, lty=3, lwd=2)
+```
+
+We can compare what we obtain from the Bayesian approach with the results from the Bootstrap:
+
+```{r}
+credibleints <- data.frame(rbind(
+                      HPDinterval(mcmc(dmcmclab)),
+                      HPDinterval(mcmc(dmcmcthroat)),
+                      HPDinterval(mcmc(dmcmcroof)),
+                      HPDinterval(mcmc(dmcmctongue))
+                      ))
+credibleints$posteriormode <- c(posterior.mode(mcmc(dmcmclab)), 
+                                posterior.mode(mcmc(dmcmcthroat)),
+                                posterior.mode(mcmc(dmcmcroof)),
+                                posterior.mode(mcmc(dmcmctongue))
+                                )
+row.names(credibleints) <- c("Labium", "Throat", "Roof", "Tongue")
+
+
+palette <- rcbalpha(1, 4, 'Set1')
+
+plot(y=bootres[,1], x=c(0.8, 1.8, 2.8, 3.8), xlim=c(0.5,4.5), ylim=c(0, 2.5), pch=21, col=NULL, bg=palette[3], cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+
+segments(c(0.8, 1.8, 2.8, 3.8), bootres[,2], c(0.8, 1.8, 2.8, 3.8), bootres[,3], lwd=2, col=palette[3])
+
+points(y=credibleints[,3], x=c(1.2, 2.2, 3.2, 4.2), pch=21, bg=palette[4], cex=2, col=NULL)
+
+segments(c(1.2, 2.2, 3.2, 4.2), credibleints[,1], c(1.2, 2.2, 3.2, 4.2), credibleints[,2], lwd=2, col=palette[4])
+
+abline(h=1, lty=3, lwd=2)
+
+
+axis(1, at=1:4, labels=rownames(bootres))
+
+legend('topright', pch=21, pt.cex=1.6, col=palette[3:4], lwd=2, pt.bg=palette[3:4], legend=c('Bootsrap', 'Bayesian posterior'))
+
+```
