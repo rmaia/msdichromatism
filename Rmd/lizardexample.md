@@ -96,7 +96,7 @@ Visualise
 layout(matrix(c(1, 2, 3, 4, 5, 6, 7, 8), 4, 2, byrow = TRUE))
 
 aggplot(specs[['lab']], by=gsub("[0-9].*","",names(specs[['lab']])), lwd=3, ylim=c(0,50))
-text(x=grconvertX(0.15,"npc"), y=grconvertY(0.85, "npc"), cex=3, pos=3, "Labials") 
+text(x=grconvertX(0.15,"npc"), y=grconvertY(0.8, "npc"), cex=1.5, pos=3, "Labials") 
 
 scatterplot3d(spaces[['lab']][,c('x','y','z')],  
       bg=as.character(factor(gsub("[0-9].*","",names(specs[['lab']]))[-1], 
@@ -106,7 +106,7 @@ scatterplot3d(spaces[['lab']][,c('x','y','z')],
 
 
 aggplot(specs[['throat']], by=gsub("[0-9].*","",names(specs[['throat']])), lwd=3, ylim=c(0,50))
-text(x=grconvertX(0.15,"npc"), y=grconvertY(0.85, "npc"), cex=3, pos=3, "Throat")
+text(x=grconvertX(0.15,"npc"), y=grconvertY(0.8, "npc"), cex=1.5, pos=3, "Throat")
 
 scatterplot3d(spaces[['throat']][,c('x','y','z')],  
       bg=as.character(factor(gsub("[0-9].*","",names(specs[['throat']]))[-1],
@@ -116,7 +116,7 @@ scatterplot3d(spaces[['throat']][,c('x','y','z')],
 
 
 aggplot(specs[['roof']], by=gsub("[0-9].*","",names(specs[['roof']])), lwd=3, ylim=c(0,50))
-text(x=grconvertX(0.15,"npc"), y=grconvertY(0.85, "npc"), cex=3, pos=3, "Roof")
+text(x=grconvertX(0.15,"npc"), y=grconvertY(0.8, "npc"), cex=1.5, pos=3, "Roof")
 
 scatterplot3d(spaces[['roof']][,c('x','y','z')],  
       bg=as.character(factor(gsub("[0-9].*","",names(specs[['roof']]))[-1],
@@ -126,7 +126,7 @@ scatterplot3d(spaces[['roof']][,c('x','y','z')],
 
 
 aggplot(specs[['tongue']], by=gsub("[0-9].*","",names(specs[['tongue']])), lwd=3, ylim=c(0,50))
-text(x=grconvertX(0.15,"npc"), y=grconvertY(0.85, "npc"), cex=3, pos=3, "Tongue")
+text(x=grconvertX(0.15,"npc"), y=grconvertY(0.8, "npc"), cex=1.5, pos=3, "Tongue")
 
 scatterplot3d(spaces[['tongue']][,c('x','y','z')],  
       bg=as.character(factor(gsub("[0-9].*","",names(specs[['tongue']]))[-1],
@@ -429,7 +429,7 @@ bootres
     ## Tongue   0.3815314 0.12808035 0.8118222
 
 ``` r
-plot(bootres[,1], xlim=c(0.5, 4.5), ylim=c(0, 2.2), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+plot(bootres[,1], xlim=c(0.5, 4.5), ylim=c(0, 2.5), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
 
 abline(h=1, lty=3, lwd=2)
 segments(1:4, bootres[,2], 1:4, bootres[,3], lwd=2)
