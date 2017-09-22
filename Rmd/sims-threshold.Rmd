@@ -161,20 +161,20 @@ centroidPT <- centdistT > 1
 # Plot distributions
 palette <- rcbalpha(0.6, 3, 'Set1')
 
-h1 <- hist(interdistT, breaks=seq(0, ceiling(max(interdistT))+1,by=0.5), plot=F)
-h2 <- hist(intradistT, breaks=seq(0, ceiling(max(intradistT))+1,by=0.5), plot=F)
-h3 <- hist(centdistT, breaks=seq(0, ceiling(max(centdistT))+1,by=0.5), plot=F)
+#h1 <- hist(interdistT, breaks=seq(0, ceiling(max(interdistT))+1,by=0.5), plot=F)
+#h2 <- hist(intradistT, breaks=seq(0, ceiling(max(intradistT))+1,by=0.5), plot=F)
+#h3 <- hist(centdistT, breaks=seq(0, ceiling(max(centdistT))+1,by=0.5), plot=F)
 
-par(mar=c(4,4.5,1.5,1.5))
+#par(mar=c(4,4.5,1.5,1.5))
 
-plot(c(0,h1$breaks), c(0,h1$counts,0), type='s',col=palette[1], lwd=5,
-     ylab='Frequency', xlab='mean distance (JND)',
-     ylim=range(c(h1$counts,h2$counts,h3$counts))* c(0,1.1))
-lines(c(0,h2$breaks), c(0,h2$counts,0), col=palette[2], type='s', lwd=5)
-lines(c(0,h3$breaks), c(0,h3$counts,0), col=palette[3], type='s', lwd=5)
+#plot(c(0,h1$breaks), c(0,h1$counts,0), type='s',col=palette[1], lwd=5,
+#     ylab='Frequency', xlab='mean distance (JND)',
+#     ylim=range(c(h1$counts,h2$counts,h3$counts))* c(0,1.1))
+#lines(c(0,h2$breaks), c(0,h2$counts,0), col=palette[2], type='s', lwd=5)
+#lines(c(0,h3$breaks), c(0,h3$counts,0), col=palette[3], type='s', lwd=5)
 
-legend('topright', col=palette, c('between-group  ','within-group', 'centroid'), 
-       pch=15, pt.cex=2.5, bty='n')
+#legend('topright', col=palette, c('between-group  ','within-group', 'centroid'), 
+#       pch=15, pt.cex=2.5, bty='n')
 
 ```
 
@@ -292,6 +292,7 @@ plot(centdistT, overlapT,  pch=19, col=sigpalT,
 ```
 
 ```{r}
+range(mahdT)
 sessionInfo()
 ```
 
@@ -376,13 +377,22 @@ abline(h=1, lty=3)
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "E") 
 
 
-plot(centdistT~overlapykeT,
+#plot(centdistT~overlapykeT,
+#     ylab='Mean distance (JND)', xlab='Color volume overlap \n(perceptually-corrected, %)',
+#     ylim=plotrange(centdistT), xlim=plotrange(overlapykeT, log=FALSE),
+#     pch=21, bg=sigpalT, col=NA, log='y', yaxt='n')
+#axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+#xis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+#abline(h=1, lty=3)
+
+plot(centdistT~mahdT,
      ylab='Mean distance (JND)', xlab='Color volume overlap \n(perceptually-corrected, %)',
-     ylim=plotrange(centdistT), xlim=plotrange(overlapykeT, log=FALSE),
+     ylim=plotrange(centdistT), xlim=plotrange(mahdT, log=FALSE),
      pch=21, bg=sigpalT, col=NA, log='y', yaxt='n')
 axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
 axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 abline(h=1, lty=3)
+
 
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "F") 
  
