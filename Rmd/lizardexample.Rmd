@@ -27,7 +27,7 @@ set.seed(3128)
 First, we need to install the bleeding edge version of pavo:
 
 ```{r include=TRUE, message=FALSE}
-devtools::install_github('rmaia/pavo@jnd2xyz')
+devtools::install_github('rmaia/pavo')
 ```
 
 load the necessary packages and functions:
@@ -39,37 +39,11 @@ require(scatterplot3d)
 require(gridExtra)
 require(vegan)
 require(MASS)
+require(pbmcapply)
 require(RColorBrewer)
 
 # load aesthetic functions (plot, make colors transparent)
 source('R/aesthetic.R')
-
-# load function to convert JND to cartesian coordinates
-source('R/jnd2xyz.R')
-
-# load function for bootstrap
-source('R/bootstrapcentroiddS.R')
-
-# Distance matrix generator
-distmat <- function(x){
-  coldistres <- as.matrix(rbind(x[ ,c(1,2,3)], x[ ,c(2,1,3)]))
-  uniquepatches <-  unique(c(coldistres[,1], coldistres[,2]))
-  
-  M <- matrix(nrow=length(uniquepatches), ncol=length(uniquepatches))
-  
-  rownames(M) <- colnames(M) <- uniquepatches
-  
-  M[coldistres[,1:2] ] <- coldistres[,3]
-  M[coldistres[,2:1] ] <- coldistres[,3]
-  
-  class(M) <- 'numeric'
-  M[is.na(M)] <- 0
-  
-  grouping <- as.factor(gsub('[0-9]','', rownames(M)))
-  
-  M <- as.dist(M)
-  M
-  }
 
 #color palette
 palette <- rcbalpha(0.8, 4, 'Set1')
@@ -153,10 +127,10 @@ scatterplot3d(spaces[['tongue']][,c('x','y','z')],
 ```{r}
 # Setup distance matrices & groupings for each body part
 mat <- list(
-            lab = distmat(deltaS$lab),
-            throat = distmat(deltaS$throat),
-            roof = distmat(deltaS$roof),
-            tongue = distmat(deltaS$tongue)
+            lab = dist(coldist2mat(deltaS$lab)[['dS']]),
+            throat = dist(coldist2mat(deltaS$throat)[['dS']]),
+            roof = dist(coldist2mat(deltaS$roof)[['dS']]),
+            tongue = dist(coldist2mat(deltaS$tongue)[['dS']])
             )
 
 group <- lapply(mat, function(x) substring(rownames(as.matrix(x)), 1, 1))
@@ -205,23 +179,26 @@ We will use a bootstrap approach to consider the uncertainty on the mean differe
 
 ```{r boot, cache=TRUE}
 # Groups
-models$lab$group <- substring(rownames(models$lab), 1, 1)
-models$throat$group <- substring(rownames(models$throat), 1, 1)
-models$roof$group <- substring(rownames(models$roof), 1, 1)
-models$tongue$group <- substring(rownames(models$tongue), 1, 1)
+groups <- list()
 
-bootds <- lapply(models, function(x) bootcentroidDS(x[,1:4], x[,5], n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE))
+groups$lab <- substring(rownames(models$lab), 1, 1)
+groups$throat <- substring(rownames(models$throat), 1, 1)
+groups$roof <- substring(rownames(models$roof), 1, 1)
+groups$tongue <- substring(rownames(models$tongue), 1, 1)
 
-bootds
+seqs <- names(groups)
 
+bootds <- lapply(seqs, function(x) bootcoldist(models[[x]], groups[[x]], n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE))
+
+bootres <- do.call(rbind, bootds) 
+rownames(bootres) <- c('Labium', 'Throat', 'Roof', 'Tongue')
+
+bootres
 ```
 
 We can see that, though labium is statistically significant, the distance between groups cannot be considered to be above threshold:
 
 ```{r}
-bootres <- do.call(rbind, bootds) 
-rownames(bootres) <- c('Labium', 'Throat', 'Roof', 'Tongue')
-
 plot(bootres[,1], xlim=c(0.5, 4.5), ylim=c(0, 2.5), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
 
 abline(h=1, lty=3, lwd=2)
@@ -263,23 +240,27 @@ We will use a bootstrap approach to consider the uncertainty on the mean differe
 
 ```{r boot2, cache=TRUE}
 # Groups
-models$lab$group <- substring(rownames(models$lab), 1, 1)
-models$throat$group <- substring(rownames(models$throat), 1, 1)
-models$roof$group <- substring(rownames(models$roof), 1, 1)
-models$tongue$group <- substring(rownames(models$tongue), 1, 1)
+groups <- list()
 
-bootds <- lapply(models, function(x) bootcentroidDS(x[,1:4], x[,5], n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE))
+groups$lab <- substring(rownames(models$lab), 1, 1)
+groups$throat <- substring(rownames(models$throat), 1, 1)
+groups$roof <- substring(rownames(models$roof), 1, 1)
+groups$tongue <- substring(rownames(models$tongue), 1, 1)
 
-bootds
+seqs <- names(groups)
+
+bootds <- lapply(seqs, function(x) bootcoldist(models[[x]], groups[[x]], n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE))
+
+bootres <- do.call(rbind, bootds) 
+rownames(bootres) <- c('Labium', 'Throat', 'Roof', 'Tongue')
+
+bootres
 
 ```
 
 We can see that, though labium is statistically significant, the distance between groups cannot be considered to be above threshold:
 
 ```{r}
-bootres <- do.call(rbind, bootds) 
-rownames(bootres) <- c('Labium', 'Throat', 'Roof', 'Tongue')
-
 plot(bootres[,1], xlim=c(0.5, 4.5), ylim=c(0, 2.5), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
 
 abline(h=1, lty=3, lwd=2)
@@ -296,7 +277,6 @@ we can extract both statistical and perceptual information from the posterior di
 Before we do that, we will center all cartesian variables on the female means --- this way, since the model does not have an intercept, male estimates and pMCMC can be interpreted as the effect of sex on each response (X, Y and Z). **This step is essential if we want to interpret model estimates as difference estimates**:
 
 ```{r}
-
 # get perceptual xyz and group vector
 pxyz <- lapply(names(deltaS), function(x) data.frame(
   jnd2xyz(deltaS[[x]]),                           # perceptual xyz
@@ -327,7 +307,7 @@ Below we will run the models, but for simplicity we will only show the verbose o
 # Running MCMCglmm models with default priors
 mcmcres <- lapply(pxyz, function(x) MCMCglmm(
   fixed = cbind(x,y,z) ~ trait:group - 1,
-  rcov = ~us(trait):units,
+  rcov = ~us(at.level(group, 'F'):trait):units + us(at.level(group, 'M'):trait):units,
   family = rep('gaussian', 3),
   data = x,
   nit=11000, burnin=1000, thin=10,
@@ -346,8 +326,6 @@ plot(mcmcres[['lab']]$Sol, density = FALSE)
 We can see that the posterior estimates approximate the data fairly well (though the chain could probably have been run for a little longer):
 
 ```{r}
-summary(mcmcres[['lab']])
-
 # checking if model estimates approximate empirical means
 # First column = Females, second column = Males
 # (remember: we centered on Female means, so all female estimates should be zero)
@@ -355,7 +333,12 @@ round(as.matrix(aggregate(pxyz$lab[,c('x','y','z')], by= list(pxyz$lab[,'group']
 round(matrix(summary(mcmcres[['lab']]$Sol)$statistics[,'Mean'], nrow=2, byrow=TRUE), 4)
 ```
 
-The results above already indicate that the groups are statistically different along one of the axes (x). Some people might consider this to be subject to issues of multiple comparisons, because we are considering groups to be different if they are different in **any** (i.e. at least 1) dimension, not **all** dimensions together. 
+```{r}
+summary(mcmcres[['lab']])
+```
+
+
+The results above already indicate that the groups are statistically different along all of the axes. Some people might consider this to be subject to issues of multiple comparisons, because we are considering groups to be different if they are different in **any** (i.e. at least 1) dimension, not **all** dimensions together. 
 
 We don't agree, because the distributions of each response variables are not being calculated independently. Their multivariate nature of the responses is accounted for and the model is estimating their covariances --- so it's **not** the same as, say, testing each of them individually. 
 
@@ -383,8 +366,6 @@ multimcmcpval <- function(samp)
 
 lapply(mcmcres, function(x) multimcmcpval(x$Sol[,4:6]))
 ```
-
-Interestingly, the tongue is coming out as significantly different, likely a result of the differences in distribution between males and females (see first figure).
 
 ## Testing for above-threshold mean differences between groups
 
@@ -419,9 +400,9 @@ We can compare what we obtain from the Bayesian approach with the results from t
 ```{r}
 palette <- rcbalpha(1, 4, 'Set1')
 
-plot(y=bootres[,'measured.dS'], x=c(0.9, 1.9, 2.9, 3.9), xlim=c(0.5,4.5), ylim=c(0, 2.5), pch=21, col=NULL, bg=palette[3], cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+plot(y=bootres[,'dS.mean'], x=c(0.9, 1.9, 2.9, 3.9), xlim=c(0.5,4.5), ylim=c(0, 2.5), pch=21, col=NULL, bg=palette[3], cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
 
-segments(c(0.9, 1.9, 2.9, 3.9), bootres[,'CI.lwr'], c(0.9, 1.9, 2.9, 3.9), bootres[,'CI.upr'], lwd=2, col=palette[3])
+segments(c(0.9, 1.9, 2.9, 3.9), bootres[,'dS.lwr'], c(0.9, 1.9, 2.9, 3.9), bootres[,'dS.upr'], lwd=2, col=palette[3])
 
 points(y=credibleints[,'posteriormode'], x=c(1.1, 2.1, 3.1, 4.1), pch=21, bg=palette[4], cex=2, col=NULL)
 

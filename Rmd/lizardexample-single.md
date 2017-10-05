@@ -36,27 +36,6 @@ source('R/aesthetic.R')
 
 # load function for bootstrap
 source('R/bootstrapcentroiddS.R')
-
-# Convert coldist() output to a distance matrix
-distmat <- function(x){
-  coldistres <- as.matrix(rbind(x[ ,c(1,2,3)], x[ ,c(2,1,3)]))
-  uniquepatches <-  unique(c(coldistres[,1], coldistres[,2]))
-  
-  M <- matrix(nrow=length(uniquepatches), ncol=length(uniquepatches))
-  
-  rownames(M) <- colnames(M) <- uniquepatches
-  
-  M[coldistres[,1:2] ] <- coldistres[,3]
-  M[coldistres[,2:1] ] <- coldistres[,3]
-  
-  class(M) <- 'numeric'
-  M[is.na(M)] <- 0
-  
-  grouping <- as.factor(gsub('[0-9]','', rownames(M)))
-  
-  M <- as.dist(M)
-  M
-  }
 ```
 
 The Data
@@ -88,7 +67,7 @@ Approach 1: distance-based PERMANOVA
 
 ``` r
 # Setup distance matrices & groupings for each body part
-mat <- distmat(deltaS)
+mat <- dist(coldist2mat(deltaS)[['dS']])
 
 group <- substring(rownames(as.matrix(mat)), 1, 1)
 ```
@@ -106,9 +85,9 @@ anova(bdisp)
     ## Analysis of Variance Table
     ## 
     ## Response: Distances
-    ##           Df  Sum Sq Mean Sq F value   Pr(>F)   
-    ## Groups     1  2.9269 2.92693  9.8202 0.002726 **
-    ## Residuals 57 16.9890 0.29805                    
+    ##           Df  Sum Sq Mean Sq F value    Pr(>F)    
+    ## Groups     1  46.283  46.283  13.518 0.0005246 ***
+    ## Residuals 57 195.162   3.424                      
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -124,8 +103,8 @@ TukeyHSD(bdisp)
     ## Fit: aov(formula = distances ~ group, data = df)
     ## 
     ## $group
-    ##           diff        lwr        upr     p adj
-    ## M-F -0.4470699 -0.7327501 -0.1613896 0.0027261
+    ##         diff       lwr        upr     p adj
+    ## M-F -1.77779 -2.746055 -0.8095249 0.0005246
 
 ``` r
 # Sample sizes
@@ -153,9 +132,9 @@ pmanova
     ## Terms added sequentially (first to last)
     ## 
     ##           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group      1    24.509 24.5094  13.964 0.19678  0.001 ***
-    ## Residuals 57   100.042  1.7551         0.80322           
-    ## Total     58   124.552                 1.00000           
+    ## group      1    455.04  455.04  12.473 0.17954  0.001 ***
+    ## Residuals 57   2079.46   36.48         0.82046           
+    ## Total     58   2534.50                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -172,7 +151,7 @@ bootds
 ```
 
     ##      dS.mean    dS.lwr   dS.upr
-    ## F-M 1.293707 0.8998117 1.759854
+    ## F-M 1.293707 0.9050629 1.766189
 
 We can see that, though labium is statistically significant, the distance between groups cannot be considered to be above threshold.:
 
@@ -227,8 +206,8 @@ bootds <- bootcoldist(model, group, n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achr
 bootds
 ```
 
-    ##      dS.mean    dS.lwr   dS.upr
-    ## F-M 1.293707 0.8483141 1.702685
+    ##      dS.mean   dS.lwr   dS.upr
+    ## F-M 1.293707 0.845325 1.705798
 
 We can see that, though labium is statistically significant, the distance between groups cannot be considered to be above threshold.:
 

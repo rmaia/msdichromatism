@@ -19,7 +19,7 @@ Worked examples and different approaches
 First, we need to install the bleeding edge version of pavo:
 
 ``` r
-devtools::install_github('rmaia/pavo@jnd2xyz')
+devtools::install_github('rmaia/pavo')
 ```
 
 load the necessary packages and functions:
@@ -31,37 +31,11 @@ require(scatterplot3d)
 require(gridExtra)
 require(vegan)
 require(MASS)
+require(pbmcapply)
 require(RColorBrewer)
 
 # load aesthetic functions (plot, make colors transparent)
 source('R/aesthetic.R')
-
-# load function to convert JND to cartesian coordinates
-source('R/jnd2xyz.R')
-
-# load function for bootstrap
-source('R/bootstrapcentroiddS.R')
-
-# Distance matrix generator
-distmat <- function(x){
-  coldistres <- as.matrix(rbind(x[ ,c(1,2,3)], x[ ,c(2,1,3)]))
-  uniquepatches <-  unique(c(coldistres[,1], coldistres[,2]))
-  
-  M <- matrix(nrow=length(uniquepatches), ncol=length(uniquepatches))
-  
-  rownames(M) <- colnames(M) <- uniquepatches
-  
-  M[coldistres[,1:2] ] <- coldistres[,3]
-  M[coldistres[,2:1] ] <- coldistres[,3]
-  
-  class(M) <- 'numeric'
-  M[is.na(M)] <- 0
-  
-  grouping <- as.factor(gsub('[0-9]','', rownames(M)))
-  
-  M <- as.dist(M)
-  M
-  }
 
 #color palette
 palette <- rcbalpha(0.8, 4, 'Set1')
@@ -149,10 +123,10 @@ Approach 1: distance-based PERMANOVA
 ``` r
 # Setup distance matrices & groupings for each body part
 mat <- list(
-            lab = distmat(deltaS$lab),
-            throat = distmat(deltaS$throat),
-            roof = distmat(deltaS$roof),
-            tongue = distmat(deltaS$tongue)
+            lab = dist(coldist2mat(deltaS$lab)[['dS']]),
+            throat = dist(coldist2mat(deltaS$throat)[['dS']]),
+            roof = dist(coldist2mat(deltaS$roof)[['dS']]),
+            tongue = dist(coldist2mat(deltaS$tongue)[['dS']])
             )
 
 group <- lapply(mat, function(x) substring(rownames(as.matrix(x)), 1, 1))
@@ -174,8 +148,8 @@ lapply(bdisp, anova)
     ## 
     ## Response: Distances
     ##           Df  Sum Sq Mean Sq F value   Pr(>F)   
-    ## Groups     1  2.7904 2.79044  8.1507 0.005993 **
-    ## Residuals 57 19.5143 0.34236                    
+    ## Groups     1  48.548  48.548  9.2966 0.003479 **
+    ## Residuals 57 297.662   5.222                    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
@@ -183,25 +157,25 @@ lapply(bdisp, anova)
     ## Analysis of Variance Table
     ## 
     ## Response: Distances
-    ##           Df Sum Sq Mean Sq F value Pr(>F)
-    ## Groups     1  0.031 0.03125   0.037 0.8482
-    ## Residuals 58 49.040 0.84552               
+    ##           Df  Sum Sq Mean Sq F value Pr(>F)
+    ## Groups     1    7.87  7.8716  0.2857  0.595
+    ## Residuals 58 1597.97 27.5512               
     ## 
     ## $roof
     ## Analysis of Variance Table
     ## 
     ## Response: Distances
-    ##           Df Sum Sq Mean Sq F value Pr(>F)
-    ## Groups     1  1.363 1.36296  2.1709 0.1463
-    ## Residuals 55 34.531 0.62784               
+    ##           Df  Sum Sq Mean Sq F value Pr(>F)
+    ## Groups     1   47.07  47.073  1.9366 0.1696
+    ## Residuals 55 1336.91  24.307               
     ## 
     ## $tongue
     ## Analysis of Variance Table
     ## 
     ## Response: Distances
-    ##           Df Sum Sq Mean Sq F value  Pr(>F)  
-    ## Groups     1    3.1 3.10022  5.0227 0.02886 *
-    ## Residuals 58   35.8 0.61724                  
+    ##           Df  Sum Sq Mean Sq F value  Pr(>F)  
+    ## Groups     1  120.44 120.437  5.4805 0.02269 *
+    ## Residuals 58 1274.58  21.975                  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -217,8 +191,8 @@ TukeyHSD(bdisp$tongue)
     ## Fit: aov(formula = distances ~ group, data = df)
     ## 
     ## $group
-    ##          diff        lwr       upr     p adj
-    ## M-F 0.4569122 0.04881091 0.8650135 0.0288602
+    ##         diff       lwr    upr     p adj
+    ## M-F 2.847844 0.4127879 5.2829 0.0226885
 
 ``` r
 # Sample sizes
@@ -241,8 +215,8 @@ TukeyHSD(bdisp$lab)
     ## Fit: aov(formula = distances ~ group, data = df)
     ## 
     ## $group
-    ##           diff        lwr        upr     p adj
-    ## M-F -0.4365211 -0.7426987 -0.1303434 0.0059932
+    ##          diff       lwr        upr     p adj
+    ## M-F -1.820768 -3.016569 -0.6249679 0.0034787
 
 ``` r
 # Sample sizes
@@ -274,9 +248,9 @@ pmanova
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group[[x]]  1    24.509 24.5094  13.964 0.19678  0.001 ***
-    ## Residuals  57   100.042  1.7551         0.80322           
-    ## Total      58   124.552                 1.00000           
+    ## group[[x]]  1    455.04  455.04  12.473 0.17954  0.001 ***
+    ## Residuals  57   2079.46   36.48         0.82046           
+    ## Total      58   2534.50                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
@@ -291,9 +265,9 @@ pmanova
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-    ## group[[x]]  1    42.565  42.565  14.842 0.20376  0.001 ***
-    ## Residuals  58   166.335   2.868         0.79624           
-    ## Total      59   208.901                 1.00000           
+    ## group[[x]]  1     575.0  575.01  7.6523 0.11656  0.001 ***
+    ## Residuals  58    4358.3   75.14         0.88344           
+    ## Total      59    4933.3                 1.00000           
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
@@ -308,9 +282,9 @@ pmanova
     ## Terms added sequentially (first to last)
     ## 
     ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group[[x]]  1     0.563 0.56278 0.52282 0.00942  0.495
-    ## Residuals  55    59.203 1.07642         0.99058       
-    ## Total      56    59.766                 1.00000       
+    ## group[[x]]  1     64.41  64.411  1.7091 0.03014  0.205
+    ## Residuals  55   2072.85  37.688         0.96986       
+    ## Total      56   2137.26                 1.00000       
     ## 
     ## $tongue
     ## 
@@ -322,10 +296,12 @@ pmanova
     ## 
     ## Terms added sequentially (first to last)
     ## 
-    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-    ## group[[x]]  1     2.162  2.1617  1.6293 0.02732  0.223
-    ## Residuals  58    76.953  1.3268         0.97268       
-    ## Total      59    79.115                 1.00000
+    ##            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
+    ## group[[x]]  1    148.29 148.290  3.7639 0.06094  0.033 *
+    ## Residuals  58   2285.07  39.398         0.93906         
+    ## Total      59   2433.36                 1.00000         
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Testing for above-threshold mean differences between groups
 -----------------------------------------------------------
@@ -334,48 +310,32 @@ We will use a bootstrap approach to consider the uncertainty on the mean differe
 
 ``` r
 # Groups
-models$lab$group <- substring(rownames(models$lab), 1, 1)
-models$throat$group <- substring(rownames(models$throat), 1, 1)
-models$roof$group <- substring(rownames(models$roof), 1, 1)
-models$tongue$group <- substring(rownames(models$tongue), 1, 1)
+groups <- list()
 
-bootds <- lapply(models, function(x) bootcentroidDS(x[,1:4], x[,5], n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE))
+groups$lab <- substring(rownames(models$lab), 1, 1)
+groups$throat <- substring(rownames(models$throat), 1, 1)
+groups$roof <- substring(rownames(models$roof), 1, 1)
+groups$tongue <- substring(rownames(models$tongue), 1, 1)
+
+seqs <- names(groups)
+
+bootds <- lapply(seqs, function(x) bootcoldist(models[[x]], groups[[x]], n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE))
+
+bootres <- do.call(rbind, bootds) 
+rownames(bootres) <- c('Labium', 'Throat', 'Roof', 'Tongue')
+
+bootres
 ```
 
-    ## Warning: number of cones not specified; assumed to be 4
-
-    ## Warning: number of cones not specified; assumed to be 4
-
-    ## Warning: number of cones not specified; assumed to be 4
-
-    ## Warning: number of cones not specified; assumed to be 4
-
-``` r
-bootds
-```
-
-    ## $lab
-    ##     measured.dS    CI.lwr   CI.upr
-    ## F-M    1.293707 0.8727416 1.743769
-    ## 
-    ## $throat
-    ##     measured.dS   CI.lwr   CI.upr
-    ## F-M    1.693031 1.119148 2.327343
-    ## 
-    ## $roof
-    ##     measured.dS     CI.lwr    CI.upr
-    ## F-M   0.1990052 0.04603181 0.7221358
-    ## 
-    ## $tongue
-    ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.3815314 0.1280804 0.8118222
+    ##          dS.mean     dS.lwr    dS.upr
+    ## Labium 1.2937069 0.86590442 1.7519105
+    ## Throat 1.6930314 1.13604947 2.3353597
+    ## Roof   0.1990052 0.04531405 0.7471887
+    ## Tongue 0.3815314 0.13061555 0.8266557
 
 We can see that, though labium is statistically significant, the distance between groups cannot be considered to be above threshold:
 
 ``` r
-bootres <- do.call(rbind, bootds) 
-rownames(bootres) <- c('Labium', 'Throat', 'Roof', 'Tongue')
-
 plot(bootres[,1], xlim=c(0.5, 4.5), ylim=c(0, 2.5), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
 
 abline(h=1, lty=3, lwd=2)
@@ -428,7 +388,7 @@ lapply(pxyz, function(x) summary(manova(lm(cbind(x,y,z)~group, data = x))))
     ## 
     ## $roof
     ##           Df   Pillai approx F num Df den Df Pr(>F)
-    ## group      1 0.049607  0.92213      3     53 0.4365
+    ## group      1 0.049607  0.92214      3     53 0.4365
     ## Residuals 55                                       
     ## 
     ## $tongue
@@ -443,48 +403,32 @@ We will use a bootstrap approach to consider the uncertainty on the mean differe
 
 ``` r
 # Groups
-models$lab$group <- substring(rownames(models$lab), 1, 1)
-models$throat$group <- substring(rownames(models$throat), 1, 1)
-models$roof$group <- substring(rownames(models$roof), 1, 1)
-models$tongue$group <- substring(rownames(models$tongue), 1, 1)
+groups <- list()
 
-bootds <- lapply(models, function(x) bootcentroidDS(x[,1:4], x[,5], n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE))
+groups$lab <- substring(rownames(models$lab), 1, 1)
+groups$throat <- substring(rownames(models$throat), 1, 1)
+groups$roof <- substring(rownames(models$roof), 1, 1)
+groups$tongue <- substring(rownames(models$tongue), 1, 1)
+
+seqs <- names(groups)
+
+bootds <- lapply(seqs, function(x) bootcoldist(models[[x]], groups[[x]], n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE))
+
+bootres <- do.call(rbind, bootds) 
+rownames(bootres) <- c('Labium', 'Throat', 'Roof', 'Tongue')
+
+bootres
 ```
 
-    ## Warning: number of cones not specified; assumed to be 4
-
-    ## Warning: number of cones not specified; assumed to be 4
-
-    ## Warning: number of cones not specified; assumed to be 4
-
-    ## Warning: number of cones not specified; assumed to be 4
-
-``` r
-bootds
-```
-
-    ## $lab
-    ##     measured.dS    CI.lwr   CI.upr
-    ## F-M    1.293707 0.8805381 1.751385
-    ## 
-    ## $throat
-    ##     measured.dS   CI.lwr   CI.upr
-    ## F-M    1.693031 1.142767 2.363832
-    ## 
-    ## $roof
-    ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.1990052 0.0558494 0.7005666
-    ## 
-    ## $tongue
-    ##     measured.dS    CI.lwr    CI.upr
-    ## F-M   0.3815314 0.1174271 0.8522395
+    ##          dS.mean     dS.lwr    dS.upr
+    ## Labium 1.2937069 0.86977613 1.7635498
+    ## Throat 1.6930314 1.14019880 2.3954866
+    ## Roof   0.1990052 0.05004628 0.7117269
+    ## Tongue 0.3815314 0.12290372 0.8598305
 
 We can see that, though labium is statistically significant, the distance between groups cannot be considered to be above threshold:
 
 ``` r
-bootres <- do.call(rbind, bootds) 
-rownames(bootres) <- c('Labium', 'Throat', 'Roof', 'Tongue')
-
 plot(bootres[,1], xlim=c(0.5, 4.5), ylim=c(0, 2.5), pch=21, bg=1, cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
 
 abline(h=1, lty=3, lwd=2)
@@ -534,7 +478,7 @@ Below we will run the models, but for simplicity we will only show the verbose o
 # Running MCMCglmm models with default priors
 mcmcres <- lapply(pxyz, function(x) MCMCglmm(
   fixed = cbind(x,y,z) ~ trait:group - 1,
-  rcov = ~us(trait):units,
+  rcov = ~us(at.level(group, 'F'):trait):units + us(at.level(group, 'M'):trait):units,
   family = rep('gaussian', 3),
   data = x,
   nit=11000, burnin=1000, thin=10,
@@ -549,15 +493,34 @@ Chains seem to be mixing ok-ish:
 plot(mcmcres[['lab']]$VCV, density = FALSE)
 ```
 
-![](../output/figures/examples/lizard_fig_unnamed-chunk-12-1.jpeg)
+![](../output/figures/examples/lizard_fig_unnamed-chunk-12-1.jpeg)![](../output/figures/examples/lizard_fig_unnamed-chunk-12-2.jpeg)
 
 ``` r
 plot(mcmcres[['lab']]$Sol, density = FALSE)
 ```
 
-![](../output/figures/examples/lizard_fig_unnamed-chunk-12-2.jpeg)
+![](../output/figures/examples/lizard_fig_unnamed-chunk-12-3.jpeg)
 
 We can see that the posterior estimates approximate the data fairly well (though the chain could probably have been run for a little longer):
+
+``` r
+# checking if model estimates approximate empirical means
+# First column = Females, second column = Males
+# (remember: we centered on Female means, so all female estimates should be zero)
+round(as.matrix(aggregate(pxyz$lab[,c('x','y','z')], by= list(pxyz$lab[,'group']), mean)[,-1]), 4)
+```
+
+    ##            x       y       z
+    ## [1,]  0.0000  0.0000  0.0000
+    ## [2,] -1.1349 -0.4855 -0.3873
+
+``` r
+round(matrix(summary(mcmcres[['lab']]$Sol)$statistics[,'Mean'], nrow=2, byrow=TRUE), 4)
+```
+
+    ##         [,1]    [,2]    [,3]
+    ## [1,] -0.0051  0.0012  0.0125
+    ## [2,] -1.1375 -0.4875 -0.3937
 
 ``` r
 summary(mcmcres[['lab']])
@@ -568,53 +531,107 @@ summary(mcmcres[['lab']])
     ##  Thinning interval  = 10
     ##  Sample size  = 1000 
     ## 
-    ##  DIC: 284.307 
+    ##  DIC: 270.6962 
     ## 
-    ##  R-structure:  ~us(trait):units
+    ##  R-structure:  ~us(at.level(group, "F"):trait):units
     ## 
-    ##                     post.mean  l-95% CI u-95% CI eff.samp
-    ## traitx:traitx.units   0.70071  0.452601   0.9624     1000
-    ## traity:traitx.units  -0.03001 -0.258707   0.2227     1122
-    ## traitz:traitx.units   0.10702  0.006799   0.2132     1000
-    ## traitx:traity.units  -0.03001 -0.258707   0.2227     1122
-    ## traity:traity.units   1.01992  0.680660   1.4255     1000
-    ## traitz:traity.units  -0.36922 -0.522232  -0.2200     1000
-    ## traitx:traitz.units   0.10702  0.006799   0.2132     1000
-    ## traity:traitz.units  -0.36922 -0.522232  -0.2200     1000
-    ## traitz:traitz.units   0.17907  0.114523   0.2494     1000
+    ##                                                               post.mean
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitx.units    1.2383
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitx.units    0.4850
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitx.units   -0.2419
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traity.units    0.4850
+    ## at.level(group, "F"):traity:at.level(group, "F"):traity.units    0.3071
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traity.units    0.2009
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitz.units   -0.2419
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitz.units    0.2009
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitz.units    1.2522
+    ##                                                               l-95% CI
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitx.units  0.59355
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitx.units  0.20365
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitx.units -0.76258
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traity.units  0.20365
+    ## at.level(group, "F"):traity:at.level(group, "F"):traity.units  0.15472
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traity.units -0.06655
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitz.units -0.76258
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitz.units -0.06655
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitz.units  0.57068
+    ##                                                               u-95% CI
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitx.units   1.9289
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitx.units   0.8368
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitx.units   0.3457
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traity.units   0.8368
+    ## at.level(group, "F"):traity:at.level(group, "F"):traity.units   0.5096
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traity.units   0.4750
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitz.units   0.3457
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitz.units   0.4750
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitz.units   1.9399
+    ##                                                               eff.samp
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitx.units     1000
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitx.units     1000
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitx.units     1000
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traity.units     1000
+    ## at.level(group, "F"):traity:at.level(group, "F"):traity.units     1000
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traity.units     1000
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitz.units     1000
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitz.units     1000
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitz.units     1000
+    ## 
+    ##                ~us(at.level(group, "M"):trait):units
+    ## 
+    ##                                                               post.mean
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitx.units   0.31104
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitx.units   0.11386
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitx.units  -0.26037
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traity.units   0.11386
+    ## at.level(group, "M"):traity:at.level(group, "M"):traity.units   0.08334
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traity.units   0.01796
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitz.units  -0.26037
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitz.units   0.01796
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitz.units   1.03461
+    ##                                                               l-95% CI
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitx.units  0.16329
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitx.units  0.04965
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitx.units -0.54135
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traity.units  0.04965
+    ## at.level(group, "M"):traity:at.level(group, "M"):traity.units  0.04566
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traity.units -0.10207
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitz.units -0.54135
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitz.units -0.10207
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitz.units  0.53934
+    ##                                                               u-95% CI
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitx.units   0.4753
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitx.units   0.1940
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitx.units  -0.0483
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traity.units   0.1940
+    ## at.level(group, "M"):traity:at.level(group, "M"):traity.units   0.1309
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traity.units   0.1286
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitz.units  -0.0483
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitz.units   0.1286
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitz.units   1.5471
+    ##                                                               eff.samp
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitx.units   1000.0
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitx.units    786.5
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitx.units   1000.0
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traity.units    786.5
+    ## at.level(group, "M"):traity:at.level(group, "M"):traity.units    838.4
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traity.units   1000.0
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitz.units   1000.0
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitz.units   1000.0
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitz.units   1000.0
     ## 
     ##  Location effects: cbind(x, y, z) ~ trait:group - 1 
     ## 
-    ##                post.mean   l-95% CI   u-95% CI eff.samp  pMCMC    
-    ## traitx:groupF  0.0004106 -0.3043810  0.3103640     1000  0.994    
-    ## traity:groupF -0.0012237 -0.3804630  0.3744444     1000  1.000    
-    ## traitz:groupF  0.0001009 -0.1518630  0.1807687     1000  0.984    
-    ## traitx:groupM -1.2473926 -1.5325616 -0.9307164     1057 <0.001 ***
-    ## traity:groupM -0.3351477 -0.7010905  0.0304231     1000  0.072 .  
-    ## traitz:groupM  0.0687383 -0.0882124  0.2150931     1000  0.392    
+    ##               post.mean  l-95% CI  u-95% CI eff.samp  pMCMC    
+    ## traitx:groupF -0.005126 -0.449229  0.420892     1000  0.982    
+    ## traity:groupF  0.001182 -0.194731  0.216996     1000  0.984    
+    ## traitz:groupF  0.012528 -0.402045  0.432113     1000  0.942    
+    ## traitx:groupM -1.137540 -1.315630 -0.936004     1000 <0.001 ***
+    ## traity:groupM -0.487481 -0.578601 -0.385043     1112 <0.001 ***
+    ## traitz:groupM -0.393673 -0.733143 -0.057056     1000  0.016 *  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-``` r
-# checking if model estimates approximate empirical means
-# First column = Females, second column = Males
-# (remember: we centered on Female means, so all female estimates should be zero)
-round(as.matrix(aggregate(pxyz$lab[,c('x','y','z')], by= list(pxyz$lab[,'group']), mean)[,-1]), 4)
-```
-
-    ##           x       y      z
-    ## [1,]  0.000  0.0000 0.0000
-    ## [2,] -1.249 -0.3306 0.0662
-
-``` r
-round(matrix(summary(mcmcres[['lab']]$Sol)$statistics[,'Mean'], nrow=2, byrow=TRUE), 4)
-```
-
-    ##         [,1]    [,2]   [,3]
-    ## [1,]  0.0004 -0.0012 0.0001
-    ## [2,] -1.2474 -0.3351 0.0687
-
-The results above already indicate that the groups are statistically different along one of the axes (x). Some people might consider this to be subject to issues of multiple comparisons, because we are considering groups to be different if they are different in **any** (i.e. at least 1) dimension, not **all** dimensions together.
+The results above already indicate that the groups are statistically different along all of the axes. Some people might consider this to be subject to issues of multiple comparisons, because we are considering groups to be different if they are different in **any** (i.e. at least 1) dimension, not **all** dimensions together.
 
 We don't agree, because the distributions of each response variables are not being calculated independently. Their multivariate nature of the responses is accounted for and the model is estimating their covariances --- so it's **not** the same as, say, testing each of them individually.
 
@@ -649,12 +666,10 @@ lapply(mcmcres, function(x) multimcmcpval(x$Sol[,4:6]))
     ## [1] 0
     ## 
     ## $roof
-    ## [1] 0.127
+    ## [1] 0.3
     ## 
     ## $tongue
-    ## [1] 0.028
-
-Interestingly, the tongue is coming out as significantly different, likely a result of the differences in distribution between males and females (see first figure).
+    ## [1] 0.089
 
 Testing for above-threshold mean differences between groups
 -----------------------------------------------------------
@@ -678,18 +693,18 @@ colnames(credibleints)[1] <- 'posteriormode'
 credibleints
 ```
 
-    ##        posteriormode      lower     upper
-    ## lab        1.3399752 0.94894244 1.7564114
-    ## throat     1.7572383 1.11434816 2.4488245
-    ## roof       0.1635817 0.02179937 0.6988794
-    ## tongue     0.2985872 0.09552225 0.8230676
+    ##        posteriormode      lower    upper
+    ## lab        1.4029871 0.92224538 1.851655
+    ## throat     1.7525107 1.00373726 2.364881
+    ## roof       0.1577634 0.01181829 0.689535
+    ## tongue     0.3996856 0.10141468 0.819378
 
 ``` r
 par(mfrow=c(2,2))
 dplots <- lapply(names(dmcmc), function(x) {plot(density(dmcmc[[x]]), main=x); abline(v=1, lty=3)})
 ```
 
-![](../output/figures/examples/lizard_fig_unnamed-chunk-15-1.jpeg)
+![](../output/figures/examples/lizard_fig_unnamed-chunk-16-1.jpeg)
 
 Comparing Bayesian vs. Bootstrap mean difference estimates
 ==========================================================
@@ -699,9 +714,9 @@ We can compare what we obtain from the Bayesian approach with the results from t
 ``` r
 palette <- rcbalpha(1, 4, 'Set1')
 
-plot(y=bootres[,'measured.dS'], x=c(0.9, 1.9, 2.9, 3.9), xlim=c(0.5,4.5), ylim=c(0, 2.5), pch=21, col=NULL, bg=palette[3], cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+plot(y=bootres[,'dS.mean'], x=c(0.9, 1.9, 2.9, 3.9), xlim=c(0.5,4.5), ylim=c(0, 2.5), pch=21, col=NULL, bg=palette[3], cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
 
-segments(c(0.9, 1.9, 2.9, 3.9), bootres[,'CI.lwr'], c(0.9, 1.9, 2.9, 3.9), bootres[,'CI.upr'], lwd=2, col=palette[3])
+segments(c(0.9, 1.9, 2.9, 3.9), bootres[,'dS.lwr'], c(0.9, 1.9, 2.9, 3.9), bootres[,'dS.upr'], lwd=2, col=palette[3])
 
 points(y=credibleints[,'posteriormode'], x=c(1.1, 2.1, 3.1, 4.1), pch=21, bg=palette[4], cex=2, col=NULL)
 
@@ -715,4 +730,4 @@ axis(1, at=1:4, labels=rownames(bootres))
 legend('topright', pch=21, pt.cex=1.6, col=palette[3:4], lwd=2, pt.bg=palette[3:4], legend=c('Bootsrap estimate', 'Bayesian posterior'))
 ```
 
-![](../output/figures/examples/lizard_fig_unnamed-chunk-16-1.jpeg)
+![](../output/figures/examples/lizard_fig_unnamed-chunk-17-1.jpeg)
