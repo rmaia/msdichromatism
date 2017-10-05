@@ -30,13 +30,11 @@ require(RColorBrewer)
 # load aesthetic functions (plot, make colors transparent)
 source('R/aesthetic.R')
 
-# load function to convert JND to cartesian coordinates
-source('R/jnd2xyz.R')
-
 # load simulation and analysis functions
 source('R/simfoos.R')
 source('R/simanalysis.R')
 source('R/pausemcl.R')
+source('R/mahalanobis.R')
 ```
 
 # Threshold scenario: high within-group variability, centroid distance ~1JND
@@ -51,20 +49,6 @@ ssqr <- 1
 simulatedata3 <- replicate(reps, 
                   simdich(N=simN, sgsqsrate=ssqr, multiplier=multfact,
                   sdmeanratio=FALSE), simplify=FALSE)
-
-# we need to add the reference points since we didn't run vismodel()
-rfs <- 
-matrix(c(100,01,01,01,
-         01,100,01,01,
-         01,01,100,01,
-         01,01,01,100,
-         50,50,50,50
-         ), ncol=4, byrow=TRUE)
-rownames(rfs) <- c('refforjnd2xyz.u','refforjnd2xyz.s','refforjnd2xyz.m','refforjnd2xyz.l', 'refforjnd2xyz.acent')
-colnames(rfs) <- c('u','s','m','l')
-
-simulatedata3 <- lapply(simulatedata3, 'attr<-', which='resrefs', value=rfs)
-
 
 simulatecoldist3 <- pausemcl(simulatedata3, function(x) {
   Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
@@ -192,11 +176,13 @@ vovsim3 <- pausemcl(simulatedata3, voloverlaptest )
 ```{r pyke3cache, cache=TRUE, dependson='coldistcache3'}
 scd23 <- lapply(simulatecoldist3,'[', ,1:3, drop=FALSE)
 for(i in 1:length(scd23)){
-  attr(scd23[[i]], 'resrefs') <- attr(simulatecoldist3[[i]],'resrefs')
-  attr(scd23[[i]], 'conenumb') <- attr(simulatecoldist3[[i]],'conenumb')
+  attributes(scd23[[i]])[
+    grep('name', names(attributes(simulatecoldist3[[i]])), invert=TRUE, value=TRUE)] <-
+    attributes(simulatecoldist3[[i]])[
+    grep('name', names(attributes(simulatecoldist3[[i]])), invert=TRUE, value=TRUE)]
 }
 
-pykesim3 <- lapply(scd23, jnd2xyz)
+pykesim3 <- lapply(scd23, jnd2xyz, rotate=FALSE)
 pykelm3 <- lapply(pykesim3, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=50)))
 pykemanova3 <- lapply(pykelm3, function(x) summary(manova(x)))
 vovpyke3 <- pausemcl(pykesim3, function(x)
@@ -224,13 +210,24 @@ overlapT <- unlist(lapply(vovsim3, '[','vboth')) * 100
 overlapykeT <- unlist(lapply(vovpyke3, '[','vboth')) * 100
 
 # Mahalanobis distance between centroids
-mahdT <- unlist(lapply(simulatedata3, function(x) sqrt(mahalanobis(colMeans(x[1:50,]), colMeans(x[51:100,]), cov(x[1:50,]) ))))
+mahdT <- unlist(lapply(simulatedata3, mahalanobis, 
+                       group=rep(c('A','B'), each=50), mve=FALSE))
 
+# Alternarive intradistance
+intrad <- function(x){
+  mA <- colMeans(x[1:50,])
+  mB <- colMeans(x[51:100,])
+  dA <- mean(as.matrix(dist(rbind(mA, x[1:50,])))[1,1:50])
+  dB <- mean(as.matrix(dist(rbind(mB, x[51:100,])))[1,1:50])
+  mean(dA, dB)
+}
+
+intd <- unlist(lapply(pykesim3, intrad))
 
 sigpalT <- as.character(factor(adonisPT, labels=palette[1:2]))
 sigpalT <- as.character(factor(paste(adonisPT, centroidPT), 
           levels=c("FALSE FALSE", "FALSE TRUE", "TRUE FALSE", "TRUE TRUE"), 
-          labels=rcbalpha(0.8, 6, 'RdBu')[c(3,1,6,4)] ))
+          labels=rcbalpha(0.6, 6, 'RdBu')[c(3,1,6,4)] ))
 #sigpalT[sigpalT=="#FDDBC7CC"] <- "#D1E5F0CC"
 ```
 
@@ -246,15 +243,10 @@ color legend:
 * dark red: adonis non-significant, centroid distance > 1 (BAD)
 * light red: adonis and centroid distance < 1 (GOOD)
 ```{r, echo=FALSE, fig.width=7, fig.height=7, dependson=c('coldistcache3', 'adoniscache3', 'pyke3cache')}
-
 par(mfrow=c(3,3))
 
 plot(interdistT~intradistT, ylab='mean between-group distance (JND)', xlab='mean within-group distance (JND)', pch=19, col=sigpalT, ylim=range(c(interdistT,intradistT))*1.1, xlim=range(c(interdistT,intradistT))*1.1)
 abline(0,1, lty=3)
-
-# Intradist plot is essentially identical (see histogram)
-#plot(intradist~centdist, ylab='mean between-group distance (JND)', xlab='centroid distance (JND)', pch=19, col=rgb(0,0,0,0.4), ylim=c(0,5.5), xlim=c(0,5.5))
-#abline(0,1, lty=3)
 
 plot(adonisR2T~interdistT, ylab='Rsquared from PERMANOVA (%)', xlab='mean between-group distance (JND)', log='xy', pch=19, col=sigpalT)
 
@@ -279,16 +271,6 @@ plot(intradistT, overlapT,  pch=19, col=sigpalT,
 
 plot(centdistT, overlapT,  pch=19, col=sigpalT, 
      xlab='centroid distance (JND)', ylab='color volume overlap')
-
-
-#yesnohist(interdist, xlab='mean between-group distance (JND)')
-#yesnohist(intradist, xlab='mean within-group distance (JND)')
-#yesnohist(centdist, xlab='centroid distance (JND)')
-
-
-# boxplot(intradistM~I(adonisPT < 0.05), 
-#         xlab='PERMANOVA test significant?', ylab='mean within-group distance (JND)', 
-#         boxwex=0.3, col=grey(0.7), pch=19, log='y')
 ```
 
 ```{r}
@@ -299,8 +281,8 @@ sessionInfo()
 plots for publication:
 
 ```{r plotsforpub}
-pdf(height=4*1.3, width=7*1.3, file='figures/threshold_1.pdf')
-par(mfrow=c(2,3), mar=c(4,5,1,1))
+pdf(width=4*1.3, height=7*1.3, file='figures/threshold_1.pdf')
+par(mfrow=c(3,2), mar=c(4,5,1,1))
 
 plot(centdistT~intradistT, 
      xlab='Mean within-group distance (JND)\n ', ylab=' \nMean distance (JND)', 
@@ -385,13 +367,16 @@ text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "E")
 #xis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 #abline(h=1, lty=3)
 
-plot(centdistT~mahdT,
-     ylab='Mean distance (JND)', xlab='Color volume overlap \n(perceptually-corrected, %)',
-     ylim=plotrange(centdistT), xlim=plotrange(mahdT, log=FALSE),
-     pch=21, bg=sigpalT, col=NA, log='y', yaxt='n')
-axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
-axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
-abline(h=1, lty=3)
+#plot(mahdT~overlapT,
+#     ylab='Mean distance (JND)', xlab='Color volume overlap \n(perceptually-corrected, %)',
+#     ylim=plotrange(mahdT), xlim=plotrange(overlapT, log=FALSE),
+#     pch=21, bg=sigpalT, col=NA, log='y', yaxt='n')
+#axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+#axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+#abline(h=1, lty=3)
+
+plot(mahdT~adonisR2T,
+     pch=21, bg=sigpalT, col=NA, log='xy')
 
 
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "F") 

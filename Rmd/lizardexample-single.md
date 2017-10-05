@@ -16,7 +16,7 @@ Worked example - single patch
 First, we need to install the bleeding edge version of pavo:
 
 ``` r
-devtools::install_github('rmaia/pavo@jnd2xyz')
+devtools::install_github('rmaia/pavo')
 ```
 
 load the necessary packages and functions:
@@ -28,13 +28,11 @@ require(scatterplot3d)
 require(gridExtra)
 require(vegan)
 require(MASS)
+require(pbmcapply)
 require(RColorBrewer)
 
 # load aesthetic functions (plot, make colors transparent)
 source('R/aesthetic.R')
-
-# load function to convert JND to cartesian coordinates
-source('R/jnd2xyz.R')
 
 # load function for bootstrap
 source('R/bootstrapcentroiddS.R')
@@ -168,17 +166,13 @@ We will use a bootstrap approach to consider the uncertainty on the mean differe
 
 ``` r
 # Groups
-bootds <- bootcentroidDS(model, group, n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
-```
+bootds <- bootcoldist(model, group, n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
 
-    ## Warning: number of cones not specified; assumed to be 4
-
-``` r
 bootds
 ```
 
-    ##     measured.dS    CI.lwr   CI.upr
-    ## F-M    1.293707 0.8998117 1.759854
+    ##      dS.mean    dS.lwr   dS.upr
+    ## F-M 1.293707 0.8998117 1.759854
 
 We can see that, though labium is statistically significant, the distance between groups cannot be considered to be above threshold.:
 
@@ -228,17 +222,13 @@ We will use a bootstrap approach to consider the uncertainty on the mean differe
 
 ``` r
 # Groups
-bootds <- bootcentroidDS(model, group, n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
-```
+bootds <- bootcoldist(model, group, n=c(1,1,3.5,6), weber=0.1, qcatch='Qi', achro=FALSE)
 
-    ## Warning: number of cones not specified; assumed to be 4
-
-``` r
 bootds
 ```
 
-    ##     measured.dS    CI.lwr   CI.upr
-    ## F-M    1.293707 0.8483141 1.702685
+    ##      dS.mean    dS.lwr   dS.upr
+    ## F-M 1.293707 0.8483141 1.702685
 
 We can see that, though labium is statistically significant, the distance between groups cannot be considered to be above threshold.:
 
@@ -277,10 +267,11 @@ Testing for separation among groups
 Below we will run the models, but for simplicity we will only show the verbose output for the tests on the labials.
 
 ``` r
+pxyz.c$group <- factor(pxyz.c$group)
 # Running MCMCglmm models with default priors
 mcmcres <- MCMCglmm(
   fixed = cbind(x,y,z) ~ trait:group - 1,
-  rcov = ~us(trait):units,
+  rcov = ~us(at.level(group, 'F'):trait):units + us(at.level(group, 'M'):trait):units,
   family = rep('gaussian', 3),
   data = pxyz.c,
   nit=11000, burnin=1000, thin=10,
@@ -294,13 +285,13 @@ Chains seem to be mixing ok-ish:
 plot(mcmcres$VCV, density = FALSE)
 ```
 
-![](../output/figures/examples/lizard-single_fig_unnamed-chunk-11-1.jpeg)
+![](../output/figures/examples/lizard-single_fig_unnamed-chunk-11-1.jpeg)![](../output/figures/examples/lizard-single_fig_unnamed-chunk-11-2.jpeg)
 
 ``` r
 plot(mcmcres$Sol, density = FALSE)
 ```
 
-![](../output/figures/examples/lizard-single_fig_unnamed-chunk-11-2.jpeg)
+![](../output/figures/examples/lizard-single_fig_unnamed-chunk-11-3.jpeg)
 
 We can see that the posterior estimates approximate the data fairly well (though the chain could probably have been run for a little longer):
 
@@ -313,30 +304,103 @@ summary(mcmcres)
     ##  Thinning interval  = 10
     ##  Sample size  = 1000 
     ## 
-    ##  DIC: 284.2272 
+    ##  DIC: 270.7793 
     ## 
-    ##  R-structure:  ~us(trait):units
+    ##  R-structure:  ~us(at.level(group, "F"):trait):units
     ## 
-    ##                     post.mean l-95% CI u-95% CI eff.samp
-    ## traitx:traitx.units   0.69380  0.45369   0.9575     1000
-    ## traity:traitx.units  -0.03324 -0.26937   0.1817     1000
-    ## traitz:traitx.units   0.10513  0.01334   0.2120     1000
-    ## traitx:traity.units  -0.03324 -0.26937   0.1817     1000
-    ## traity:traity.units   1.01070  0.65965   1.3940     1109
-    ## traitz:traity.units  -0.36719 -0.51677  -0.2348     1133
-    ## traitx:traitz.units   0.10513  0.01334   0.2120     1000
-    ## traity:traitz.units  -0.36719 -0.51677  -0.2348     1133
-    ## traitz:traitz.units   0.17849  0.11797   0.2438     1000
+    ##                                                               post.mean
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitx.units    1.2543
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitx.units    0.4877
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitx.units   -0.2469
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traity.units    0.4877
+    ## at.level(group, "F"):traity:at.level(group, "F"):traity.units    0.3068
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traity.units    0.2043
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitz.units   -0.2469
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitz.units    0.2043
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitz.units    1.2840
+    ##                                                               l-95% CI
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitx.units  0.63182
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitx.units  0.20137
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitx.units -0.87422
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traity.units  0.20137
+    ## at.level(group, "F"):traity:at.level(group, "F"):traity.units  0.15493
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traity.units -0.03417
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitz.units -0.87422
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitz.units -0.03417
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitz.units  0.66875
+    ##                                                               u-95% CI
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitx.units   2.0814
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitx.units   0.8150
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitx.units   0.2376
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traity.units   0.8150
+    ## at.level(group, "F"):traity:at.level(group, "F"):traity.units   0.4984
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traity.units   0.5015
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitz.units   0.2376
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitz.units   0.5015
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitz.units   2.0569
+    ##                                                               eff.samp
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitx.units     1000
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitx.units     1000
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitx.units     1000
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traity.units     1000
+    ## at.level(group, "F"):traity:at.level(group, "F"):traity.units     1000
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traity.units     1529
+    ## at.level(group, "F"):traitx:at.level(group, "F"):traitz.units     1000
+    ## at.level(group, "F"):traity:at.level(group, "F"):traitz.units     1529
+    ## at.level(group, "F"):traitz:at.level(group, "F"):traitz.units     1000
+    ## 
+    ##                ~us(at.level(group, "M"):trait):units
+    ## 
+    ##                                                               post.mean
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitx.units   0.31261
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitx.units   0.11425
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitx.units  -0.25737
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traity.units   0.11425
+    ## at.level(group, "M"):traity:at.level(group, "M"):traity.units   0.08393
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traity.units   0.02075
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitz.units  -0.25737
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitz.units   0.02075
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitz.units   1.02976
+    ##                                                               l-95% CI
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitx.units  0.16943
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitx.units  0.05472
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitx.units -0.51704
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traity.units  0.05472
+    ## at.level(group, "M"):traity:at.level(group, "M"):traity.units  0.04817
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traity.units -0.09228
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitz.units -0.51704
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitz.units -0.09228
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitz.units  0.57942
+    ##                                                               u-95% CI
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitx.units  0.48766
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitx.units  0.19027
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitx.units -0.04011
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traity.units  0.19027
+    ## at.level(group, "M"):traity:at.level(group, "M"):traity.units  0.13160
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traity.units  0.13752
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitz.units -0.04011
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitz.units  0.13752
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitz.units  1.56688
+    ##                                                               eff.samp
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitx.units     1000
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitx.units     1000
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitx.units     1000
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traity.units     1000
+    ## at.level(group, "M"):traity:at.level(group, "M"):traity.units     1124
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traity.units     1000
+    ## at.level(group, "M"):traitx:at.level(group, "M"):traitz.units     1000
+    ## at.level(group, "M"):traity:at.level(group, "M"):traitz.units     1000
+    ## at.level(group, "M"):traitz:at.level(group, "M"):traitz.units     1041
     ## 
     ##  Location effects: cbind(x, y, z) ~ trait:group - 1 
     ## 
     ##                post.mean   l-95% CI   u-95% CI eff.samp  pMCMC    
-    ## traitx:groupF  0.0023988 -0.3224355  0.3044869     1000  0.986    
-    ## traity:groupF  0.0016300 -0.3494950  0.3821546     1000  0.984    
-    ## traitz:groupF -0.0009416 -0.1583709  0.1487961     1000  0.962    
-    ## traitx:groupM -1.2481111 -1.5457966 -0.9911799     1000 <0.001 ***
-    ## traity:groupM -0.3222516 -0.6430683  0.0341401     1000  0.062 .  
-    ## traitz:groupM  0.0621726 -0.0872290  0.2075279     1000  0.412    
+    ## traitx:groupF  0.0026080 -0.3742630  0.4440670   1000.0  0.984    
+    ## traity:groupF -0.0001171 -0.2214692  0.2180383   1099.3  0.998    
+    ## traitz:groupF -0.0003377 -0.4182701  0.4198535    919.7  0.980    
+    ## traitx:groupM -1.1319938 -1.3182184 -0.9302701   1078.4 <0.001 ***
+    ## traity:groupM -0.4832312 -0.5875484 -0.3803522   1000.0 <0.001 ***
+    ## traitz:groupM -0.3830946 -0.7226812 -0.0187306    897.9  0.032 *  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -347,19 +411,19 @@ summary(mcmcres)
 round(as.matrix(aggregate(pxyz.c[,c('x','y','z')], by= list(pxyz.c[,'group']), mean)[,-1]), 4)
 ```
 
-    ##           x       y      z
-    ## [1,]  0.000  0.0000 0.0000
-    ## [2,] -1.249 -0.3306 0.0662
+    ##            x       y       z
+    ## [1,]  0.0000  0.0000  0.0000
+    ## [2,] -1.1349 -0.4855 -0.3873
 
 ``` r
 round(matrix(summary(mcmcres$Sol)$statistics[,'Mean'], nrow=2, byrow=TRUE), 4)
 ```
 
     ##         [,1]    [,2]    [,3]
-    ## [1,]  0.0024  0.0016 -0.0009
-    ## [2,] -1.2481 -0.3223  0.0622
+    ## [1,]  0.0026 -0.0001 -0.0003
+    ## [2,] -1.1320 -0.4832 -0.3831
 
-The results above already indicate that the groups are statistically different along one of the axes (x). Some people might consider this to be subject to issues of multiple comparisons, because we are considering groups to be different if they are different in **any** (i.e. at least 1) dimension, not **all** dimensions together.
+The results above already indicate that the groups are statistically different along all three axes. Some people might consider this to be subject to issues of multiple comparisons, because we are considering groups to be different if they are different in **any** (i.e. at least 1) dimension, not **all** dimensions together.
 
 We don't agree, because the distributions of each response variables are not being calculated independently. Their multivariate nature of the responses is accounted for and the model is estimating their covariances --- so it's **not** the same as, say, testing each of them individually.
 
@@ -408,7 +472,7 @@ credibleints
 ```
 
     ##      posteriormode     lower    upper
-    ## var1      1.242307 0.9116042 1.758538
+    ## var1      1.382295 0.7873557 1.800167
 
 ``` r
 plot(density(dmcmc))
@@ -425,9 +489,9 @@ We can compare what we obtain from the Bayesian approach with the results from t
 ``` r
 palette <- rcbalpha(1, 4, 'Set1')
 
-plot(0.9, bootds[,'measured.dS'], xlim=c(0.5, 1.5), ylim=c(0, 2.5), pch=21, col=NULL, bg=palette[3], cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+plot(0.9, bootds[,'dS.mean'], xlim=c(0.5, 1.5), ylim=c(0, 2.5), pch=21, col=NULL, bg=palette[3], cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
 
-segments(0.9, bootds[,'CI.lwr'], 0.9, bootds[,'CI.upr'], lwd=2, col=palette[3])
+segments(0.9, bootds[,'dS.lwr'], 0.9, bootds[,'dS.upr'], lwd=2, col=palette[3])
 
 points(1.1, credibleints[,'posteriormode'], pch=21, bg=palette[4], cex=2, col=NULL)
 

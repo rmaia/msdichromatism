@@ -1,4 +1,4 @@
-mahalanobis <- function (data, groups, mve = TRUE) {
+mahalanobis <- function (data, groups, mve = FALSE) {
 	
 	groups <- factor(groups)
 
@@ -23,5 +23,7 @@ mahalanobis <- function (data, groups, mve = TRUE) {
         covarpool <- ((nA-1)*covarA + (nB-1)*covarB)/(nA+nB-1)
     }
 
-    t(meanA - meanB) %*% solve(covarpool) %*% (meanA - meanB)
+    res <- t(meanA - meanB) %*% solve(covarpool) %*% (meanA - meanB)
+    
+    sqrt(res)
 }

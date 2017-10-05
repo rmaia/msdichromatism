@@ -1,19 +1,7 @@
 
 # make distance matrix and run adonis
 adoniscoldist <- function(x, ...){
-  coldistres <- as.matrix(rbind(x[ ,c(1,2,3)], x[ ,c(2,1,3)]))
-  uniquepatches <-  unique(c(coldistres[,1], coldistres[,2]))
-  
-  M <- matrix(nrow=length(uniquepatches), ncol=length(uniquepatches))
-  
-  rownames(M) <- colnames(M) <- uniquepatches
-  
-  M[coldistres[,1:2] ] <- coldistres[,3]
-  M[coldistres[,2:1] ] <- coldistres[,3]
-  
-  class(M) <- 'numeric'
-  M[is.na(M)] <- 0
-  
+  M <- coldist2mat(x)[['dS']]  
   grouping <- as.factor(gsub('[0-9]','', rownames(M)))
   
   M <- as.dist(M)

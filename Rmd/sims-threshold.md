@@ -33,13 +33,11 @@ require(RColorBrewer)
 # load aesthetic functions (plot, make colors transparent)
 source('R/aesthetic.R')
 
-# load function to convert JND to cartesian coordinates
-source('R/jnd2xyz.R')
-
 # load simulation and analysis functions
 source('R/simfoos.R')
 source('R/simanalysis.R')
 source('R/pausemcl.R')
+source('R/mahalanobis.R')
 ```
 
 Threshold scenario: high within-group variability, centroid distance ~1JND
@@ -57,20 +55,6 @@ simulatedata3 <- replicate(reps,
                   simdich(N=simN, sgsqsrate=ssqr, multiplier=multfact,
                   sdmeanratio=FALSE), simplify=FALSE)
 
-# we need to add the reference points since we didn't run vismodel()
-rfs <- 
-matrix(c(100,01,01,01,
-         01,100,01,01,
-         01,01,100,01,
-         01,01,01,100,
-         50,50,50,50
-         ), ncol=4, byrow=TRUE)
-rownames(rfs) <- c('refforjnd2xyz.u','refforjnd2xyz.s','refforjnd2xyz.m','refforjnd2xyz.l', 'refforjnd2xyz.acent')
-colnames(rfs) <- c('u','s','m','l')
-
-simulatedata3 <- lapply(simulatedata3, 'attr<-', which='resrefs', value=rfs)
-
-
 simulatecoldist3 <- pausemcl(simulatedata3, function(x) {
   Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
   Y$comparison <- NA
@@ -87,11 +71,9 @@ Validating simulations:
 
 Verifying that values obtained in the simulation (empirical) are close to what we wanted to simulate (simulated) for the four cones (violet, blue, green, red)
 
-![](../output/figures/final_threshold_fig_histograms-1.jpeg)
+mean centroid distance of 1.1005591, quantiles of 0.2809619, 2.7206821
 
-mean centroid distance of 1.1067503, quantiles of 0.2824037, 2.755189
-
-mean within group distance of 4.4602655, quantiles of 1.0316793, 11.0989034
+mean within group distance of 4.4508855, quantiles of 1.0316793, 11.0989034
 
 Running Analysis
 ----------------
@@ -104,11 +86,13 @@ vovsim3 <- pausemcl(simulatedata3, voloverlaptest )
 ``` r
 scd23 <- lapply(simulatecoldist3,'[', ,1:3, drop=FALSE)
 for(i in 1:length(scd23)){
-  attr(scd23[[i]], 'resrefs') <- attr(simulatecoldist3[[i]],'resrefs')
-  attr(scd23[[i]], 'conenumb') <- attr(simulatecoldist3[[i]],'conenumb')
+  attributes(scd23[[i]])[
+    grep('name', names(attributes(simulatecoldist3[[i]])), invert=TRUE, value=TRUE)] <-
+    attributes(simulatecoldist3[[i]])[
+    grep('name', names(attributes(simulatecoldist3[[i]])), invert=TRUE, value=TRUE)]
 }
 
-pykesim3 <- lapply(scd23, jnd2xyz)
+pykesim3 <- lapply(scd23, jnd2xyz, rotate=FALSE)
 pykelm3 <- lapply(pykesim3, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=50)))
 pykemanova3 <- lapply(pykelm3, function(x) summary(manova(x)))
 vovpyke3 <- pausemcl(pykesim3, function(x)
@@ -117,9 +101,9 @@ vovpyke3 <- pausemcl(pykesim3, function(x)
 gc(verbose=FALSE)
 ```
 
-    ##             used  (Mb) gc trigger   (Mb)  max used   (Mb)
-    ## Ncells   6945720 371.0   12002346  641.0   9968622  532.4
-    ## Vcells 113951893 869.4  188560144 1438.6 188557353 1438.6
+    ##            used  (Mb) gc trigger  (Mb) max used  (Mb)
+    ## Ncells  2026635 108.3    3205452 171.2  3205452 171.2
+    ## Vcells 53495851 408.2   77230057 589.3 87709106 669.2
 
 Visualizing Results
 -------------------
@@ -133,6 +117,12 @@ color legend:
 -   dark blue: adonis significant, centroid distance &lt; 1 (BAD)
 -   dark red: adonis non-significant, centroid distance &gt; 1 (BAD)
 -   light red: adonis and centroid distance &lt; 1 (GOOD) ![](../output/figures/final_threshold_fig_unnamed-chunk-3-1.jpeg)
+
+``` r
+range(mahdT)
+```
+
+    ## [1] 1.297008e-01 2.267369e+04
 
 ``` r
 sessionInfo()
@@ -154,24 +144,23 @@ sessionInfo()
     ## 
     ## other attached packages:
     ## [1] RColorBrewer_1.1-2 vegan_2.4-3        lattice_0.20-35   
-    ## [4] permute_0.9-4      pavo_1.2.1        
+    ## [4] permute_0.9-4      pavo_1.3.0        
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.12         cluster_2.0.6        knitr_1.16          
-    ##  [4] magrittr_1.5         maps_3.2.0           magic_1.5-6         
-    ##  [7] MASS_7.3-47          scatterplot3d_0.3-40 geometry_0.3-6      
-    ## [10] stringr_1.2.0        tools_3.4.1          parallel_3.4.1      
-    ## [13] grid_3.4.1           nlme_3.1-131         mgcv_1.8-17         
-    ## [16] htmltools_0.3.6      yaml_2.1.14          rprojroot_1.2       
-    ## [19] digest_0.6.12        Matrix_1.2-10        mapproj_1.2-5       
-    ## [22] rcdd_1.2             evaluate_0.10.1      rmarkdown_1.6       
-    ## [25] stringi_1.1.5        compiler_3.4.1       backports_1.1.0
+    ##  [1] Rcpp_0.12.12     cluster_2.0.6    knitr_1.16       magrittr_1.5    
+    ##  [5] MASS_7.3-47      maps_3.2.0       magic_1.5-6      geometry_0.3-6  
+    ##  [9] stringr_1.2.0    globals_0.10.2   tools_3.4.1      grid_3.4.1      
+    ## [13] parallel_3.4.1   nlme_3.1-131     mgcv_1.8-17      htmltools_0.3.6 
+    ## [17] yaml_2.1.14      rprojroot_1.2    digest_0.6.12    Matrix_1.2-10   
+    ## [21] pbmcapply_1.2.4  mapproj_1.2-5    codetools_0.2-15 rcdd_1.2        
+    ## [25] evaluate_0.10.1  rmarkdown_1.6    stringi_1.1.5    compiler_3.4.1  
+    ## [29] backports_1.1.0  future_1.6.1     listenv_0.6.0
 
 plots for publication:
 
 ``` r
-pdf(height=4*1.3, width=7*1.3, file='figures/threshold_1.pdf')
-par(mfrow=c(2,3), mar=c(4,5,1,1))
+pdf(width=4*1.3, height=7*1.3, file='figures/threshold_1.pdf')
+par(mfrow=c(3,2), mar=c(4,5,1,1))
 
 plot(centdistT~intradistT, 
      xlab='Mean within-group distance (JND)\n ', ylab=' \nMean distance (JND)', 
@@ -248,13 +237,25 @@ abline(h=1, lty=3)
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "E") 
 
 
-plot(centdistT~overlapykeT,
-     ylab='Mean distance (JND)', xlab='Color volume overlap \n(perceptually-corrected, %)',
-     ylim=plotrange(centdistT), xlim=plotrange(overlapykeT, log=FALSE),
-     pch=21, bg=sigpalT, col=NA, log='y', yaxt='n')
-axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
-axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
-abline(h=1, lty=3)
+#plot(centdistT~overlapykeT,
+#     ylab='Mean distance (JND)', xlab='Color volume overlap \n(perceptually-corrected, %)',
+#     ylim=plotrange(centdistT), xlim=plotrange(overlapykeT, log=FALSE),
+#     pch=21, bg=sigpalT, col=NA, log='y', yaxt='n')
+#axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+#xis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+#abline(h=1, lty=3)
+
+#plot(mahdT~overlapT,
+#     ylab='Mean distance (JND)', xlab='Color volume overlap \n(perceptually-corrected, %)',
+#     ylim=plotrange(mahdT), xlim=plotrange(overlapT, log=FALSE),
+#     pch=21, bg=sigpalT, col=NA, log='y', yaxt='n')
+#axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+#axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+#abline(h=1, lty=3)
+
+plot(mahdT~adonisR2T,
+     pch=21, bg=sigpalT, col=NA, log='xy')
+
 
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "F") 
  

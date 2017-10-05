@@ -33,13 +33,11 @@ require(RColorBrewer)
 # load aesthetic functions (plot, make colors transparent)
 source('R/aesthetic.R')
 
-# load function to convert JND to cartesian coordinates
-source('R/jnd2xyz.R')
-
 # load simulation and analysis functions
 source('R/simfoos.R')
 source('R/simanalysis.R')
 source('R/pausemcl.R')
+source('R/mahalanobis.R')
 ```
 
 Type I error and and power
@@ -58,25 +56,6 @@ simulatedata <- lapply(effsims,
                        function(x)
                        simdich(N=simN, sgsqsrate=0.5, multiplier=NULL, effsize=x)
                        )
-
-
-# we need to add the reference points since we didn't run vismodel()
-#apply(do.call(rbind, lapply(simulatedata, function(x) apply(x, 2, max))), 2, max)
-#data(sicalis)
-#rfs <- attr(vismodel(sicalis, visual='star',relative=FALSE), 'resrefs')
-
-rfs <- 
-matrix(c(100,01,01,01,
-         01,100,01,01,
-         01,01,100,01,
-         01,01,01,100,
-         50,50,50,50
-         ), ncol=4, byrow=TRUE)
-rownames(rfs) <- c('refforjnd2xyz.u','refforjnd2xyz.s','refforjnd2xyz.m','refforjnd2xyz.l', 'refforjnd2xyz.acent')
-colnames(rfs) <- c('u','s','m','l')
-
-simulatedata <- lapply(simulatedata, 'attr<-', which='resrefs', value=rfs)
-
 
 simulatecoldist <- pausemcl(simulatedata, function(x) {
   Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
@@ -110,15 +89,16 @@ gc(verbose=FALSE)
 Run Pyke MANOVA:
 
 ``` r
+# remove grouping variable, reattach attributes
 scd2 <- lapply(simulatecoldist,'[', ,1:3, drop=FALSE)
 for(i in 1:length(scd2)){
-  attr(scd2[[i]], 'resrefs') <- attr(simulatecoldist[[i]],'resrefs')
-  attr(scd2[[i]], 'conenumb') <- attr(simulatecoldist[[i]],'conenumb')
+  attributes(scd2[[i]])[grep('name', names(attributes(simulatecoldist[[i]])), invert=TRUE, value=TRUE)] <- attributes(simulatecoldist[[i]])[grep('name', names(attributes(simulatecoldist[[i]])), invert=TRUE, value=TRUE)]
   }
 
-pykesim <- lapply(scd2, jnd2xyz)
-pykelm <- lapply(pykesim, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=50)))
-pykemanova <- lapply(pykelm, function(x) summary(manova(x)))
+pykesim <- parallel::mclapply(scd2, jnd2xyz, rotate=FALSE, mc.cores=4)
+pykelm <-  parallel::mclapply(pykesim, function(x) 
+  lm(as.matrix(x) ~ rep(c('gA','gB'), each=50)), mc.cores=4)
+pykemanova <- parallel::mclapply(pykelm, function(x) summary(manova(x)), mc.cores=4)
 
 vovpyke <- pausemcl(pykesim, function(x)
   voloverlap(x[1:simN,], x[(simN+1):(simN*2), ]) )
@@ -152,16 +132,16 @@ overlapyke <- unlist(lapply(vovpyke, '[','vboth')) * 100
 gmeans <- lapply(simulatecoldist, function(x) tapply(x$dS, x$comparison, mean))
 gmeans <- do.call(rbind, gmeans)
 
-intradist <- rowMeans(gmeans[, -1])
+intradist <- rowMeans(gmeans[, c('intra.A', 'intra.B')])
 interdist <- gmeans[,"inter"]
 
 centroidP <- centdist > 1
 
 # Mahalanobis distance between centroids
-mahd <- unlist(lapply(simulatedata, function(x) sqrt(mahalanobis(colMeans(x[1:50,]), colMeans(x[51:100,]), cov(x[1:50,]) ))))
+mahd <- unlist(lapply(simulatedata, mahalanobis, groups=rep(c("A","B"), each=50), mve=FALSE))
 
 # Color palette for plots
-palette <- rcbalpha(0.8, 4, 'Set1')
+palette <- rcbalpha(0.6, 4, 'Set1')
 
 #sigpal <- as.character(factor(adonisP, labels=palette[1:2]))
 sigpal <- as.character(factor(paste(adonisP, centroidP), 
@@ -190,8 +170,8 @@ So tests have similar power but disagree as to the outcome in terms of what is s
 
     ##        manovaP
     ## adonisP  FALSE   TRUE
-    ##   FALSE 0.4860 0.0895
-    ##   TRUE  0.0215 0.4030
+    ##   FALSE 0.4910 0.0825
+    ##   TRUE  0.0190 0.4075
 
 About 10% divergence in results, maybe not worth worrying about. Note that most of the discrepancy comes from results that are significant in MANOVA but not in Adonis, suggesting again that MANOVA approach is less conservative.
 
@@ -203,7 +183,7 @@ Even though centroid distance increases with effect size, there's a lot of sprea
 
 ![](../output/figures/final_power_fig_unnamed-chunk-9-1.jpeg)
 
-R2 increases with increasing effect size, which is good. We can also see that even though a lot of the simulations have a distance between centroids greater than 1 (0.465), they are still not significant (red) according to either approach. Transition from non-siginificant to significant occurs for Mahalanobis Distance between 0.5 and 1.
+R2 increases with increasing effect size, which is good. We can also see that even though a lot of the simulations have a distance between centroids greater than 1 (0.48), they are still not significant (red) according to either approach. Transition from non-siginificant to significant occurs for Mahalanobis Distance between 0.5 and 1.
 
 ![](../output/figures/final_power_fig_unnamed-chunk-10-1.jpeg)
 
@@ -229,18 +209,17 @@ sessionInfo()
     ## 
     ## other attached packages:
     ## [1] RColorBrewer_1.1-2 vegan_2.4-3        lattice_0.20-35   
-    ## [4] permute_0.9-4      pavo_1.2.1        
+    ## [4] permute_0.9-4      pavo_1.3.0        
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.12         cluster_2.0.6        knitr_1.16          
-    ##  [4] magrittr_1.5         maps_3.2.0           magic_1.5-6         
-    ##  [7] MASS_7.3-47          scatterplot3d_0.3-40 geometry_0.3-6      
-    ## [10] stringr_1.2.0        tools_3.4.1          parallel_3.4.1      
-    ## [13] grid_3.4.1           nlme_3.1-131         mgcv_1.8-17         
-    ## [16] htmltools_0.3.6      yaml_2.1.14          rprojroot_1.2       
-    ## [19] digest_0.6.12        Matrix_1.2-10        mapproj_1.2-5       
-    ## [22] rcdd_1.2             evaluate_0.10.1      rmarkdown_1.6       
-    ## [25] stringi_1.1.5        compiler_3.4.1       backports_1.1.0
+    ##  [1] Rcpp_0.12.12     cluster_2.0.6    knitr_1.16       magrittr_1.5    
+    ##  [5] MASS_7.3-47      maps_3.2.0       magic_1.5-6      geometry_0.3-6  
+    ##  [9] stringr_1.2.0    globals_0.10.2   tools_3.4.1      grid_3.4.1      
+    ## [13] parallel_3.4.1   nlme_3.1-131     mgcv_1.8-17      htmltools_0.3.6 
+    ## [17] yaml_2.1.14      rprojroot_1.2    digest_0.6.12    Matrix_1.2-10   
+    ## [21] pbmcapply_1.2.4  mapproj_1.2-5    codetools_0.2-15 rcdd_1.2        
+    ## [25] evaluate_0.10.1  rmarkdown_1.6    stringi_1.1.5    compiler_3.4.1  
+    ## [29] backports_1.1.0  future_1.6.1     listenv_0.6.0
 
 plots for publication:
 
@@ -255,7 +234,8 @@ attr(eg1, 'conenumb') <- '4'
 attr(eg1, 'relative') <- FALSE
 attr(eg1, 'qcatch') <- 'Qi'
 class(eg1) <- c('vismodel', 'data.frame')
-plot(colspace(eg1), col=rep(palette[1:2], each=50), view=200, scale.y=2, out.lwd=2, vertexsize=2, margin=c(1,0,1,0))
+plot(colspace(eg1), col=rep(palette[1:2], each=50), 
+     theta=150, phi=20, out.lwd=2, vert.cex=2, margin=c(0,0.5,0.5,0))
 ```
 
     ## Warning: Quantum catch are not relative, and have been transformed
@@ -263,12 +243,13 @@ plot(colspace(eg1), col=rep(palette[1:2], each=50), view=200, scale.y=2, out.lwd
 ``` r
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "A") 
 
-eg2 <- simulatedata[[2000]]
+eg2 <- simulatedata[[1999]]
 attr(eg2, 'conenumb') <- '4'
 attr(eg2, 'relative') <- FALSE
 attr(eg2, 'qcatch') <- 'Qi'
 class(eg2) <- c('vismodel', 'data.frame')
-plot(colspace(eg2), col=rep(palette[1:2], each=50), view=200, scale.y=2, out.lwd=2, vertexsize=2, margin=c(1,0,1,0))
+plot(colspace(eg2), col=rep(palette[1:2], each=50), 
+     theta=150, phi=20, out.lwd=2, vert.cex=2, margin=c(0,0.5,0.5,0))
 ```
 
     ## Warning: Quantum catch are not relative, and have been transformed
@@ -304,7 +285,7 @@ axis(2, at=c(seq(0.02,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl
 abline(h=1,lty=3, lwd=2)
 
 #legend('topleft', 
-legend(x=grconvertX(0,"npc"), y=grconvertY(0.9, "npc"),
+legend(x=grconvertX(0,"npc"), y=grconvertY(0.93, "npc"),
        bty='n', pch=21, col=NA, pt.bg=palette[1:2], 
        legend=c('p > 0.05', 'p < 0.05'))
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "A") 
@@ -321,6 +302,15 @@ axis(1, at=c(seq(0.06,0.09, by=0.01), seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl
 axis(2, at=c(0, 20, 40, 60, 80))
 
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "B") 
+
+#par(fig=c(0.78,1, 0,1), new = TRUE)
+#plot(as.numeric(tapply(adonisP, cut(overlap, seq(0,100, by=10)), mean)), 
+#     I(seq(0,100, by=10) + 5)[-11], 
+#     pch=21, col=brewer.pal(5,'PRGn')[5], bg=brewer.pal(5,'PRGn')[5], 
+#     type='b', xlim=c(-0.1,1.1), ylim=c(0,80), cex=1.5, lwd=1.5, 
+#     xlab="", xaxt='n', ylab="", yaxt='n')
+#axis(1, at=c(0,1))
+#axis(1, at=c(0.2,0.4,0.6,0.8), tcl=par("tcl")*0.5, labels=FALSE)
 
 dev.off()
 ```

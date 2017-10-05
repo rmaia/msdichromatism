@@ -12,31 +12,15 @@ require(RColorBrewer)
 # load aesthetic functions (plot, make colors transparent)
 source('R/aesthetic.R')
 
-# load function to convert JND to cartesian coordinates
-source('R/jnd2xyz.R')
-
 # load simulation and analysis functions
 source('R/simfoos.R')
 source('R/simanalysis.R')
-
-# load function to break parallelization into smaller chunks and clear memory
 source('R/pausemcl.R')
 
 # define simulation parameters
 effs <- c(0, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3)
 timeseach <- 200
 effsims <- rep(effs, each=timeseach)
-
-# attribute with reference for jnd2xyz
-rfs <- 
-matrix(c(100,01,01,01,
-         01,100,01,01,
-         01,01,100,01,
-         01,01,01,100,
-         50,50,50,50
-         ), ncol=4, byrow=TRUE)
-rownames(rfs) <- c('refforjnd2xyz.u','refforjnd2xyz.s','refforjnd2xyz.m','refforjnd2xyz.l', 'refforjnd2xyz.acent')
-colnames(rfs) <- c('u','s','m','l')
 ```
 
 Power and sample size
@@ -51,7 +35,6 @@ simulatedata.n100 <- lapply(effsims,
                            function(x)
                              simdich(N=simN, sgsqsrate=0.5, multiplier=NULL, effsize=x)
 )
-simulatedata.n100 <- lapply(simulatedata.n100, 'attr<-', which='resrefs', value=rfs)
 
 simulatecoldist.n100 <- pausemcl(simulatedata.n100, function(x) {
   Y <- suppressWarnings(coldist(x, achro=FALSE, qcatch='Qi'))
@@ -71,10 +54,12 @@ gc(verbose=FALSE)
 
 scd2.n100 <- lapply(simulatecoldist.n100,'[', ,1:3, drop=FALSE)
 for(i in 1:length(scd2.n100)){
-  attr(scd2.n100[[i]], 'resrefs') <- attr(simulatecoldist.n100[[i]],'resrefs')
-  attr(scd2.n100[[i]], 'conenumb') <- attr(simulatecoldist.n100[[i]],'conenumb')
+  attributes(scd2.n100[[i]])[
+    grep('name', names(attributes(simulatecoldist.n100[[i]])), invert=TRUE, value=TRUE)] <-
+    attributes(simulatecoldist.n100[[i]])[
+    grep('name', names(attributes(simulatecoldist.n100[[i]])), invert=TRUE, value=TRUE)]
 }
-pykesim.n100 <- pausemcl(scd2.n100, jnd2xyz)
+pykesim.n100 <- pausemcl(scd2.n100, function(x) jnd2xyz(x, rotate=FALSE))
 pykelm.n100 <- pausemcl(pykesim.n100, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=simN)))
 pykemanova.n100 <- pausemcl(pykelm.n100, function(x) summary(manova(x)))
 ```
@@ -108,10 +93,12 @@ gc(verbose=FALSE)
 
 scd2.n20 <- lapply(simulatecoldist.n20,'[', ,1:3, drop=FALSE)
 for(i in 1:length(scd2.n20)){
-  attr(scd2.n20[[i]], 'resrefs') <- attr(simulatecoldist.n20[[i]],'resrefs')
-  attr(scd2.n20[[i]], 'conenumb') <- attr(simulatecoldist.n20[[i]],'conenumb')
+  attributes(scd2.n20[[i]])[
+    grep('name', names(attributes(simulatecoldist.n20[[i]])), invert=TRUE, value=TRUE)] <-
+    attributes(simulatecoldist.n20[[i]])[
+    grep('name', names(attributes(simulatecoldist.n20[[i]])), invert=TRUE, value=TRUE)]
 }
-pykesim.n20 <- lapply(scd2.n20, jnd2xyz)
+pykesim.n20 <- lapply(scd2.n20, function(x) jnd2xyz(x, rotate=FALSE))
 pykelm.n20 <- lapply(pykesim.n20, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=simN)))
 pykemanova.n20 <- lapply(pykelm.n20, function(x) summary(manova(x)))
 ```
@@ -145,10 +132,12 @@ gc(verbose=FALSE)
 
 scd2.n10 <- lapply(simulatecoldist.n10,'[', ,1:3, drop=FALSE)
 for(i in 1:length(scd2.n10)){
-  attr(scd2.n10[[i]], 'resrefs') <- attr(simulatecoldist.n10[[i]],'resrefs')
-  attr(scd2.n10[[i]], 'conenumb') <- attr(simulatecoldist.n10[[i]],'conenumb')
+  attributes(scd2.n10[[i]])[
+    grep('name', names(attributes(simulatecoldist.n10[[i]])), invert=TRUE, value=TRUE)] <-
+    attributes(simulatecoldist.n10[[i]])[
+    grep('name', names(attributes(simulatecoldist.n10[[i]])), invert=TRUE, value=TRUE)]
 }
-pykesim.n10 <- lapply(scd2.n10, jnd2xyz)
+pykesim.n10 <- lapply(scd2.n10, function(x) jnd2xyz(x, rotate=FALSE))
 pykelm.n10 <- lapply(pykesim.n10, function(x) lm(as.matrix(x) ~ rep(c('gA','gB'), each=simN)))
 pykemanova.n10 <- lapply(pykelm.n10, function(x) summary(manova(x)))
 ```
@@ -191,18 +180,17 @@ sessionInfo()
     ## 
     ## other attached packages:
     ## [1] RColorBrewer_1.1-2 vegan_2.4-3        lattice_0.20-35   
-    ## [4] permute_0.9-4      pavo_1.2.1        
+    ## [4] permute_0.9-4      pavo_1.3.0        
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.12         cluster_2.0.6        knitr_1.16          
-    ##  [4] magrittr_1.5         maps_3.2.0           magic_1.5-6         
-    ##  [7] MASS_7.3-47          scatterplot3d_0.3-40 geometry_0.3-6      
-    ## [10] stringr_1.2.0        tools_3.4.1          parallel_3.4.1      
-    ## [13] grid_3.4.1           nlme_3.1-131         mgcv_1.8-17         
-    ## [16] htmltools_0.3.6      yaml_2.1.14          rprojroot_1.2       
-    ## [19] digest_0.6.12        Matrix_1.2-10        mapproj_1.2-5       
-    ## [22] rcdd_1.2             evaluate_0.10.1      rmarkdown_1.6       
-    ## [25] stringi_1.1.5        compiler_3.4.1       backports_1.1.0
+    ##  [1] Rcpp_0.12.12     cluster_2.0.6    knitr_1.16       magrittr_1.5    
+    ##  [5] MASS_7.3-47      maps_3.2.0       magic_1.5-6      geometry_0.3-6  
+    ##  [9] stringr_1.2.0    globals_0.10.2   tools_3.4.1      grid_3.4.1      
+    ## [13] parallel_3.4.1   nlme_3.1-131     mgcv_1.8-17      htmltools_0.3.6 
+    ## [17] yaml_2.1.14      rprojroot_1.2    digest_0.6.12    Matrix_1.2-10   
+    ## [21] pbmcapply_1.2.4  mapproj_1.2-5    codetools_0.2-15 rcdd_1.2        
+    ## [25] evaluate_0.10.1  rmarkdown_1.6    stringi_1.1.5    compiler_3.4.1  
+    ## [29] backports_1.1.0  future_1.6.1     listenv_0.6.0
 
 Plots for publication:
 
