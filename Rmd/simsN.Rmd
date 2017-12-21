@@ -392,17 +392,19 @@ mtext('Proportion of significant tests', side = 2, outer = TRUE, line = 1)
 dev.off()
 
 pdf(height=4*1.3*2, width=7*1.3*2, pointsize = 12*2, file='figures/samplesize_2.pdf')
-par(mfrow=c(1,2))
+par(mfrow=c(1,2), cex.lab=1.3, cex.axis=1.15, mar=c(5,4.5,4,1.5)+0.1)
+
 barplot(t(disbar), beside=TRUE, ylab='Simulations (%)',xlab='Sample size', col=powerpal[c(9,1)], ylim=c(0,15), yaxt='n')
 axis(2, at=c(0,3,6,9,12))
 box()
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "A") 
 
 #legend('topleft',
-legend(x=grconvertX(0,"npc"), y=grconvertY(0.9, "npc"),
-       legend=c('significant only in distance PERMANOVA','significant only in cartesian MANOVA'), pch=15, cex=0.9, pt.cex=2, col=powerpal[c(9,1)], bty='n')
+legend(x=grconvertX(0,"npc"), y=grconvertY(0.93, "npc"),
+       legend=c('p < 0.05 only in distance PERMANOVA','p < 0.05 only in cartesian MANOVA'), pch=15, pt.cex=2, col=powerpal[c(9,1)], bty='n')
 
-plot(tapply(disagreement.n10, effsims, mean)*100~unique(effsims), type='b', pch=21, col=grey(0.8), bg=grey(0.8), ylim=c(0,30), xlim=c(0,3.8), ylab='Disagreement between approaches (%)', xlab='Simulated effect size (Mahalanobis distance)', cex=2, lwd=4, xaxt='n')
+plot(tapply(disagreement.n10, effsims, mean)*100~unique(effsims), type='b', pch=21, col=grey(0.8), bg=grey(0.8), ylim=c(0,30), xlim=c(0,3.8), ylab='Disagreement between approaches (%)', xlab='', cex=2, lwd=4, xaxt='n')
+title(xlab='Simulated effect size\n(Mahalanobis distance)', line=4)
 axis(1, at=c(0,1,2,3))
 points(tapply(disagreement.n20, effsims, mean)*100~unique(effsims), type='b', pch=21, col=grey(0.6), bg=grey(0.6), cex=2, lwd=4)
 points(tapply(disagreement.n50, effsims, mean)*100~unique(effsims), type='b', pch=21, col=grey(0.4), bg=grey(0.4), cex=2, lwd=4)
@@ -411,7 +413,7 @@ points(tapply(disagreement.n100, effsims, mean)*100~unique(effsims), type='b', p
 text(x=3.1, y=tail(tapply(disagreement.n10, effsims, mean)*100, 1), labels='N=10', pos=4)
 text(x=3.1, y=tail(tapply(disagreement.n20, effsims, mean)*100, 1), labels='N=20', pos=4)
 text(x=3.1, y=tail(tapply(disagreement.n50, effsims, mean)*100, 1), labels='N=50', pos=4)
-text(x=3.1, y=tail(tapply(disagreement.n100, effsims, mean)*100, 1), labels='N=100', pos=4)
+text(x=3.1, y=tail(tapply(disagreement.n100, effsims, mean)*100, 1)+1, labels='N=100', pos=4)
 
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "B") 
 

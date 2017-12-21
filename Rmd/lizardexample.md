@@ -22,6 +22,9 @@ First, we need to install the bleeding edge version of pavo:
 devtools::install_github('rmaia/pavo')
 ```
 
+    ## Warning in strptime(x, fmt, tz = "GMT"): unknown timezone 'zone/tz/2017c.
+    ## 1.0/zoneinfo/America/Sao_Paulo'
+
 load the necessary packages and functions:
 
 ``` r
@@ -731,3 +734,56 @@ legend('topright', pch=21, pt.cex=1.6, col=palette[3:4], lwd=2, pt.bg=palette[3:
 ```
 
 ![](../output/figures/examples/lizard_fig_unnamed-chunk-17-1.jpeg)
+
+Plot for publication
+
+``` r
+pdf(height=8*1.3, width=7*1.3, file='figures/lizards-new.pdf')
+par(cex=1, cex.lab=1.5, cex.axis=1.3)
+
+layout(matrix(c(1,2,9,3,4,9,5,6,9,7,8,9), byrow=T, ncol=3))
+par(mar=c(4.2,4.5,0.5,1)+0.1)
+
+aggplot(specs[['lab']], by=gsub("[0-9].*","",names(specs[['lab']])), lwd=3, ylim=c(0,50))
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.8, "npc"), cex=1.5, pos=3, "A") 
+
+plot(spaces[['lab']], pch=21, col=NA, theta=30, perspective=FALSE, vert.cex = 1.7, cex=1.7,
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['lab']]))[-1], 
+                             labels=adjustcolor(palette[1:2], alpha=0.8))))
+
+aggplot(specs[['throat']], by=gsub("[0-9].*","",names(specs[['throat']])), lwd=3, ylim=c(0,50))
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.8, "npc"), cex=1.5, pos=3, "B") 
+
+
+plot(spaces[['throat']], pch=21, col=NA, theta=30, perspective=FALSE, vert.cex = 1.7, cex=1.7,
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['throat']]))[-1], 
+                             labels=adjustcolor(palette[1:2], alpha=0.8))))
+
+aggplot(specs[['roof']], by=gsub("[0-9].*","",names(specs[['roof']])), lwd=3, ylim=c(0,50))
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.8, "npc"), cex=1.5, pos=3, "C") 
+
+plot(spaces[['roof']], pch=21, col=NA, theta=30, perspective=FALSE, vert.cex = 1.7, cex=1.7,
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['roof']]))[-1], 
+                             labels=adjustcolor(palette[1:2], alpha=0.8))))
+
+aggplot(specs[['tongue']], by=gsub("[0-9].*","",names(specs[['tongue']])), lwd=3, ylim=c(0,50))
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.8, "npc"), cex=1.5, pos=3, "D") 
+
+
+plot(spaces[['tongue']], pch=21, col=NA, theta=30, perspective=FALSE, vert.cex = 1.7, cex=1.7,
+      bg=as.character(factor(gsub("[0-9].*","",names(specs[['tongue']]))[-1], 
+                             labels=adjustcolor(palette[1:2], alpha=0.8))))
+
+par(las=1, mar=c(4.2,3,0.5,0.5)+0.1)
+plot(x=bootres[,1], y=4:1, ylim=c(0.8, 4.2), xlim=c(0, 2.5), pch=21, bg=1, cex=3, yaxt='n', ylab='', xlab='Chromatic contrast (JND)')
+
+abline(v=1, lty=3, lwd=2.5)
+segments(bootres[,2], 4:1, bootres[,3], 4:1, lwd=2.5)
+
+axis(2, at=1:4, labels=rev(rownames(bootres)), cex.axis=1.5)
+
+dev.off()
+```
+
+    ## pdf 
+    ##   2

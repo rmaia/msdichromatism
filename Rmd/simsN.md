@@ -164,9 +164,9 @@ Visualizing Results
 sessionInfo()
 ```
 
-    ## R version 3.4.1 (2017-06-30)
+    ## R version 3.4.2 (2017-09-28)
     ## Platform: x86_64-apple-darwin15.6.0 (64-bit)
-    ## Running under: macOS Sierra 10.12.6
+    ## Running under: macOS High Sierra 10.13.2
     ## 
     ## Matrix products: default
     ## BLAS: /Library/Frameworks/R.framework/Versions/3.4/Resources/lib/libRblas.0.dylib
@@ -180,16 +180,16 @@ sessionInfo()
     ## 
     ## other attached packages:
     ## [1] RColorBrewer_1.1-2 vegan_2.4-3        lattice_0.20-35   
-    ## [4] permute_0.9-4      pavo_1.3.0        
+    ## [4] permute_0.9-4      pavo_1.3.1        
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.12     cluster_2.0.6    knitr_1.16       magrittr_1.5    
+    ##  [1] Rcpp_0.12.13     cluster_2.0.6    knitr_1.16       magrittr_1.5    
     ##  [5] MASS_7.3-47      maps_3.2.0       magic_1.5-6      geometry_0.3-6  
-    ##  [9] stringr_1.2.0    globals_0.10.2   tools_3.4.1      grid_3.4.1      
-    ## [13] parallel_3.4.1   nlme_3.1-131     mgcv_1.8-17      htmltools_0.3.6 
-    ## [17] yaml_2.1.14      rprojroot_1.2    digest_0.6.12    Matrix_1.2-10   
+    ##  [9] stringr_1.2.0    globals_0.10.2   tools_3.4.2      grid_3.4.2      
+    ## [13] parallel_3.4.2   nlme_3.1-131     mgcv_1.8-20      htmltools_0.3.6 
+    ## [17] yaml_2.1.14      rprojroot_1.2    digest_0.6.12    Matrix_1.2-11   
     ## [21] pbmcapply_1.2.4  mapproj_1.2-5    codetools_0.2-15 rcdd_1.2        
-    ## [25] evaluate_0.10.1  rmarkdown_1.6    stringi_1.1.5    compiler_3.4.1  
+    ## [25] evaluate_0.10.1  rmarkdown_1.6    stringi_1.1.5    compiler_3.4.2  
     ## [29] backports_1.1.0  future_1.6.1     listenv_0.6.0
 
 Plots for publication:

@@ -281,11 +281,11 @@ sessionInfo()
 plots for publication:
 
 ```{r plotsforpub}
-pdf(width=4*1.3, height=7*1.3, file='figures/threshold_1.pdf')
-par(mfrow=c(3,2), mar=c(4,5,1,1))
+pdf(height=8*1.3, width=7*1.3, file='figures/threshold_1.pdf')
+par(mfrow=c(2,2), cex=1, cex.lab=1.3, cex.axis=1.15, mar=c(4.2,4.5,2.3,1)+0.1)
 
 plot(centdistT~intradistT, 
-     xlab='Mean within-group distance (JND)\n ', ylab=' \nMean distance (JND)', 
+     xlab='Mean within-group distance (JND)', ylab='Mean distance (JND)', 
      ylim=plotrange(c(intradistT,centdistT)), xlim=plotrange(c(intradistT,centdistT)), 
      pch=21, bg=sigpalT, col=NA, log='xy', yaxt='n', xaxt='n')
 axis(1, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
@@ -299,8 +299,8 @@ abline(v=1, lty=3)
 abline(-0.5, 1, lty=5, col='grey')
 
 #legend('topleft', 
-legend(x=grconvertX(0,"npc"), y=grconvertY(0.9, "npc"),
-       pch=21, cex=0.9, bty='n', col=NA, pt.bg=rcbalpha(1, 6, 'RdBu')[c(1,3,6,4)],
+legend(x=grconvertX(-0.01,"npc"), y=grconvertY(0.91, "npc"),
+       pch=21, cex=1, bty='n', col=NA, pt.bg=rcbalpha(1, 6, 'RdBu')[c(1,3,6,4)],
        legend=c('p > 0.05, JND > 1',
                 'p > 0.05, JND < 1',
                 'p < 0.05, JND < 1',
@@ -309,7 +309,7 @@ legend(x=grconvertX(0,"npc"), y=grconvertY(0.9, "npc"),
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "A") 
 
 plot(adonisR2T~centdistT, 
-     ylab=expression(paste(R^2,' (%)')), xlab='Mean distance (JND)\n ', 
+     ylab=expression(paste(R^2,' (%)')), xlab='Mean distance (JND)', 
      ylim=plotrange(adonisR2T), xlim=plotrange(centdistT),
      pch=21, bg=sigpalT, col=NA, log='xy', yaxt='n', xaxt='n')
 #axis(2, at=c(0.05, 0.5, 5, 50), labels=c(0.05, 0.5, 5, 50))
@@ -326,7 +326,7 @@ abline(h=3, lty=3)
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "B") 
 
 plot(adonisR2T~overlapT, 
-     ylab=expression(paste(R^2,' (%)')), xlab='Colour volume overlap (%)\n ',  
+     ylab=expression(paste(R^2,' (%)')), xlab='Colour volume overlap (%)',  
      ylim=c(0.01, 200), xlim=plotrange(overlapT, log=FALSE),
      pch=21, bg=sigpalT, col=NA, log='y', yaxt='n', xaxt='n')
 axis(1, at=c(0,20,40,60))
@@ -338,17 +338,8 @@ axis(2, at=c(seq(0.02,0.09,by=0.01), seq(0.2,0.9,by=0.1), seq(2,9,by=1), seq(20,
 
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "C") 
 
-plot(overlapykeT~overlapT, 
-     ylab="Color volume overlap \n(perceptually-corrected, %)", 
-     xlab="Color volume overlap (%)\n ",
-     ylim=plotrange(c(overlapykeT,overlapT), log=FALSE), xlim=plotrange(c(overlapykeT,overlapT), log=FALSE), 
-     pch=21, bg=sigpalT, col=NA)
-abline(0,1, lty=2)
-
-text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "D") 
-
 plot(centdistT~overlapT,
-     ylab=' \nMean distance (JND)', xlab='Color volume overlap (%)\n ',
+     ylab='Mean distance (JND)', xlab='Color volume overlap (%)',
      ylim=plotrange(centdistT), xlim=plotrange(overlapT, log=FALSE),
      pch=21, bg=sigpalT, col=NA, log='y', yaxt='n', xaxt='n')
 axis(1, at=c(0,20,40,60))
@@ -356,30 +347,37 @@ axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
 axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 abline(h=1, lty=3)
 
-text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "E") 
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "D") 
 
-
-#plot(centdistT~overlapykeT,
-#     ylab='Mean distance (JND)', xlab='Color volume overlap \n(perceptually-corrected, %)',
-#     ylim=plotrange(centdistT), xlim=plotrange(overlapykeT, log=FALSE),
-#     pch=21, bg=sigpalT, col=NA, log='y', yaxt='n')
-#axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
-#xis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
-#abline(h=1, lty=3)
-
-#plot(mahdT~overlapT,
-#     ylab='Mean distance (JND)', xlab='Color volume overlap \n(perceptually-corrected, %)',
-#     ylim=plotrange(mahdT), xlim=plotrange(overlapT, log=FALSE),
-#     pch=21, bg=sigpalT, col=NA, log='y', yaxt='n')
-#axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
-#axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
-#abline(h=1, lty=3)
-
-plot(mahdT~adonisR2T,
-     pch=21, bg=sigpalT, col=NA, log='xy')
-
-
-text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "F") 
- 
 dev.off()
+
+pdf(height=4*1.3, width=7*1.3, file='figures/threshold_ESM.pdf')
+par(mfrow=c(1,2), cex=1, cex.lab=1.3, cex.axis=1.15, mar=c(5.2,5.5,1.3,0)+0.1)
+
+
+plot(overlapykeT~overlapT, 
+     ylab="Color volume overlap \n(perceptually-corrected, %)", 
+     xlab="Color volume overlap (%)",
+     ylim=plotrange(c(overlapykeT,overlapT), log=FALSE), xlim=plotrange(c(overlapykeT,overlapT), log=FALSE), 
+     pch=21, bg=sigpalT, col=NA)
+abline(0,1, lty=2)
+
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "A") 
+
+plot(centdistT~overlapykeT,
+     ylab='Mean distance (JND)', 
+     xlab='', 
+     ylim=plotrange(centdistT), xlim=plotrange(overlapykeT, log=FALSE),
+     pch=21, bg=sigpalT, col=NA, log='y', yaxt='n', xaxt='n')
+axis(1, at=c(0,20,40,60))
+axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
+axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
+abline(h=1, lty=3)
+title(xlab='Color volume overlap \n(perceptually-corrected, %)', line=4)
+
+text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "B") 
+
+
+dev.off()
+
 ```
