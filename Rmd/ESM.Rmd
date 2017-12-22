@@ -46,9 +46,6 @@ require(biotools)
 require(MASS)
 require(pbmcapply)
 require(RColorBrewer)
-
-# load aesthetic functions (plot, make colors transparent)
-source('R/aesthetic.R')
 ```
 
 ## The Data
@@ -319,21 +316,21 @@ abline(v=1, lty=3)
 We can compare the Bayesian posterior mode and credible interval to the bootstrap mean and confidence intervals:
 
 ```{r}
-palette <- rcbalpha(1, 4, 'Set1')
+palette <- brewer.pal(4, 'Set1')[3:4]
 
-plot(0.9, bootds[,'dS.mean'], xlim=c(0.5, 1.5), ylim=c(0, 2.5), pch=21, col=NULL, bg=palette[3], cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
+plot(0.9, bootds[,'dS.mean'], xlim=c(0.5, 1.5), ylim=c(0, 2.5), pch=21, col=NULL, bg=palette[1], cex=2, xaxt='n', xlab='Centroid comparison', ylab='Chromatic contrast (JND)')
 
-segments(0.9, bootds[,'dS.lwr'], 0.9, bootds[,'dS.upr'], lwd=2, col=palette[3])
+segments(0.9, bootds[,'dS.lwr'], 0.9, bootds[,'dS.upr'], lwd=2, col=palette[1])
 
-points(1.1, credibleints[,'posteriormode'], pch=21, bg=palette[4], cex=2, col=NULL)
+points(1.1, credibleints[,'posteriormode'], pch=21, bg=palette[2], cex=2, col=NULL)
 
-segments(1.1, credibleints[,'lower'], 1.1, credibleints[,'upper'], lwd=2, col=palette[4])
+segments(1.1, credibleints[,'lower'], 1.1, credibleints[,'upper'], lwd=2, col=palette[2])
 
 abline(h=1, lty=3, lwd=2)
 
 
 axis(1, at=1, labels="Labials")
 
-legend('topright', pch=21, pt.cex=1.6, col=palette[3:4], lwd=2, pt.bg=palette[3:4], legend=c('Bootsrap estimate', 'Bayesian posterior'))
+legend('topright', pch=21, pt.cex=1.6, col=palette, lwd=2, pt.bg=palette, legend=c('Bootsrap estimate', 'Bayesian posterior'))
 
 ```
