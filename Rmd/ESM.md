@@ -1,5 +1,6 @@
 Electronic Supplementary Material for 'Comparing colours using visual models'
 ================
+Rafael Maia & Thomas White
 
 -   [Up-to-date scripts and examples](#up-to-date-scripts-and-examples)
 -   [Supplementary figures](#supplementary-figures)

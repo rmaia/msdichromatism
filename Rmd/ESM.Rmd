@@ -1,5 +1,6 @@
 ---
 title: "Electronic Supplementary Material for 'Comparing colours using visual models'"
+author: "Rafael Maia & Thomas White"
 output: 
 # html_document:
 #   keep_md: yes
