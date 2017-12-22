@@ -328,6 +328,37 @@ box()
 legend('topright', legend=c('significant in Adonis but not in MANOVA','significant in MANOVA but not in Adonis'), fill=powerpal[c(9,1)], bty='n')
 ```
 
+```{r, echo=FALSE, dependson='statscalc'}
+par(mfrow=c(2,2))
+hist(adonisPval.n10[effsims %in% 0], freq=FALSE, breaks=seq(0,1,by=0.05),
+  main='ADONIS, N=10', xlab='P-value', col='lightgrey')
+abline(h=1, lty=2)
+hist(adonisPval.n20[effsims %in% 0], freq=FALSE, breaks=seq(0,1,by=0.05), 
+  main='ADONIS, N=20', xlab='P-value', col='lightgrey')
+abline(h=1, lty=2)
+hist(adonisPval.n50[effsims %in% 0], freq=FALSE, breaks=seq(0,1,by=0.05), 
+  main='ADONIS, N=50', xlab='P-value', col='lightgrey')
+abline(h=1, lty=2)
+hist(adonisPval.n100[effsims %in% 0], freq=FALSE, breaks=seq(0,1,by=0.05), 
+  main='ADONIS, N=100', xlab='P-value', col='lightgrey')
+abline(h=1, lty=2)
+
+hist(manovaPval.n10[effsims %in% 0], freq=FALSE, breaks=seq(0,1,by=0.05),
+  main='MANOVA, N=10', xlab='P-value', col='lightgrey')
+abline(h=1, lty=2)
+hist(manovaPval.n20[effsims %in% 0], freq=FALSE, breaks=seq(0,1,by=0.05), 
+  main='MANOVA, N=20', xlab='P-value', col='lightgrey')
+abline(h=1, lty=2)
+hist(manovaPval.n50[effsims %in% 0], freq=FALSE, breaks=seq(0,1,by=0.05), 
+  main='MANOVA, N=50', xlab='P-value', col='lightgrey')
+abline(h=1, lty=2)
+hist(manovaPval.n100[effsims %in% 0], freq=FALSE, breaks=seq(0,1,by=0.05), 
+  main='MANOVA, N=100', xlab='P-value', col='lightgrey')
+abline(h=1, lty=2)
+
+
+```
+
 ```{r}
 sessionInfo()
 ```

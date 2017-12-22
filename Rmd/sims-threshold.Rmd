@@ -231,6 +231,14 @@ sigpalT <- as.character(factor(paste(adonisPT, centroidPT),
 #sigpalT[sigpalT=="#FDDBC7CC"] <- "#D1E5F0CC"
 ```
 
+```{r}
+table(as.character(factor(paste(adonisPT, centroidPT), 
+          levels=c("FALSE FALSE", "FALSE TRUE", "TRUE FALSE", "TRUE TRUE")))
+      ) / length(factor(paste(adonisPT, centroidPT)))
+
+# TRUE TRUE: P < 5  JND > 1
+```
+
 ## Visualizing Results
   
 color legend:
@@ -274,7 +282,6 @@ plot(centdistT, overlapT,  pch=19, col=sigpalT,
 ```
 
 ```{r}
-range(mahdT)
 sessionInfo()
 ```
 
@@ -356,7 +363,7 @@ par(mfrow=c(1,2), cex=1, cex.lab=1.3, cex.axis=1.15, mar=c(5.2,5.5,1.3,0)+0.1)
 
 
 plot(overlapykeT~overlapT, 
-     ylab="Color volume overlap \n(perceptually-corrected, %)", 
+     ylab="Color volume overlap \n(receptor noise-corrected, %)", 
      xlab="Color volume overlap (%)",
      ylim=plotrange(c(overlapykeT,overlapT), log=FALSE), xlim=plotrange(c(overlapykeT,overlapT), log=FALSE), 
      pch=21, bg=sigpalT, col=NA)
@@ -373,7 +380,7 @@ axis(1, at=c(0,20,40,60))
 axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
 axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 abline(h=1, lty=3)
-title(xlab='Color volume overlap \n(perceptually-corrected, %)', line=4)
+title(xlab='Color volume overlap \n(receptor noise-corrected, %)', line=4)
 
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "B") 
 

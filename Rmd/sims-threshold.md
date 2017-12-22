@@ -105,6 +105,20 @@ gc(verbose=FALSE)
     ## Ncells  2026635 108.3    3205452 171.2  3205452 171.2
     ## Vcells 53495851 408.2   77230057 589.3 87709106 669.2
 
+``` r
+table(as.character(factor(paste(adonisPT, centroidPT), 
+          levels=c("FALSE FALSE", "FALSE TRUE", "TRUE FALSE", "TRUE TRUE")))
+      ) / length(factor(paste(adonisPT, centroidPT)))
+```
+
+    ## 
+    ## FALSE FALSE  FALSE TRUE  TRUE FALSE   TRUE TRUE 
+    ##       0.375       0.202       0.151       0.272
+
+``` r
+# TRUE TRUE: P < 5  JND > 1
+```
+
 Visualizing Results
 -------------------
 
@@ -116,13 +130,7 @@ color legend:
 -   light blue: adonis and centroid distance &gt; 1 (GOOD)
 -   dark blue: adonis significant, centroid distance &lt; 1 (BAD)
 -   dark red: adonis non-significant, centroid distance &gt; 1 (BAD)
--   light red: adonis and centroid distance &lt; 1 (GOOD) ![](../output/figures/final_threshold_fig_unnamed-chunk-3-1.jpeg)
-
-``` r
-range(mahdT)
-```
-
-    ## [1] 1.297008e-01 2.267369e+04
+-   light red: adonis and centroid distance &lt; 1 (GOOD) ![](../output/figures/final_threshold_fig_unnamed-chunk-4-1.jpeg)
 
 ``` r
 sessionInfo()
@@ -239,7 +247,7 @@ par(mfrow=c(1,2), cex=1, cex.lab=1.3, cex.axis=1.15, mar=c(5.2,5.5,1.3,0)+0.1)
 
 
 plot(overlapykeT~overlapT, 
-     ylab="Color volume overlap \n(perceptually-corrected, %)", 
+     ylab="Color volume overlap \n(receptor noise-corrected, %)", 
      xlab="Color volume overlap (%)",
      ylim=plotrange(c(overlapykeT,overlapT), log=FALSE), xlim=plotrange(c(overlapykeT,overlapT), log=FALSE), 
      pch=21, bg=sigpalT, col=NA)
@@ -256,7 +264,7 @@ axis(1, at=c(0,20,40,60))
 axis(2, at=c(0.1, 1, 10), labels=c(0.1, 1, 10))
 axis(2, at=c(seq(0.2,0.9, by=0.1), seq(2,9, by=1)), tcl=par("tcl")*0.5, labels=FALSE)
 abline(h=1, lty=3)
-title(xlab='Color volume overlap \n(perceptually-corrected, %)', line=4)
+title(xlab='Color volume overlap \n(receptor noise-corrected, %)', line=4)
 
 text(x=grconvertX(0.05,"npc"), y=grconvertY(0.95, "npc"), cex=1.5, "B") 
 

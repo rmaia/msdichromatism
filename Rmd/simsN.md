@@ -160,6 +160,8 @@ Visualizing Results
 
 ![](../output/figures/SimN_fig_unnamed-chunk-4-1.jpeg)
 
+![](../output/figures/SimN_fig_unnamed-chunk-5-1.jpeg)![](../output/figures/SimN_fig_unnamed-chunk-5-2.jpeg)
+
 ``` r
 sessionInfo()
 ```
