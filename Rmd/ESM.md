@@ -5,9 +5,7 @@ Rafael Maia & Thomas White
 
 # Up-to-date scripts and examples
 
-For updated scripts and more reproducible scripts, check the github page. 
-
-Link: https://github.com/rmaia/msdichromatism
+For updated scripts and more reproducible scripts, check the github page. Link: https://github.com/rmaia/msdichromatism 
 
 # Supplementary figures
 
@@ -49,7 +47,7 @@ Calculate deltaS according to conspecific (tetrachromatic) visual system
 
 
 ```r
-specs <-  as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE)
+specs <- as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE)
 
 # Ctenophorus ornatus
 liz_vis <- sensmodel(c(360, 440, 493, 571)) 

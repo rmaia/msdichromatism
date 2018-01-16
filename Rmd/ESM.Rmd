@@ -3,9 +3,9 @@ title: "Electronic Supplementary Material for 'Comparing colours using visual mo
 author: "Rafael Maia & Thomas White"
 output: 
  html_document:
+  toc: true
+  toc_depth: 2
   keep_md: yes
-# md_document:
-#   variant: markdown_github
   github_document:
     dev: jpeg
     toc: true
@@ -25,9 +25,7 @@ set.seed(3128)
 
 # Up-to-date scripts and examples
 
-For updated scripts and more reproducible scripts, check the github page. 
-
-Link: https://github.com/rmaia/msdichromatism
+For updated scripts and more reproducible scripts, check the github page. Link: https://github.com/rmaia/msdichromatism 
 
 # Supplementary figures
 
@@ -60,7 +58,7 @@ Calculate deltaS according to conspecific (tetrachromatic) visual system
 
 ```{r message=FALSE, warning=FALSE}
 
-specs <-  as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE)
+specs <- as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE)
 
 # Ctenophorus ornatus
 liz_vis <- sensmodel(c(360, 440, 493, 571)) 

@@ -121,11 +121,23 @@ $(document).ready(function () {
 
 </div>
 
+<div id="TOC">
+<ul>
+<li><a href="#up-to-date-scripts-and-examples">Up-to-date scripts and examples</a></li>
+<li><a href="#supplementary-figures">Supplementary figures</a></li>
+<li><a href="#example-analyses">Example analyses</a><ul>
+<li><a href="#the-data">The Data</a></li>
+<li><a href="#approach-1-distance-based-permanova">Approach 1: distance-based PERMANOVA</a></li>
+<li><a href="#approach-2-cartesian-manova">Approach 2: Cartesian MANOVA</a></li>
+<li><a href="#approach-3-bayesian-multi-response-model-using-mcmcglmm">Approach 3: Bayesian multi-response model using MCMCglmm</a></li>
+<li><a href="#comparing-bayesian-vs.bootstrap-estimates">Comparing Bayesian vs. Bootstrap estimates</a></li>
+</ul></li>
+</ul>
+</div>
 
 <div id="up-to-date-scripts-and-examples" class="section level1">
 <h1>Up-to-date scripts and examples</h1>
-<p>For updated scripts and more reproducible scripts, check the github page.</p>
-<p>Link: <a href="https://github.com/rmaia/msdichromatism" class="uri">https://github.com/rmaia/msdichromatism</a></p>
+<p>For updated scripts and more reproducible scripts, check the github page. Link: <a href="https://github.com/rmaia/msdichromatism" class="uri">https://github.com/rmaia/msdichromatism</a></p>
 </div>
 <div id="supplementary-figures" class="section level1">
 <h1>Supplementary figures</h1>
@@ -150,7 +162,7 @@ require(RColorBrewer)</code></pre>
 <p>Reflectance data from four body regions of male and female <em>Ctenophorus ornatus</em> (Whiting et al. 2015, Biol J Linn Soc). Labium, throat, tongue, and mouth-roof.</p>
 <p><strong>Question:</strong> Is the labium region sexually dichromatic?</p>
 <p>Calculate deltaS according to conspecific (tetrachromatic) visual system</p>
-<pre class="r"><code>specs &lt;-  as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE)
+<pre class="r"><code>specs &lt;- as.rspec(read.csv('data/dichromatism/lab.csv'), interp = FALSE)
 
 # Ctenophorus ornatus
 liz_vis &lt;- sensmodel(c(360, 440, 493, 571)) 
