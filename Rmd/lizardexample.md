@@ -23,7 +23,7 @@ devtools::install_github('rmaia/pavo')
 ```
 
     ## Warning in strptime(x, fmt, tz = "GMT"): unknown timezone 'zone/tz/2017c.
-    ## 1.0/zoneinfo/America/Sao_Paulo'
+    ## 1.0/zoneinfo/America/New_York'
 
 load the necessary packages and functions:
 
@@ -738,7 +738,8 @@ legend('topright', pch=21, pt.cex=1.6, col=palette[3:4], lwd=2, pt.bg=palette[3:
 Plot for publication
 
 ``` r
-pdf(height=8*1.3, width=7*1.3, file='figures/lizards-new.pdf')
+#pdf(height=8*1.3, width=7*1.3, file='figures/lizards-new.pdf')
+cairo_ps(height=8*1.3, width=7*1.3, file='figures/lizards-new.ps')
 par(cex=1, cex.lab=1.5, cex.axis=1.3)
 
 layout(matrix(c(1,2,9,3,4,9,5,6,9,7,8,9), byrow=T, ncol=3))

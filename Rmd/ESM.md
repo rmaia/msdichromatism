@@ -304,7 +304,7 @@ axis(1, at=1, labels='Labials')
 
 we can extract both statistical and perceptual information from the posterior distribution of a Bayesian analysis using a multi-response model and the package MCMCglmm. In this analysis, we will estimate the variance-covariance structure, so the assumption of homogeneity of variances is relaxed.
 
-Before we do that, we will center all cartesian variables on the female means --- this way, since the model does not have an intercept, male estimates and pMCMC can be interpreted as the effect of sex on each response (X, Y and Z). **This step is essential if we want to interpret model estimates as differences**:
+Before we do that, we will center all cartesian variables on the female means --- this way, since the model does not have an intercept, male estimates and pMCMC can be interpreted as the effect of sex on each response (X, Y and Z). **This step is essential if we want to interpret model estimates as differences** (normally this would be similar to just not using the `-1` model specification, but for multi-response models this can cause issues on estimating parameters and interpreting them, as the intercept is based on only one of the responses):
 
 
 ```r
@@ -336,6 +336,8 @@ mcmcres <- MCMCglmm(
   )
 ```
 
+In this model, `fixed` will give the group-specific means, `rcov` is specified to give group-specific covariance matrices, and there is no `random` because each row is a single observation from an individual (i.e. there are no repeated measures or other sources of non-independence).
+
 Check chain mixing. 
 
 
@@ -351,7 +353,7 @@ plot(mcmcres$Sol, density = FALSE)
 
 ![](../output/figures/examples/ESM_fig_unnamed-chunk-11-3.png)<!-- -->
 
-We can see that the posterior estimates approximate the data fairly well (though the chain could probably have been run for a little longer):
+we can go on to compare these posterior estimates to the covariance matrix from the data:
 
 
 ```r
@@ -465,7 +467,7 @@ summary(mcmcres)
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
-Let's interpret the results above. According to the location effects, males and females are statistically different in their position in colour space along all three axes of variation (X, Y and Z; since we centered values on female means, male estimates can be interpreted as the difference between sexes). Further, we have defined our model such that it estimated the residual covariance matrices for males and females independently. We can check that the posterior mean values approximate the empirical ones:
+Let's interpret the results above. The results look good, though the chain could probably have been run for a little longer, based on the effective sample sizes. According to the location effects, males and females are statistically different in their position in colour space along all three axes of variation (X, Y and Z; since we centered values on female means, male estimates can be interpreted as the difference between sexes). Further, we have defined our model such that it estimated the residual covariance matrices for males and females independently. We can check that the posterior mean values approximate the empirical ones:
 
 
 ```r

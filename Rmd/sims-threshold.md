@@ -167,7 +167,8 @@ sessionInfo()
 plots for publication:
 
 ``` r
-pdf(height=8*1.3, width=7*1.3, file='figures/threshold_1.pdf')
+#pdf(height=8*1.3, width=7*1.3, file='figures/threshold_1.pdf')
+cairo_ps(height=8*1.3, width=7*1.3, file='figures/threshold_1.ps')
 par(mfrow=c(2,2), cex=1, cex.lab=1.3, cex.axis=1.15, mar=c(4.2,4.5,2.3,1)+0.1)
 
 plot(centdistT~intradistT, 
@@ -242,7 +243,8 @@ dev.off()
     ##   2
 
 ``` r
-pdf(height=4*1.3, width=7*1.3, file='figures/threshold_ESM.pdf')
+#pdf(height=4*1.3, width=7*1.3, file='figures/threshold_ESM.pdf')
+cairo_ps(height=4*1.3, width=7*1.3, file='figures/threshold_ESM.ps')
 par(mfrow=c(1,2), cex=1, cex.lab=1.3, cex.axis=1.15, mar=c(5.2,5.5,1.3,0)+0.1)
 
 

@@ -369,7 +369,8 @@ Plots for publication:
 ogoma <- par()$oma
 ogmar <- par()$mar
 
-pdf(height=4*1.3*2, width=7/3*2*1.3*2, pointsize = 12*2, file='figures/samplesize_1.pdf')
+#pdf(height=4*1.3*2, width=7/3*2*1.3*2, pointsize = 12*2, file='figures/samplesize_1.pdf')
+cairo_ps(height=4*1.3*2, width=7/3*2*1.3*2, pointsize = 12*2, file='figures/samplesize_1.ps')
 
 par(mfrow=c(2,2), oma=c(3,3,0,0), mar=c(2,2,1,1))
 plot(pvsimsadonis.n10~unique(effsims), pch=21, cex=2,  lwd=4, type='b', ylab='', xlab='', ylim=c(0,1.2), col=powerpal[9], bg=powerpal[9], xaxt='n', yaxt='n')
@@ -422,7 +423,8 @@ mtext('Proportion of significant tests', side = 2, outer = TRUE, line = 1)
 
 dev.off()
 
-pdf(height=4*1.3*2, width=7*1.3*2, pointsize = 12*2, file='figures/samplesize_2.pdf')
+#pdf(height=4*1.3*2, width=7*1.3*2, pointsize = 12*2, file='figures/samplesize_2.pdf')
+cairo_ps(height=4*1.3*2, width=7*1.3*2, pointsize = 12*2, file='figures/samplesize_2.ps')
 par(mfrow=c(1,2), cex.lab=1.3, cex.axis=1.15, mar=c(5,4.5,4,1.5)+0.1)
 
 barplot(t(disbar), beside=TRUE, ylab='Simulations (%)',xlab='Sample size', col=powerpal[c(9,1)], ylim=c(0,15), yaxt='n')
